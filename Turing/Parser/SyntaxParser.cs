@@ -43,46 +43,30 @@ namespace Turing.Parser
             }
         }
 
-
         // Used for generation of the tree
         private List<SyntaxNode> Statements;
-        private SyntaxNode CurrentNode;
 
         public SyntaxNode ParseTree()
         {
             // Initialise a list of statements
             Statements = new List<SyntaxNode>();
 
+            SyntaxNode CurrentNode;
             // Use a while loop for more control
-            int iIndex = 0;
-            while (iIndex < TokenList.Count)
+            while (TokenList.HasTokensLeftToProcess())
             {
-                //
-                if (CurrentNode == null)
-                {
-                    CurrentNode = SyntaxTokenToNodeConverter.ConvertTokenToNode(TokenList[iIndex]);
-                }
-                else
-                {
+                // Get the next token
+                CurrentNode = TokenList.PopToken();
 
-                }
+                // Convert the Token into a proper Node if necessary
 
-                //
-                iIndex++;
+                // Have the node Consume from the list
+
+                // Rinse and repeat
             }
 
-            return new SyntaxNode(new SyntaxToken(SyntaxKind.UnknownToken, "?"));
+            return new SyntaxNode(SyntaxKind.UnknownToken, "?");
         }
 
-
-        protected Boolean ConsumeNode()
-        {
-
-            if (CurrentNode.GetType() == typeof(SelectSyntaxNode))
-            {
-
-            }
-            return false;
-        }
     }
 }

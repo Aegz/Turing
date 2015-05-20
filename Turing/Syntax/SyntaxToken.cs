@@ -8,16 +8,8 @@ namespace Turing.Syntax
     /// Core Token object. Does not inherit from anything but is a component
     /// of the Syntax Node
     /// </summary>
-    public class SyntaxToken 
+    public class SyntaxToken : SyntaxNode
     {
-        #region Object Attributes
-
-        public String RawSQLText { get; set; }  // Always store the raw SQL text if you can for reproduction
-        public SyntaxNode Parent { get; set; }  // Parent Node
-        public List<StatusItem> Comments;       // Comments/Errors specific to this node
-        public SyntaxKind ExpectedType { get; set; } // The Expected type of this node
-        
-        #endregion
 
         #region Trivia
         private List<SyntaxTrivia> aoLeadingTrivia;
@@ -55,11 +47,8 @@ namespace Turing.Syntax
         }
         #endregion
 
-        public SyntaxToken(SyntaxKind xeType, List<SyntaxTrivia> xoLeading, List<SyntaxTrivia> xoTrailing, String xsRawText)
+        public SyntaxToken(SyntaxKind xeType, List<SyntaxTrivia> xoLeading, List<SyntaxTrivia> xoTrailing, String xsRawText) : base(xeType, xsRawText)
         {
-            ExpectedType = xeType;
-            RawSQLText = xsRawText;
-            Comments = new List<StatusItem>();
         }
 
         public SyntaxToken(SyntaxKind xeType, String xsRawText) : this (xeType, null, null, xsRawText)

@@ -20,16 +20,6 @@ namespace Turing.Syntax.Constructs
             aoChildren = xaoChildren;
         }
 
-        public override bool TryAddChild(SyntaxNode xoNode)
-        {
-            // Check that we are inserting the right type
-            if (xoNode.GetType() == typeof(StatementSyntaxNode)) // Only accept statements
-            {
-                return base.TryAddChild(xoNode);
-            }
-
-            return false;
-        }
 
     }
 }

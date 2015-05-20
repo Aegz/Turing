@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Turing.Diagnostics;
-
+using Turing.Syntax.Collections;
 
 namespace Turing.Syntax
 {
@@ -12,7 +12,10 @@ namespace Turing.Syntax
     {
         #region Object Attributes
 
-        public SyntaxToken Token;
+        public String RawSQLText { get; set; }  // Always store the raw SQL text if you can for reproduction
+        public SyntaxNode Parent { get; set; }  // Parent Node
+        public List<StatusItem> Comments;       // Comments/Errors specific to this node
+        public SyntaxKind ExpectedType { get; set; } // The Expected type of this node
 
         #endregion
 
@@ -20,7 +23,7 @@ namespace Turing.Syntax
 
         protected List<SyntaxNode> aoChildren;
 
-        protected List<SyntaxNode> Children
+        public List<SyntaxNode> Children
         {
             get
             {
@@ -33,39 +36,30 @@ namespace Turing.Syntax
             }
         }
 
-        /// <summary>
-        /// Override this method to determine whether a node can be added or not
-        /// </summary>
-        /// <param name="xoNode"></param>
-        public virtual Boolean TryAddChild(SyntaxNode xoNode)
-        {
-            // Just add it
-            Children.Add(xoNode);
-
-            // Return true
-            return true;
-        }
-
         #endregion
 
+        #region Construction
         /// <summary>
         /// SyntaxNodes can hold a SyntaxToken (which will be supplementary
         /// to the underlying tree)
         /// </summary>
         /// <param name="xoToken"></param>
-        public SyntaxNode(SyntaxToken xoToken)
+        public SyntaxNode(SyntaxKind xeType, String xsRawText)
         {
-            Token = xoToken;
+            ExpectedType = xeType;
+            RawSQLText = xsRawText;
+            Comments = new List<StatusItem>();
         }
 
-        /// <summary>
-        /// Allow empty construction
-        /// </summary>
-        public SyntaxNode()
+        public SyntaxNode() : this (SyntaxKind.UnknownToken, String.Empty)
         {
-            Token = new SyntaxToken(SyntaxKind.UnknownToken, "");
         }
+        #endregion
 
-
+        public virtual Boolean TryConsumeList(SyntaxTokenList xoWindow)
+        {
+            // Syntax Nodes themselves cannot consume anything.
+            return false;
+        }
     }
 }

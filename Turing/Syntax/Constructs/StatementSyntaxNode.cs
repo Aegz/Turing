@@ -10,14 +10,5 @@ namespace Turing.Syntax.Constructs
     {
 
 
-        public override bool TryAddChild(SyntaxNode xoNode)
-        {
-            // Check that we are inserting the right type
-            if (xoNode.GetType() == typeof(SyntaxNode)) // Keywords
-            {
-                return base.TryAddChild(xoNode);
-            }
-            return false;
-        }
     }
 }
