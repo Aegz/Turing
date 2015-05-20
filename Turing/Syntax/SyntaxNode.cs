@@ -18,7 +18,7 @@ namespace Turing.Syntax
 
         #region Node Attributes
 
-        private List<SyntaxNode> aoChildren;
+        protected List<SyntaxNode> aoChildren;
 
         protected List<SyntaxNode> Children
         {

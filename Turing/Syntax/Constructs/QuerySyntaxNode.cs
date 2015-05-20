@@ -8,10 +8,17 @@ namespace Turing.Syntax.Constructs
 {
     class QuerySyntaxNode : SyntaxNode
     {
-        public QuerySyntaxNode(SyntaxToken xoToken) : base(xoToken)
+        public QuerySyntaxNode() : base()
         {
+            // Always start with 1
+            Children.Add(new StatementSyntaxNode());
+
         }
 
+        public QuerySyntaxNode(List<SyntaxNode> xaoChildren) : base()
+        {
+            aoChildren = xaoChildren;
+        }
 
         public override bool TryAddChild(SyntaxNode xoNode)
         {
