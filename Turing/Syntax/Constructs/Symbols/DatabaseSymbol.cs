@@ -6,7 +6,10 @@ using System.Threading.Tasks;
 
 namespace Turing.Syntax.Constructs.Symbols
 {
-    class DatabaseSymbol
+    class DatabaseSymbol : Symbol
     {
+        public DatabaseSymbol(String xsRawText) : base (xsRawText)
+        {
+        }
     }
 }

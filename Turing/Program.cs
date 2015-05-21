@@ -10,17 +10,11 @@ namespace Turing
         static SlidingTextWindow oText = new SlidingTextWindow(
             @"   
                         /* TEST */      
-                        WITH _X AS
-                        (
-                            SELECT * FROM APMART_FPVIEWS..FPC_SERVICE LIMIT 100
-                        )
                         SELECT  
                         *
                         FROM
                             APSHARE_FPVIEWS..FPC_SERVICE svc   
-                        INNER JOIN
-                            _X
-                            ON _X.SVC_IDNTY = svc.SVC_IDNTY   
+
                 ");
 
 
@@ -31,7 +25,7 @@ namespace Turing
 
             Parser.SyntaxParser oParser = new Parser.SyntaxParser(oText);
 
-
+            SyntaxNode oTemp = oParser.ParseTree();
 
             Console.WriteLine();
         }

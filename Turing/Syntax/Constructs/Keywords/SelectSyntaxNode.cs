@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Turing.Parser;
 using Turing.Syntax.Collections;
 using Turing.Syntax.Constructs.Symbols;
 
@@ -10,21 +11,36 @@ namespace Turing.Syntax.Constructs.Keywords
 {
     class SelectSyntaxNode : SyntaxNode
     {
-        protected List<Symbol> aoColumns;
-        public List<Symbol> Columns
+        public SelectSyntaxNode(String xsRawText) : base (SyntaxKind.SelectKeyword, xsRawText)
         {
-            get
+            AcceptedTypes.AddRange(new List<SyntaxKind>
             {
-                if (aoColumns == null)
-                {
-                    aoColumns = new List<Symbol>();
-                }
+                // Star and Columns
+                { SyntaxKind.StarToken },
+                { SyntaxKind.IdentifierToken },
 
-                return aoColumns;
-            }
+                // Core Keywords
+                { SyntaxKind.FromKeyword },
+                { SyntaxKind.WhereKeyword },
+                { SyntaxKind.GroupByKeyword },
+                { SyntaxKind.OrderByKeyword },
+                { SyntaxKind.LimitKeyword },
+            });
         }
 
+        public override SyntaxNode ConvertTokenIntoNode(SyntaxToken xoToken, SyntaxTokenList xoList)
+        {
+            // If we need to perform a context sensitive conversion
+            if (SyntaxNode.IsIdentifier(xoToken.ExpectedType) || // Generic Identifiers allowed here too
+                xoToken.ExpectedType == SyntaxKind.StarToken) // * in Column is allowed
+            {
+                // Perform context sensitive conversion here
+                return new ColumnSymbol(xoToken.RawSQLText);
+            }
 
- 
+            // Default to using the original conversion
+            return base.ConvertTokenIntoNode(xoToken, xoList);
+
+        }
     }
 }

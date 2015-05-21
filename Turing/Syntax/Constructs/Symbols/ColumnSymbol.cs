@@ -6,7 +6,10 @@ using System.Threading.Tasks;
 
 namespace Turing.Syntax.Constructs.Symbols
 {
-    class ColumnSymbol
+    class ColumnSymbol : Symbol
     {
+        public ColumnSymbol(String xsRawText) : base (xsRawText)
+        {
+        }
     }
 }

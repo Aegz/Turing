@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Turing.Diagnostics;
 using Turing.Factories;
 using Turing.Syntax;
 using Turing.Utilities;
@@ -55,11 +56,9 @@ namespace Turing.Lexer.Scanner
                 {
                     // Intermediate Var (Add all the text as a comment)
                     SyntaxTrivia oCommentNode = SyntaxFactory.SingleLineComment(sCommentLine);
-                    Diagnostics.StatusItem oStatusMessage = new Diagnostics.StatusItem();
-                    oStatusMessage.Message = "Single Comment was not terminated (No termination found)";
 
                     // Add the erroraneous message
-                    oCommentNode.Comments.Add(oStatusMessage);
+                    oCommentNode.Comments.Add(new StatusItem(ErrorMessageLibrary.COMMENT_NOT_TERMINATED));
 
                     // return the comment node with everything in comments
                     return oCommentNode;
@@ -72,9 +71,13 @@ namespace Turing.Lexer.Scanner
             // Intermediate Var (Add all the text as a comment)
             SyntaxTrivia oErraneousToken = new SyntaxTrivia(
                 SyntaxKind.UnknownToken, // Unknown
-                Convert.ToString(TextWindow.PopCharacter())); // Get the character out of the stream
-            Diagnostics.StatusItem oErrorMessage = new Diagnostics.StatusItem();
-            oErrorMessage.Message = "Unknown token found (-). Expecting trivia";
+                Convert.ToString(TextWindow.PeekCharacter())); // Get the character out of the stream
+
+            StatusItem oErrorMessage = new StatusItem(
+                String.Format(
+                    ErrorMessageLibrary.UNEXPECTED_TOKEN_FOUND, 
+                    TextWindow.PopCharacter()));
+
 
             // Add the erroraneous message
             oErraneousToken.Comments.Add(oErrorMessage);
@@ -129,9 +132,8 @@ namespace Turing.Lexer.Scanner
                 {
                     // Intermediate Var (Add all the text as a comment)
                     SyntaxTrivia oCommentNode = SyntaxFactory.MultiLineComment(sCommentLine);
-                    Diagnostics.StatusItem oStatusMessage = new Diagnostics.StatusItem();
-                    oStatusMessage.Message = "Multi Line Comment not completed (No */ Found)";
-
+                    Diagnostics.StatusItem oStatusMessage = new Diagnostics.StatusItem(ErrorMessageLibrary.COMMENT_NOT_TERMINATED);
+ 
                     // Add the erroraneous message
                     oCommentNode.Comments.Add(oStatusMessage);
 
@@ -146,9 +148,12 @@ namespace Turing.Lexer.Scanner
             // Intermediate Var (Add all the text as a comment)
             SyntaxTrivia oErraneousToken = new SyntaxTrivia(
                 SyntaxKind.UnknownToken, // Unknown
-                Convert.ToString(TextWindow.PopCharacter())); // Get the character out of the stream
-            Diagnostics.StatusItem oErrorMessage = new Diagnostics.StatusItem();
-            oErrorMessage.Message = "Unknown token found (/). Expecting trivia";
+                Convert.ToString(TextWindow.PeekCharacter())); // Get the character out of the stream
+
+            StatusItem oErrorMessage = new StatusItem(
+                String.Format(
+                    ErrorMessageLibrary.UNEXPECTED_TOKEN_FOUND,
+                    TextWindow.PopCharacter()));
 
             // Add the erroraneous message
             oErraneousToken.Comments.Add(oErrorMessage);

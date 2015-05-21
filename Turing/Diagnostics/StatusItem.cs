@@ -14,5 +14,10 @@ namespace Turing.Diagnostics
 
         public String Message { get; set; }
 
+
+        public StatusItem(String xsMessage)
+        {
+            Message = xsMessage;
+        }
     }
 }

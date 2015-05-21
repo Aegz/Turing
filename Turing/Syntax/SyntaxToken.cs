@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Turing.Diagnostics;
+using Turing.Syntax.Collections;
 
 namespace Turing.Syntax
 {
@@ -53,6 +54,18 @@ namespace Turing.Syntax
 
         public SyntaxToken(SyntaxKind xeType, String xsRawText) : this (xeType, null, null, xsRawText)
         {
+        }
+
+        public override bool AddChild(SyntaxNode xoGiven)
+        {
+            // Tokens do not accept children
+            return false;
+        }
+
+        public override bool TryConsumeList(SyntaxTokenList xoWindow)
+        {
+            // Tokens do not consume
+            return false;
         }
 
     }

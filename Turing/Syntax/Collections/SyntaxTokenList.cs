@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Turing.Syntax.Constructs;
 
 namespace Turing.Syntax.Collections
 {
@@ -35,7 +36,7 @@ namespace Turing.Syntax.Collections
 
         public Boolean HasTokensLeftToProcess()
         {
-            return Count < Position && PeekToken().ExpectedType != SyntaxKind.EOFToken;
+            return Position < Count;
         }
 
         public SyntaxToken this[int xiIndex]
@@ -54,7 +55,7 @@ namespace Turing.Syntax.Collections
             }
             else
             {
-                throw new System.Exception("TokenList out of bounds"); 
+                return new ExceptionSyntaxToken();
             }
         }
 
@@ -66,7 +67,7 @@ namespace Turing.Syntax.Collections
             }
             else
             {
-                throw new System.Exception("TokenList out of bounds");
+                return new ExceptionSyntaxToken();
             }
         }
 

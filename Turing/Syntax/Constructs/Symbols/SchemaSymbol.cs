@@ -6,11 +6,9 @@ using System.Threading.Tasks;
 
 namespace Turing.Syntax.Constructs.Symbols
 {
-    class Symbol : SyntaxNode
+    class SchemaSymbol : Symbol
     {
-        public String Alias { get; set; }
-
-        public Symbol(String xsRawText) : base (SyntaxKind.IdentifierToken, xsRawText)
+        public SchemaSymbol(String xsRawText) : base (xsRawText)
         {
         }
     }
