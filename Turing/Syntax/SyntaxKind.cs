@@ -52,10 +52,6 @@ namespace Turing.Syntax
         // UPDATE
         SetKeyword,
 
-        // Conditional Keywords/Operators
-        InKeyword,
-        NotKeyword,
-
         AsKeyword, // Table AS x
 
         #endregion
@@ -68,7 +64,12 @@ namespace Turing.Syntax
         NullToken,
         EOFToken, // Makes life easier to have this as a token
 
-
+        // Punctuation
+        CommaToken,
+        SemiColonToken, // End of Query
+        OpenParenthesisToken,
+        CloseParenthesisToken,
+        DotToken,
 
         // Basic Operators
         PlusToken,
@@ -76,12 +77,12 @@ namespace Turing.Syntax
         StarToken, // This could be an all column style identifier
         SlashToken,
         EqualsToken,
-        DotToken,
-        CommaToken,
-        SemiColonToken, // End of Query
-        OpenParenthesisToken,
-        CloseParenthesisToken,
 
+        // Conditional Keywords/Operators
+        InKeyword,
+        NotKeyword,
+        IsKeyword, // Eg. IS NOT NULL
+        NullKeyword,
 
         // Compound
         HypenHypenToken, //   --

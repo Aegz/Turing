@@ -8,9 +8,9 @@ using Turing.Syntax.Constructs.Symbols;
 
 namespace Turing.Syntax.Constructs.Keywords
 {
-    class JoinKeyword : SyntaxNode
+    class JoinSyntaxNode : SyntaxNode
     {
-        public JoinKeyword(String xsRawText) : base(SyntaxKind.FromKeyword, xsRawText)
+        public JoinSyntaxNode(String xsRawText) : base(SyntaxKind.FromKeyword, xsRawText)
         {
             AcceptedTypes.AddRange(new List<SyntaxKind>
             {

@@ -63,8 +63,8 @@
     <Compile Include="Syntax\Constructs\ExceptionSyntaxToken.cs" />
     <Compile Include="Syntax\Constructs\Expressions\ExpressionSyntaxNode.cs" />
     <Compile Include="Syntax\Constructs\Keywords\FromSyntaxNode.cs" />
-    <Compile Include="Syntax\Constructs\Keywords\JoinKeyword.cs" />
-    <Compile Include="Syntax\Constructs\Keywords\OnKeyword.cs" />
+    <Compile Include="Syntax\Constructs\Keywords\JoinSyntaxNode.cs" />
+    <Compile Include="Syntax\Constructs\Keywords\OnSyntaxNode.cs" />
     <Compile Include="Syntax\Constructs\Keywords\SelectSyntaxNode.cs" />
     <Compile Include="Syntax\Constructs\QuerySyntaxNode.cs" />
     <Compile Include="Syntax\Constructs\StatementSyntaxNode.cs" />

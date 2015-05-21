@@ -97,6 +97,10 @@ namespace Turing.Lexer
                     return SyntaxKind.InKeyword;
                 case "NOT":
                     return SyntaxKind.NotKeyword;
+                case "IS":
+                    return SyntaxKind.IsKeyword;
+                case "NULL":
+                    return SyntaxKind.NullKeyword;
 
                 // Other
                 case "AS":

@@ -45,14 +45,14 @@ namespace Turing.Parser
                 case SyntaxKind.FromKeyword:
                     return new FromSyntaxNode(xoCurrentToken.RawSQLText);
                 case SyntaxKind.JoinKeyword:
-                    return new JoinKeyword(xoCurrentToken.RawSQLText);
+                    return new JoinSyntaxNode(xoCurrentToken.RawSQLText);
                 case SyntaxKind.InnerJoinKeyword:
                 case SyntaxKind.OuterJoinKeyword:
                 case SyntaxKind.LeftJoinKeyword:
                 case SyntaxKind.RightJoinKeyword:
                 case SyntaxKind.CrossJoinKeyword:
                     // Create the Join Node
-                    SyntaxNode oTemp = new JoinKeyword(xoCurrentToken.RawSQLText);
+                    SyntaxNode oTemp = new JoinSyntaxNode(xoCurrentToken.RawSQLText);
                     // If the next node is actually a Join
                     if (xoList.PeekToken().ExpectedType == SyntaxKind.JoinKeyword)
                     {
@@ -70,7 +70,7 @@ namespace Turing.Parser
                     // Return the Join node
                     return oTemp;
                 case SyntaxKind.OnKeyword:
-                    return new OnKeyword(xoCurrentToken.RawSQLText);
+                    return new OnSyntaxNode(xoCurrentToken.RawSQLText);
                 default:
                     // Default to the original token since it doesn't need to be converted
                     // any more
