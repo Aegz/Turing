@@ -61,15 +61,21 @@
     <Compile Include="Syntax\Collections\SyntaxTokenList.cs" />
     <Compile Include="Syntax\Constructs\CoreSyntaxNode.cs" />
     <Compile Include="Syntax\Constructs\ExceptionSyntaxToken.cs" />
+    <Compile Include="Syntax\Constructs\Expressions\ExpressionSyntaxNode.cs" />
     <Compile Include="Syntax\Constructs\Keywords\FromSyntaxNode.cs" />
+    <Compile Include="Syntax\Constructs\Keywords\JoinKeyword.cs" />
+    <Compile Include="Syntax\Constructs\Keywords\OnKeyword.cs" />
     <Compile Include="Syntax\Constructs\Keywords\SelectSyntaxNode.cs" />
     <Compile Include="Syntax\Constructs\QuerySyntaxNode.cs" />
     <Compile Include="Syntax\Constructs\StatementSyntaxNode.cs" />
-    <Compile Include="Syntax\Constructs\Symbols\ColumnSymbol.cs" />
-    <Compile Include="Syntax\Constructs\Symbols\DatabaseSymbol.cs" />
-    <Compile Include="Syntax\Constructs\Symbols\SchemaSymbol.cs" />
+    <Compile Include="Syntax\Constructs\Symbols\SingleChild\ColumnSymbol.cs" />
+    <Compile Include="Syntax\Constructs\Symbols\SingleChild\DatabaseSymbol.cs" />
+    <Compile Include="Syntax\Constructs\Symbols\NullSymbol.cs" />
+    <Compile Include="Syntax\Constructs\Symbols\SingleChild\SchemaSymbol.cs" />
+    <Compile Include="Syntax\Constructs\Symbols\SymbolFactory.cs" />
+    <Compile Include="Syntax\SyntaxNodeWithOneChild.cs" />
     <Compile Include="Syntax\Constructs\Symbols\Symbol.cs" />
-    <Compile Include="Syntax\Constructs\Symbols\TableSymbol.cs" />
+    <Compile Include="Syntax\Constructs\Symbols\SingleChild\TableSymbol.cs" />
     <Compile Include="Utilities\SyntaxUtilities.cs" />
     <Compile Include="Syntax\SyntaxNode.cs" />
     <Compile Include="Syntax\SyntaxToken.cs" />
@@ -80,7 +86,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Syntax\Constructs\Expressions\" />
+    <Folder Include="Syntax\Constructs\Symbols\Compound\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

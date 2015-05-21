@@ -13,7 +13,11 @@ namespace Turing.Syntax
     {
         #region Object Attributes
 
-        public String RawSQLText { get; set; }  // Always store the raw SQL text if you can for reproduction
+        public String RawSQLText // Always store the raw SQL text if you can for reproduction
+        {
+            get;
+            set;
+        }  
         public SyntaxNode Parent { get; set; }  // Parent Node
         public List<StatusItem> Comments;       // Comments/Errors specific to this node
         public SyntaxKind ExpectedType { get; set; } // The Expected type of this node
@@ -78,8 +82,6 @@ namespace Turing.Syntax
                 return false;
             }
 
-
-
             // While we have nodes to process
             while (xoWindow.HasTokensLeftToProcess())
             {
@@ -138,14 +140,35 @@ namespace Turing.Syntax
         }
 
 
+        protected virtual SyntaxNode FindLast(SyntaxKind xeKind)
+        {
+            // Reverse iteration
+            for (int iIndex = Children.Count - 1; iIndex > 0; iIndex--)
+            {
+                if (Children[iIndex].ExpectedType == xeKind)
+                {
+                    return Children[iIndex];
+                }
+            }
+            return null;
+        }
 
         public virtual SyntaxNode ConvertTokenIntoNode(SyntaxToken xoToken, SyntaxTokenList xoList)
         {
             // Always try and perform a non contextual conversion
-            return SyntaxNodeFactory.NonContextSensitiveConvertTokenToNode(xoToken); ;
+            return SyntaxNodeFactory.ContextSensitiveConvertTokenToNode(xoToken, xoList); ;
 
         }
 
+        public override String ToString()
+        {
+            return RawSQLText + " " + GetChildString();
+        }
+
+        public virtual String GetChildString()
+        {
+            return String.Join(" ", Children.Select((oNode) => oNode.ToString()));
+        }
 
         public static Boolean IsIdentifier(SyntaxKind xeKind)
         {

@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Turing.Diagnostics;
 using Turing.Syntax;
 using Turing.Syntax.Collections;
 using Turing.Syntax.Constructs.Keywords;
@@ -11,7 +8,6 @@ namespace Turing.Parser
 {
     class SyntaxNodeFactory
     {
-
         /// <summary>
         /// Generic Non context sensitive conversion
         /// </summary>
@@ -26,13 +22,72 @@ namespace Turing.Parser
                 case SyntaxKind.FromKeyword:
                     return new FromSyntaxNode(xoToken.RawSQLText);
                 
-                // Just leave JOINS exactly as they are
                 default:
                     // Default to the original token since it doesn't need to be converted
                     // any more
                     return xoToken;
             }
         }
+
+        /// <summary>
+        /// Context sensitive conversion which will scan ahead to determine the best candidate
+        /// for this node
+        /// </summary>
+        /// <param name="xoCurrentToken"></param>
+        /// <param name="xoList"></param>
+        /// <returns></returns>
+        public static SyntaxNode ContextSensitiveConvertTokenToNode(SyntaxNode xoCurrentToken, SyntaxTokenList xoList)
+        {
+            switch (xoCurrentToken.ExpectedType)
+            {
+                case SyntaxKind.SelectKeyword:
+                    return new SelectSyntaxNode(xoCurrentToken.RawSQLText);
+                case SyntaxKind.FromKeyword:
+                    return new FromSyntaxNode(xoCurrentToken.RawSQLText);
+                case SyntaxKind.JoinKeyword:
+                    return new JoinKeyword(xoCurrentToken.RawSQLText);
+                case SyntaxKind.InnerJoinKeyword:
+                case SyntaxKind.OuterJoinKeyword:
+                case SyntaxKind.LeftJoinKeyword:
+                case SyntaxKind.RightJoinKeyword:
+                case SyntaxKind.CrossJoinKeyword:
+                    // Create the Join Node
+                    SyntaxNode oTemp = new JoinKeyword(xoCurrentToken.RawSQLText);
+                    // If the next node is actually a Join
+                    if (xoList.PeekToken().ExpectedType == SyntaxKind.JoinKeyword)
+                    {
+                        // Construct a proper Join keyword with the type declared
+                        oTemp.ExpectedType = xoCurrentToken.ExpectedType; // Set the type
+                        oTemp.RawSQLText += " " + xoList.PeekToken().RawSQLText; // add the text
+                        xoList.PopToken(); // Pull it off the list
+                    }
+                    else
+                    {
+                        // Add an error
+                        oTemp.Comments.Add(new StatusItem(
+                            String.Format(ErrorMessageLibrary.EXPECTING_TOKEN_FOUND_ELSE, xoList.PeekToken().RawSQLText, "JOIN")));
+                    }
+                    // Return the Join node
+                    return oTemp;
+                case SyntaxKind.OnKeyword:
+                    return new OnKeyword(xoCurrentToken.RawSQLText);
+                default:
+                    // Default to the original token since it doesn't need to be converted
+                    // any more
+                    return xoCurrentToken;
+            }
+        }
+
+        public static Boolean IsJoinTypeKeyword(SyntaxKind xeType)
+        {
+            return
+                xeType == SyntaxKind.InnerJoinKeyword ||
+                xeType == SyntaxKind.LeftJoinKeyword ||
+                xeType == SyntaxKind.RightJoinKeyword ||
+                xeType == SyntaxKind.CrossJoinKeyword ||
+                xeType == SyntaxKind.OuterJoinKeyword;
+        }
+
 
 
         #region Common Functions
@@ -51,7 +106,7 @@ namespace Turing.Parser
             if (xoList.HasTokensLeftToProcess())
             {
                 SyntaxToken oNextNode = xoList.PeekToken();
-                // Implicit
+                // Explicit
                 if (oNextNode.ExpectedType == SyntaxKind.AsKeyword)
                 {
                     // And the next node after that is an identifier
@@ -76,20 +131,6 @@ namespace Turing.Parser
         }
 
         #endregion
-
-        //public static SyntaxNode test(SyntaxKind xeKind, SyntaxTokenList xoList)
-        //{
-        //    // 1. Construct a Node based off the kind
-        //    SyntaxNode oNode = ConvertTokenIntoNode(xeKind);
-
-        //    // 2. Depth first traversal based on the node itself
-        //    if (oNode.TryConsumeList(xoList))
-        //    {
-        //        // If it successfully consumed something
-        //    }
-
-        //    // 3. Return this object after it consumed all the tokens it could
-        //    return oNode;
-        //}
+        
     }
 }

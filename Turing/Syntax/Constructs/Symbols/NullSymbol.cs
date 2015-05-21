@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace Turing.Syntax.Constructs.Symbols
 {
-    class SchemaSymbol : Symbol
+    class NullSymbol : Symbol
     {
-        public SchemaSymbol(String xsRawText) : base (xsRawText)
+        public NullSymbol(String xsRawText) : base (xsRawText)
         {
         }
     }

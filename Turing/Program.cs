@@ -13,7 +13,10 @@ namespace Turing
                         SELECT  
                         *
                         FROM
-                            APSHARE_FPVIEWS..FPC_SERVICE svc   
+                            APMART_FPVIEWS..FPC_SERVICE svc  
+                        INNER JOIN
+                            APSHARE_FP..WR02052_OMR_BASE omr
+                        ON svc.SVC_IDNTY = omr.SVC_IDNTY 
 
                 ");
 
@@ -27,7 +30,9 @@ namespace Turing
 
             SyntaxNode oTemp = oParser.ParseTree();
 
+            String sTemp = oTemp.ToString();
             Console.WriteLine();
+
         }
     }
 }

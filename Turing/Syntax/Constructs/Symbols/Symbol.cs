@@ -6,12 +6,24 @@ using System.Threading.Tasks;
 
 namespace Turing.Syntax.Constructs.Symbols
 {
-    class Symbol : SyntaxNode
+    class Symbol : SyntaxNodeWithOneChild
     {
         public String Alias { get; set; }
 
         public Symbol(String xsRawText) : base (SyntaxKind.IdentifierToken, xsRawText)
         {
+        }
+
+        public Symbol() : this("")
+        {
+
+        }
+
+        public String GetAlias()
+        {
+            return String.IsNullOrWhiteSpace(Alias) ? 
+                String.Join("", Children.Select((oNode) => ((Symbol)oNode).GetAlias())) : 
+                Alias;
         }
     }
 }

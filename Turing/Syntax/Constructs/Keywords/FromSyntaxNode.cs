@@ -7,6 +7,7 @@ using Turing.Diagnostics;
 using Turing.Parser;
 using Turing.Syntax.Collections;
 using Turing.Syntax.Constructs.Symbols;
+using Turing.Syntax.Constructs.Symbols.SingleChild;
 
 namespace Turing.Syntax.Constructs.Keywords
 {
@@ -28,8 +29,12 @@ namespace Turing.Syntax.Constructs.Keywords
                 { SyntaxKind.LeftJoinKeyword },
                 { SyntaxKind.RightJoinKeyword },
 
+                // JOIN additional keywords
+                { SyntaxKind.OnKeyword },
+
                 // Allow Bracket/Subqueries
                 { SyntaxKind.OpenParenthesisToken },
+                //{ SyntaxKind.SelectKeyword },
                 { SyntaxKind.CloseParenthesisToken },
 
                 // Grammar
@@ -44,116 +49,109 @@ namespace Turing.Syntax.Constructs.Keywords
             // If we need to perform a context sensitive conversion
             if (SyntaxNode.IsIdentifier(xoToken.ExpectedType)) // Generic Identifiers only
             {
-                // If there is nothing trailing this
+                return SymbolFactory.GenerateTableSymbol(xoToken, xoList);
+            }
+            // ( - Subquery
+            else if (xoToken.ExpectedType == SyntaxKind.OpenParenthesisToken)
+            {
+                // Create a Subquery statement?
+                return GenerateSubQueryNode(xoToken, xoList);
+            }
+            // Any Join keyword
+            else if (xoToken.ExpectedType == SyntaxKind.JoinKeyword ||
+                SyntaxNodeFactory.IsJoinTypeKeyword(xoToken.ExpectedType))
+            {
+                // Exit early on error
                 if (Children.Count == 0)
                 {
-                    // Database
-                    if (xoList.PeekToken().ExpectedType == SyntaxKind.DotDotToken)
-                    {
-                        return new DatabaseSymbol(xoToken.RawSQLText);
-                    }
-                    else
-                    {
-                        // Standalone table
-                        return GenerateTableNode(xoToken, xoList);
-                    }
+                    return SymbolFactory.GenerateMissingButExpectedSymbol("NONE", "TableDecl");
                 }
-                // Now we need to determine what we are dealing with
-                else if (Children[Children.Count - 1].ExpectedType == SyntaxKind.DotToken)
+
+                SyntaxNode oPrevNode = Children[Children.Count - 1];
+                // If we have a table before this or another JOIN structure
+                if (oPrevNode.ExpectedType == SyntaxKind.IdentifierToken ||
+                    oPrevNode.ExpectedType == SyntaxKind.JoinKeyword ||
+                    SyntaxNodeFactory.IsJoinTypeKeyword(oPrevNode.ExpectedType))
                 {
-                    return HandlePrevDotToken(xoToken, xoList);
+                    // Create the correct join node
+                    SyntaxNode oJoin = SyntaxNodeFactory.ContextSensitiveConvertTokenToNode(xoToken, xoList);
+
+                    // Consume that node as our LEFT
+                    oJoin.AddChild(oPrevNode);
+
+                    // Remove from this node's children
+                    Children.RemoveAt(Children.Count - 1);
+
+                    // Store this Join as the last node
+                    Children.Add(oJoin);
+
+                    // Ask the Join to try and consume anything it can
+                    oJoin.TryConsumeList(xoList);
                 }
-                // Leading ..
-                else if (Children[Children.Count - 1].ExpectedType == SyntaxKind.DotDotToken)
-                {
-                    // Most likely a table (Database..Table)
-                    return GenerateTableNode(xoToken, xoList);
-                }
-                // We have an identifier or keyword trailing
-                else
-                {
-                    // Unknown
-                    Console.WriteLine();
-                    // A join keyword
-                    return base.ConvertTokenIntoNode(xoToken, xoList);
-                }
+
+                // Create a Subquery statement?
+                return GenerateSubQueryNode(xoToken, xoList);
             }
             else
             {
-                // A join keyword
+                // Everything else
                 return base.ConvertTokenIntoNode(xoToken, xoList);
             }
         }
 
+
         /// <summary>
-        /// Generator function for Table Nodes since we know a table
-        /// can have an alias
+        /// Generate a TableSymbol which encompasses a Subquery
         /// </summary>
         /// <param name="xoToken"></param>
         /// <param name="xoList"></param>
         /// <returns></returns>
-        private SyntaxNode GenerateTableNode (SyntaxToken xoToken, SyntaxTokenList xoList)
+        private SyntaxNode GenerateSubQueryNode (SyntaxToken xoToken, SyntaxTokenList xoList)
         {
-            // Create a table symbol
-            TableSymbol oTable = new TableSymbol(xoToken.RawSQLText);
-
-            // Assign the alias
-            oTable.Alias = SyntaxNodeFactory.ScanAheadForAlias(xoList);
-            
-            // Return the newly created table node
-            return oTable;
-        }
-
-        /// <summary>
-        /// Handles getting a single leading . token
-        /// </summary>
-        /// <param name="xoToken"></param>
-        /// <param name="xoList"></param>
-        /// <returns></returns>
-        private SyntaxNode HandlePrevDotToken(SyntaxToken xoToken, SyntaxTokenList xoList)
-        {
-            // Schema
-            if (xoList.PeekToken().ExpectedType == SyntaxKind.DotToken)
+            // If we get a select statement next
+            if (xoList.PeekToken().ExpectedType == SyntaxKind.SelectKeyword)
             {
-                // SCHEMA
-                return new SchemaSymbol(xoToken.RawSQLText);
+                // Create a table symbol
+                TableSymbol oTable = new TableSymbol(xoToken.RawSQLText);
+
+                // Add the parenthesis (
+                oTable.AddChild(xoToken);
+
+                // Build a Select node
+                SyntaxNode oSelect = xoList.PeekToken().ExpectedType == SyntaxKind.SelectKeyword ? 
+                    SyntaxNodeFactory.NonContextSensitiveConvertTokenToNode(xoList.PopToken()) :
+                    SymbolFactory.GenerateMissingButExpectedSymbol("SELECT", xoList.PopToken().RawSQLText); // Return an error node if we need to
+
+                // Add it to the Subquery Symbol
+                oTable.AddChild(oSelect);
+
+                // Try and build the Select statement
+                oSelect.TryConsumeList(xoList);
+
+                // Add the parenthesis )
+                if (xoList.PeekToken().ExpectedType == SyntaxKind.CloseParenthesisToken)
+                {
+                    AddChild(xoList.PopToken());
+                }
+
+                // Assign the alias
+                oTable.Alias = SyntaxNodeFactory.ScanAheadForAlias(xoList);
+
+                return oSelect;
             }
             else
             {
-                // If we have a database before the .
-                if (Children[Children.Count - 2].GetType() == typeof(DatabaseSymbol))
-                {
-                    // They probably forgot to add a second .
-                    // Change it for them
-                    Children[Children.Count - 1].ExpectedType = SyntaxKind.DotDotToken;
-                    Children[Children.Count - 1].RawSQLText = "..";
-
-                    // Start this function again with the modifications in place
-                    return this.ConvertTokenIntoNode(xoToken, xoList);
-                }
-                // Nothing before the .
-                else
-                {
-                    // Initialise and store the symbol
-                    SyntaxNode oReturnNode = new TableSymbol(xoToken.RawSQLText);
-
-                    // Delete the last token and add a reason code
-                    Children.Remove(Children[Children.Count - 1]);
-
-                    // reason
-                    oReturnNode.Comments.Add(
-                        new Diagnostics.StatusItem(
-                            String.Format(
-                                ErrorMessageLibrary.REMOVED_NODE, // Removed Node error message
-                                ReasonMessageLibrary.INCORRECT_POSITION, // REASON
-                                xoToken.RawSQLText) 
-                            ));
-
-                    // Table - just done wrong..
-                    return oReturnNode;
-                }
+                // Error Node, expecting SELECT
+                SyntaxNode oException = new ExceptionSyntaxToken();
+                oException.Comments.Add(
+                    new StatusItem(
+                        String.Format(
+                            ErrorMessageLibrary.EXPECTING_TOKEN_FOUND_ELSE,
+                            "SELECT",
+                            xoToken.RawSQLText
+                            )));
+                return oException;
             }
-         
-        }
+        }     
     }
 }
