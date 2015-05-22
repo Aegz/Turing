@@ -12,7 +12,7 @@ namespace Turing.Syntax.Constructs.Keywords
 {
     class SelectSyntaxNode : SyntaxNode
     {
-        public SelectSyntaxNode(String xsRawText) : base (SyntaxKind.SelectKeyword, xsRawText)
+        public SelectSyntaxNode(SyntaxToken xoToken) : base (xoToken)
         {
             AcceptedTypes.AddRange(new List<SyntaxKind>
             {
@@ -36,7 +36,7 @@ namespace Turing.Syntax.Constructs.Keywords
                 xoToken.ExpectedType == SyntaxKind.StarToken) // * in Column is allowed
             {
                 // Perform context sensitive conversion here
-                return new ColumnSymbol(xoToken.RawSQLText);
+                return new ColumnSymbol(xoToken);
             }
 
             // Default to using the original conversion

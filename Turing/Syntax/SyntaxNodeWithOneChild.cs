@@ -4,7 +4,7 @@ namespace Turing.Syntax
 {
     class SyntaxNodeWithOneChild : SyntaxNode
     {
-        public SyntaxNodeWithOneChild (SyntaxKind xeKind, String xsText) : base (xeKind, xsText)
+        public SyntaxNodeWithOneChild (SyntaxToken xoToken) : base(xoToken)
         {
         }
 

@@ -10,7 +10,7 @@ namespace Turing.Syntax.Constructs.Keywords
 {
     class OnSyntaxNode : SyntaxNode
     {
-        public OnSyntaxNode(String xsRawText) : base (SyntaxKind.FromKeyword, xsRawText)
+        public OnSyntaxNode(SyntaxToken xoToken) : base(xoToken)
         {
             AcceptedTypes.AddRange(new List<SyntaxKind>
             {

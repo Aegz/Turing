@@ -8,7 +8,7 @@ namespace Turing.Syntax.Constructs.Symbols.SingleChild
 {
     class SchemaSymbol : Symbol
     {
-        public SchemaSymbol(String xsRawText) : base (xsRawText)
+        public SchemaSymbol(SyntaxToken xoToken) : base (xoToken)
         {
         }
 

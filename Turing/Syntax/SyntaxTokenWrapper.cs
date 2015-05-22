@@ -4,12 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Turing.Syntax.Constructs.Symbols
+namespace Turing.Syntax
 {
-    class NullSymbol : Symbol
+    class SyntaxTokenWrapper : SyntaxNode
     {
-        public NullSymbol(SyntaxToken xoToken) : base(xoToken)
+        public SyntaxTokenWrapper(SyntaxToken xoToken) : base (xoToken)
         {
+
         }
     }
 }

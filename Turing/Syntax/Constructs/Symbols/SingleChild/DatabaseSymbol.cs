@@ -8,7 +8,7 @@ namespace Turing.Syntax.Constructs.Symbols.SingleChild
 {
     class DatabaseSymbol : Symbol
     {
-        public DatabaseSymbol(String xsRawText) : base (xsRawText)
+        public DatabaseSymbol(SyntaxToken xoToken) : base(xoToken)
         {
         }
 

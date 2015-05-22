@@ -10,7 +10,7 @@ namespace Turing.Syntax.Constructs.Keywords
 {
     class JoinSyntaxNode : SyntaxNode
     {
-        public JoinSyntaxNode(String xsRawText) : base(SyntaxKind.FromKeyword, xsRawText)
+        public JoinSyntaxNode(SyntaxToken xoToken) : base(xoToken)
         {
             AcceptedTypes.AddRange(new List<SyntaxKind>
             {

@@ -9,9 +9,9 @@ namespace Turing.Syntax.Constructs
     /// <summary>
     /// Encompasses missing or erraneous nodes
     /// </summary>
-    class ExceptionSyntaxToken : SyntaxToken
+    class ExceptionSyntaxNode : SyntaxNode
     {
-        public ExceptionSyntaxToken() : base (SyntaxKind.UnknownToken, "?")
+        public ExceptionSyntaxNode() : base (new SyntaxToken(SyntaxKind.UnknownToken, "?"))
         {
         }
     }

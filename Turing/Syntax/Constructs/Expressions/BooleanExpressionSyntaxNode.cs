@@ -8,7 +8,7 @@ namespace Turing.Syntax.Constructs.Expressions
 {
     class BooleanExpressionSyntaxNode : ExpressionSyntaxNode
     {
-        public BooleanExpressionSyntaxNode(String xsRawText) : base(xsRawText)
+        public BooleanExpressionSyntaxNode(SyntaxToken xoToken) : base(xoToken)
         {
             AcceptedTypes.AddRange(new List<SyntaxKind>
             {

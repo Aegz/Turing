@@ -55,7 +55,7 @@ namespace Turing.Syntax.Collections
             }
             else
             {
-                return new ExceptionSyntaxToken();
+                return SyntaxToken.NULL_TOKEN;
             }
         }
 
@@ -67,7 +67,7 @@ namespace Turing.Syntax.Collections
             }
             else
             {
-                return new ExceptionSyntaxToken();
+                return SyntaxToken.NULL_TOKEN;
             }
         }
 

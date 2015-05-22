@@ -19,14 +19,14 @@ namespace Turing.Parser
             switch (xoToken.ExpectedType)
             {
                 case SyntaxKind.SelectKeyword:
-                    return new SelectSyntaxNode(xoToken.RawSQLText);
+                    return new SelectSyntaxNode(xoToken);
                 case SyntaxKind.FromKeyword:
-                    return new FromSyntaxNode(xoToken.RawSQLText);
+                    return new FromSyntaxNode(xoToken);
                 
                 default:
                     // Default to the original token since it doesn't need to be converted
                     // any more
-                    return xoToken;
+                    return new SyntaxTokenWrapper(xoToken);
             }
         }
 
@@ -37,23 +37,23 @@ namespace Turing.Parser
         /// <param name="xoCurrentToken"></param>
         /// <param name="xoList"></param>
         /// <returns></returns>
-        public static SyntaxNode ContextSensitiveConvertTokenToNode(SyntaxNode xoCurrentToken, SyntaxTokenList xoList)
+        public static SyntaxNode ContextSensitiveConvertTokenToNode(SyntaxToken xoCurrentToken, SyntaxTokenList xoList)
         {
             switch (xoCurrentToken.ExpectedType)
             {
                 case SyntaxKind.SelectKeyword:
-                    return new SelectSyntaxNode(xoCurrentToken.RawSQLText);
+                    return new SelectSyntaxNode(xoCurrentToken);
                 case SyntaxKind.FromKeyword:
-                    return new FromSyntaxNode(xoCurrentToken.RawSQLText);
+                    return new FromSyntaxNode(xoCurrentToken);
                 case SyntaxKind.JoinKeyword:
-                    return new JoinSyntaxNode(xoCurrentToken.RawSQLText);
+                    return new JoinSyntaxNode(xoCurrentToken);
                 case SyntaxKind.InnerJoinKeyword:
                 case SyntaxKind.OuterJoinKeyword:
                 case SyntaxKind.LeftJoinKeyword:
                 case SyntaxKind.RightJoinKeyword:
                 case SyntaxKind.CrossJoinKeyword:
                     // Create the Join Node
-                    SyntaxNode oTemp = new JoinSyntaxNode(xoCurrentToken.RawSQLText);
+                    SyntaxNode oTemp = new JoinSyntaxNode(xoCurrentToken);
                     // If the next node is actually a Join
                     if (xoList.PeekToken().ExpectedType == SyntaxKind.JoinKeyword)
                     {
@@ -71,24 +71,24 @@ namespace Turing.Parser
                     // Return the Join node
                     return oTemp;
                 case SyntaxKind.OnKeyword:
-                    return new OnSyntaxNode(xoCurrentToken.RawSQLText);
+                    return new OnSyntaxNode(xoCurrentToken);
 
                 default:
                     // Default to the original token since it doesn't need to be converted
                     // any more
-                    return xoCurrentToken;
+                    return new SyntaxTokenWrapper(xoCurrentToken);
             }
         }
 
 
-        public static SyntaxNode ConstructExpressionNode(SyntaxNode xoCurrentToken, SyntaxTokenList xoList)
+        public static SyntaxNode ConstructExpressionNode(SyntaxToken xoCurrentToken, SyntaxTokenList xoList)
         {
             // Handle the more unique cases first
             // We start the condition with a NOT (entirely possible)
             if (xoCurrentToken.ExpectedType == SyntaxKind.NotKeyword)
             {
                 // NOT (Boolean Expression)
-                SyntaxNode oNot = new BooleanExpressionSyntaxNode(xoCurrentToken.RawSQLText);
+                SyntaxNode oNot = new BooleanExpressionSyntaxNode(xoCurrentToken);
             }
             // If we have an identifier followed by an operator of some sort
             else if (SyntaxNode.IsIdentifier(xoCurrentToken.ExpectedType) || SyntaxNode.IsOperator(xoCurrentToken.ExpectedType))

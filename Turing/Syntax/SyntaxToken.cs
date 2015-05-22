@@ -9,8 +9,17 @@ namespace Turing.Syntax
     /// Core Token object. Does not inherit from anything but is a component
     /// of the Syntax Node
     /// </summary>
-    public class SyntaxToken : SyntaxNode
+    public class SyntaxToken
     {
+        public static readonly SyntaxToken NULL_TOKEN = new SyntaxToken(SyntaxKind.UnknownToken, "?");
+
+        public String RawSQLText // Always store the raw SQL text if you can for reproduction
+        {
+            get;
+            set;
+        }
+
+        public SyntaxKind ExpectedType { get; set; }
 
         #region Trivia
         private List<SyntaxTrivia> aoLeadingTrivia;
@@ -48,25 +57,16 @@ namespace Turing.Syntax
         }
         #endregion
 
-        public SyntaxToken(SyntaxKind xeType, List<SyntaxTrivia> xoLeading, List<SyntaxTrivia> xoTrailing, String xsRawText) : base(xeType, xsRawText)
+        public SyntaxToken(SyntaxKind xeType, List<SyntaxTrivia> xoLeading, List<SyntaxTrivia> xoTrailing, String xsRawText) 
         {
+            this.ExpectedType = xeType;
+            RawSQLText = xsRawText;
         }
 
         public SyntaxToken(SyntaxKind xeType, String xsRawText) : this (xeType, null, null, xsRawText)
         {
         }
 
-        public override bool AddChild(SyntaxNode xoGiven)
-        {
-            // Tokens do not accept children
-            return false;
-        }
-
-        public override bool TryConsumeList(SyntaxTokenList xoWindow)
-        {
-            // Tokens do not consume
-            return false;
-        }
 
     }
 }

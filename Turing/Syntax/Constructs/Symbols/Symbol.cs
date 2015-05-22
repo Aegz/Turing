@@ -10,11 +10,11 @@ namespace Turing.Syntax.Constructs.Symbols
     {
         public String Alias { get; set; }
 
-        public Symbol(String xsRawText) : base (SyntaxKind.IdentifierToken, xsRawText)
+        public Symbol(SyntaxToken xoToken) : base(xoToken)
         {
         }
 
-        public Symbol() : this("")
+        public Symbol() : this(SyntaxToken.NULL_TOKEN)
         {
 
         }

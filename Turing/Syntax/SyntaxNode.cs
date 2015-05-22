@@ -11,17 +11,28 @@ namespace Turing.Syntax
 {
     public abstract class SyntaxNode 
     {
+
         #region Object Attributes
 
         public String RawSQLText // Always store the raw SQL text if you can for reproduction
         {
-            get;
-            set;
-        }  
+            get { return Token.RawSQLText; }
+            set { Token.RawSQLText = value; }
+        }
+
+        public SyntaxKind ExpectedType // Always store the raw SQL text if you can for reproduction
+        {
+            get { return Token.ExpectedType; }
+            set { Token.ExpectedType = value; }
+        }
+
         public SyntaxNode Parent { get; set; }  // Parent Node
         public List<StatusItem> Comments;       // Comments/Errors specific to this node
-        public SyntaxKind ExpectedType { get; set; } // The Expected type of this node
+
         protected List<SyntaxKind> AcceptedTypes;
+
+        SyntaxToken Token { get; set; }
+
         #endregion
 
         #region Node Attributes
@@ -52,22 +63,20 @@ namespace Turing.Syntax
         #endregion
 
         #region Construction
-        /// <summary>
-        /// SyntaxNodes can hold a SyntaxToken (which will be supplementary
-        /// to the underlying tree)
-        /// </summary>
-        /// <param name="xoToken"></param>
-        public SyntaxNode(SyntaxKind xeType, String xsRawText)
+
+
+        public SyntaxNode() : this (new SyntaxToken(SyntaxKind.UnknownToken, String.Empty))
         {
-            ExpectedType = xeType;
-            RawSQLText = xsRawText;
-            Comments = new List<StatusItem>();
-            AcceptedTypes = new List<SyntaxKind>();
         }
 
-        public SyntaxNode() : this (SyntaxKind.UnknownToken, String.Empty)
+        public SyntaxNode(SyntaxToken xoToken)
         {
+            Token = xoToken;
+            AcceptedTypes = new List<SyntaxKind>(); // Always initialise the list
+            Comments = new List<StatusItem>();
         }
+
+
         #endregion
 
 

@@ -8,7 +8,7 @@ namespace Turing.Syntax.Constructs.Symbols.SingleChild
 {
     class TableSymbol : Symbol
     {
-        public TableSymbol(String xsRawText) : base (xsRawText)
+        public TableSymbol(SyntaxToken xoToken) : base (xoToken)
         {
         }
 

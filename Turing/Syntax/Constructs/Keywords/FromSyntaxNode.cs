@@ -13,7 +13,7 @@ namespace Turing.Syntax.Constructs.Keywords
 {
     class FromSyntaxNode : SyntaxNode
     {
-        public FromSyntaxNode(String xsRawText) : base (SyntaxKind.FromKeyword, xsRawText)
+        public FromSyntaxNode(SyntaxToken xoToken) : base(xoToken)
         {
             AcceptedTypes.AddRange(new List<SyntaxKind>
             {
@@ -114,10 +114,10 @@ namespace Turing.Syntax.Constructs.Keywords
             if (xoList.PeekToken().ExpectedType == SyntaxKind.SelectKeyword)
             {
                 // Create a table symbol
-                TableSymbol oTable = new TableSymbol(xoToken.RawSQLText);
+                TableSymbol oTable = new TableSymbol(xoToken);
 
                 // Add the parenthesis (
-                oTable.AddChild(xoToken);
+                oTable.AddChild(new SyntaxTokenWrapper(xoToken));
 
                 // Build a Select node
                 SyntaxNode oSelect = xoList.PeekToken().ExpectedType == SyntaxKind.SelectKeyword ? 
@@ -133,7 +133,7 @@ namespace Turing.Syntax.Constructs.Keywords
                 // Add the parenthesis )
                 if (xoList.PeekToken().ExpectedType == SyntaxKind.CloseParenthesisToken)
                 {
-                    AddChild(xoList.PopToken());
+                    AddChild(new SyntaxTokenWrapper(xoList.PopToken()));
                 }
 
                 // Assign the alias
@@ -144,7 +144,7 @@ namespace Turing.Syntax.Constructs.Keywords
             else
             {
                 // Error Node, expecting SELECT
-                SyntaxNode oException = new ExceptionSyntaxToken();
+                SyntaxNode oException = new ExceptionSyntaxNode();
                 oException.Comments.Add(
                     new StatusItem(
                         String.Format(

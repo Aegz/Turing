@@ -60,7 +60,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Syntax\Collections\SyntaxTokenList.cs" />
     <Compile Include="Syntax\Constructs\CoreSyntaxNode.cs" />
-    <Compile Include="Syntax\Constructs\ExceptionSyntaxToken.cs" />
+    <Compile Include="Syntax\Constructs\ExceptionSyntaxNode.cs" />
     <Compile Include="Syntax\Constructs\Expressions\BooleanExpressionSyntaxNode.cs" />
     <Compile Include="Syntax\Constructs\Expressions\ExpressionSyntaxNode.cs" />
     <Compile Include="Syntax\Constructs\Keywords\FromSyntaxNode.cs" />
@@ -73,6 +73,7 @@
     <Compile Include="Syntax\Constructs\Symbols\NullSymbol.cs" />
     <Compile Include="Syntax\Constructs\Symbols\SingleChild\SchemaSymbol.cs" />
     <Compile Include="Syntax\Constructs\Symbols\SymbolFactory.cs" />
+    <Compile Include="Syntax\SyntaxTokenWrapper.cs" />
     <Compile Include="Syntax\SyntaxNodeWithOneChild.cs" />
     <Compile Include="Syntax\Constructs\Symbols\Symbol.cs" />
     <Compile Include="Syntax\Constructs\Symbols\SingleChild\TableSymbol.cs" />

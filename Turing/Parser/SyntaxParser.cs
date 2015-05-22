@@ -63,7 +63,7 @@ namespace Turing.Parser
             }
 
             // Default to exception
-            return new ExceptionSyntaxToken();
+            return null;
         }
 
     }
