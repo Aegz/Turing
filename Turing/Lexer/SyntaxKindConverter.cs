@@ -101,10 +101,32 @@ namespace Turing.Lexer
                     return SyntaxKind.IsKeyword;
                 case "NULL":
                     return SyntaxKind.NullKeyword;
+                case "AND":
+                    return SyntaxKind.AndKeyword;
+                case "OR":
+                    return SyntaxKind.OrKeyword;
+
+                // CASE Specific
+                case "CASE":
+                    return SyntaxKind.CaseKeyword;
+                case "WHEN":
+                    return SyntaxKind.WhenKeyword;
+                case "THEN":
+                    return SyntaxKind.ThenKeyword;
+                case "ELSE":
+                    return SyntaxKind.ElseKeyword;
+                case "END":
+                    return SyntaxKind.EndKeyword;
 
                 // Other
                 case "AS":
                     return SyntaxKind.AsKeyword;
+
+                // True/False
+                case "TRUE":
+                case "FALSE":
+                    return SyntaxKind.BooleanToken;
+
 
                 default:
                     return SyntaxKind.UnknownToken;

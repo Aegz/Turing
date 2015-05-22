@@ -56,12 +56,24 @@ namespace Turing.Syntax
 
         #endregion
 
-        // Core
+        // CASE WHEN
+        CaseKeyword,
+        WhenKeyword,
+        ThenKeyword,
+        ElseKeyword,
+        EndKeyword,
+
+        // Core Tokens/Types
         IdentifierToken,
         NumericToken,
         LiteralToken,
-        UnknownToken,
-        NullToken,
+        BooleanToken,
+        
+        // Compound Token
+        ExpressionNode,
+
+        UnknownToken, // Represents an unknown
+        NullNode, // This represents a dead token (not a null keyword)
         EOFToken, // Makes life easier to have this as a token
 
         // Punctuation
@@ -83,6 +95,8 @@ namespace Turing.Syntax
         NotKeyword,
         IsKeyword, // Eg. IS NOT NULL
         NullKeyword,
+        AndKeyword,
+        OrKeyword,
 
         // Compound
         HypenHypenToken, //   --

@@ -11,7 +11,7 @@ namespace Turing.Syntax.Constructs
         public QuerySyntaxNode() : base()
         {
             // Always start with 1
-            Children.Add(new StatementSyntaxNode());
+            //Children.Add(new StatementSyntaxNode());
 
         }
 

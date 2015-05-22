@@ -2,6 +2,7 @@
 using Turing.Diagnostics;
 using Turing.Syntax;
 using Turing.Syntax.Collections;
+using Turing.Syntax.Constructs.Expressions;
 using Turing.Syntax.Constructs.Keywords;
 
 namespace Turing.Parser
@@ -71,6 +72,7 @@ namespace Turing.Parser
                     return oTemp;
                 case SyntaxKind.OnKeyword:
                     return new OnSyntaxNode(xoCurrentToken.RawSQLText);
+
                 default:
                     // Default to the original token since it doesn't need to be converted
                     // any more
@@ -78,16 +80,23 @@ namespace Turing.Parser
             }
         }
 
-        public static Boolean IsJoinTypeKeyword(SyntaxKind xeType)
-        {
-            return
-                xeType == SyntaxKind.InnerJoinKeyword ||
-                xeType == SyntaxKind.LeftJoinKeyword ||
-                xeType == SyntaxKind.RightJoinKeyword ||
-                xeType == SyntaxKind.CrossJoinKeyword ||
-                xeType == SyntaxKind.OuterJoinKeyword;
-        }
 
+        public static SyntaxNode ConstructExpressionNode(SyntaxNode xoCurrentToken, SyntaxTokenList xoList)
+        {
+            // Handle the more unique cases first
+            // We start the condition with a NOT (entirely possible)
+            if (xoCurrentToken.ExpectedType == SyntaxKind.NotKeyword)
+            {
+                // NOT (Boolean Expression)
+                SyntaxNode oNot = new BooleanExpressionSyntaxNode(xoCurrentToken.RawSQLText);
+            }
+            // If we have an identifier followed by an operator of some sort
+            else if (SyntaxNode.IsIdentifier(xoCurrentToken.ExpectedType) || SyntaxNode.IsOperator(xoCurrentToken.ExpectedType))
+            {
+
+            }
+            return null;
+        }
 
 
         #region Common Functions

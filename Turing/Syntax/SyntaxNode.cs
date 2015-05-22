@@ -70,6 +70,7 @@ namespace Turing.Syntax
         }
         #endregion
 
+
         public virtual Boolean TryConsumeList(SyntaxTokenList xoWindow)
         {
             Boolean bNodesConsumedSuccessfully = false;
@@ -140,35 +141,26 @@ namespace Turing.Syntax
         }
 
 
-        protected virtual SyntaxNode FindLast(SyntaxKind xeKind)
-        {
-            // Reverse iteration
-            for (int iIndex = Children.Count - 1; iIndex > 0; iIndex--)
-            {
-                if (Children[iIndex].ExpectedType == xeKind)
-                {
-                    return Children[iIndex];
-                }
-            }
-            return null;
-        }
-
         public virtual SyntaxNode ConvertTokenIntoNode(SyntaxToken xoToken, SyntaxTokenList xoList)
         {
-            // Always try and perform a non contextual conversion
+            // Always try and perform a contextual conversion
             return SyntaxNodeFactory.ContextSensitiveConvertTokenToNode(xoToken, xoList); ;
-
         }
+
 
         public override String ToString()
         {
             return RawSQLText + " " + GetChildString();
         }
 
+
         public virtual String GetChildString()
         {
             return String.Join(" ", Children.Select((oNode) => oNode.ToString()));
         }
+
+
+        #region Static Identification Functions
 
         public static Boolean IsIdentifier(SyntaxKind xeKind)
         {
@@ -196,5 +188,36 @@ namespace Turing.Syntax
                 xeKind == SyntaxKind.SemiColonToken;
         }
 
+        public static Boolean IsOperator(SyntaxKind xeKind)
+        {
+            return
+                xeKind == SyntaxKind.GreaterThanOrEqualToken ||
+                xeKind == SyntaxKind.GreaterThanToken ||
+                xeKind == SyntaxKind.LessThanOrEqualToToken ||
+                xeKind == SyntaxKind.LessThanToken ||
+                xeKind == SyntaxKind.DiamondToken ||
+
+                xeKind == SyntaxKind.NotKeyword ||
+                xeKind == SyntaxKind.IsKeyword ||
+                xeKind == SyntaxKind.InKeyword ||
+
+                xeKind == SyntaxKind.PlusToken ||
+                xeKind == SyntaxKind.MinusToken ||
+                xeKind == SyntaxKind.SlashToken ||
+                xeKind == SyntaxKind.StarToken ||
+                xeKind == SyntaxKind.PlusToken;
+        }
+
+        public static Boolean IsJoinTypeKeyword(SyntaxKind xeType)
+        {
+            return
+                xeType == SyntaxKind.InnerJoinKeyword ||
+                xeType == SyntaxKind.LeftJoinKeyword ||
+                xeType == SyntaxKind.RightJoinKeyword ||
+                xeType == SyntaxKind.CrossJoinKeyword ||
+                xeType == SyntaxKind.OuterJoinKeyword;
+        }
+
+        #endregion
     }
 }

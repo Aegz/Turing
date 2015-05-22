@@ -61,13 +61,13 @@
     <Compile Include="Syntax\Collections\SyntaxTokenList.cs" />
     <Compile Include="Syntax\Constructs\CoreSyntaxNode.cs" />
     <Compile Include="Syntax\Constructs\ExceptionSyntaxToken.cs" />
+    <Compile Include="Syntax\Constructs\Expressions\BooleanExpressionSyntaxNode.cs" />
     <Compile Include="Syntax\Constructs\Expressions\ExpressionSyntaxNode.cs" />
     <Compile Include="Syntax\Constructs\Keywords\FromSyntaxNode.cs" />
     <Compile Include="Syntax\Constructs\Keywords\JoinSyntaxNode.cs" />
     <Compile Include="Syntax\Constructs\Keywords\OnSyntaxNode.cs" />
     <Compile Include="Syntax\Constructs\Keywords\SelectSyntaxNode.cs" />
     <Compile Include="Syntax\Constructs\QuerySyntaxNode.cs" />
-    <Compile Include="Syntax\Constructs\StatementSyntaxNode.cs" />
     <Compile Include="Syntax\Constructs\Symbols\SingleChild\ColumnSymbol.cs" />
     <Compile Include="Syntax\Constructs\Symbols\SingleChild\DatabaseSymbol.cs" />
     <Compile Include="Syntax\Constructs\Symbols\NullSymbol.cs" />

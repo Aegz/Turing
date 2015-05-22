@@ -30,7 +30,8 @@ namespace Turing.Syntax.Constructs.Keywords
                 { SyntaxKind.RightJoinKeyword },
 
                 // JOIN additional keywords
-                { SyntaxKind.OnKeyword },
+                // This needs to be here since JOIN and ON are instantiated at different times
+                //{ SyntaxKind.OnKeyword },
 
                 // Allow Bracket/Subqueries
                 { SyntaxKind.OpenParenthesisToken },
@@ -59,7 +60,7 @@ namespace Turing.Syntax.Constructs.Keywords
             }
             // Any Join keyword
             else if (xoToken.ExpectedType == SyntaxKind.JoinKeyword ||
-                SyntaxNodeFactory.IsJoinTypeKeyword(xoToken.ExpectedType))
+                SyntaxNode.IsJoinTypeKeyword(xoToken.ExpectedType))
             {
                 // Exit early on error
                 if (Children.Count == 0)
@@ -68,10 +69,11 @@ namespace Turing.Syntax.Constructs.Keywords
                 }
 
                 SyntaxNode oPrevNode = Children[Children.Count - 1];
+
                 // If we have a table before this or another JOIN structure
-                if (oPrevNode.ExpectedType == SyntaxKind.IdentifierToken ||
-                    oPrevNode.ExpectedType == SyntaxKind.JoinKeyword ||
-                    SyntaxNodeFactory.IsJoinTypeKeyword(oPrevNode.ExpectedType))
+                if (oPrevNode.ExpectedType == SyntaxKind.IdentifierToken || // Identifier/(Table)
+                    oPrevNode.ExpectedType == SyntaxKind.JoinKeyword || // Or a previous Join Structure
+                    SyntaxNode.IsJoinTypeKeyword(oPrevNode.ExpectedType))
                 {
                     // Create the correct join node
                     SyntaxNode oJoin = SyntaxNodeFactory.ContextSensitiveConvertTokenToNode(xoToken, xoList);
