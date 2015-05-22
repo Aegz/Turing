@@ -1,13 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Turing.Lexer;
+﻿using Turing.Lexer;
 using Turing.Syntax;
 using Turing.Syntax.Collections;
-using Turing.Syntax.Constructs;
-using Turing.Syntax.Constructs.Keywords;
+using Turing.Factories;
 
 namespace Turing.Parser
 {
@@ -43,15 +37,18 @@ namespace Turing.Parser
             }
         }
 
-
+        /// <summary>
+        /// Core function for this object. It will attempt to build a source 
+        /// program tree from the stored list of tokens
+        /// </summary>
+        /// <returns></returns>
         public SyntaxNode ParseTree()
         {
-
             // If there is nothing to process, break early
             if (TokenList.HasTokensLeftToProcess())
             {
                 // Pull off the first node
-                SyntaxNode CurrentNode = SyntaxNodeFactory.NonContextSensitiveConvertTokenToNode(TokenList.PopToken());
+                SyntaxNode CurrentNode = SyntaxNodeFactory.ContextSensitiveConvertTokenToNode(TokenList.PopToken(), null);
 
                 // If we consumed anything
                 if (CurrentNode.TryConsumeList(TokenList))

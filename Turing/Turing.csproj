@@ -54,7 +54,7 @@
     <Compile Include="Lexer\Scanner\WhiteSpaceScanner.cs" />
     <Compile Include="Lexer\SlidingTextWindow.cs" />
     <Compile Include="Lexer\SyntaxKindConverter.cs" />
-    <Compile Include="Parser\SyntaxNodeFactory.cs" />
+    <Compile Include="Factories\SyntaxNodeFactory.cs" />
     <Compile Include="Parser\SyntaxParser.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -72,7 +72,7 @@
     <Compile Include="Syntax\Constructs\Symbols\SingleChild\DatabaseSymbol.cs" />
     <Compile Include="Syntax\Constructs\Symbols\NullSymbol.cs" />
     <Compile Include="Syntax\Constructs\Symbols\SingleChild\SchemaSymbol.cs" />
-    <Compile Include="Syntax\Constructs\Symbols\SymbolFactory.cs" />
+    <Compile Include="Factories\SymbolFactory.cs" />
     <Compile Include="Syntax\SyntaxTokenWrapper.cs" />
     <Compile Include="Syntax\SyntaxNodeWithOneChild.cs" />
     <Compile Include="Syntax\Constructs\Symbols\Symbol.cs" />

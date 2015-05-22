@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Turing.Diagnostics;
-using Turing.Parser;
+using Turing.Factories;
 using Turing.Syntax.Collections;
 using Turing.Syntax.Constructs.Symbols;
 using Turing.Syntax.Constructs.Symbols.SingleChild;
@@ -45,6 +42,13 @@ namespace Turing.Syntax.Constructs.Keywords
             });
         }
 
+
+        /// <summary>
+        /// Scans ahead and generates anything it knows how to
+        /// </summary>
+        /// <param name="xoToken"></param>
+        /// <param name="xoList"></param>
+        /// <returns></returns>
         public override SyntaxNode ConvertTokenIntoNode(SyntaxToken xoToken, SyntaxTokenList xoList)
         {
             // If we need to perform a context sensitive conversion
@@ -56,44 +60,27 @@ namespace Turing.Syntax.Constructs.Keywords
             else if (xoToken.ExpectedType == SyntaxKind.OpenParenthesisToken)
             {
                 // Create a Subquery statement?
-                return GenerateSubQueryNode(xoToken, xoList);
+                return SymbolFactory.GenerateTableSymbol(this, xoToken, xoList);
             }
             // Any Join keyword
-            else if (xoToken.ExpectedType == SyntaxKind.JoinKeyword ||
-                SyntaxNode.IsJoinTypeKeyword(xoToken.ExpectedType))
-            {
-                // Exit early on error
-                if (Children.Count == 0)
-                {
-                    return SymbolFactory.GenerateMissingButExpectedSymbol("NONE", "TableDecl");
-                }
+            //else if (xoToken.ExpectedType == SyntaxKind.JoinKeyword ||
+            //    SyntaxNode.IsJoinTypeKeyword(xoToken.ExpectedType))
+            //{
+            //    // Exit early on error
+            //    if (Children.Count == 0)
+            //    {
+            //        return SymbolFactory.GenerateMissingButExpectedSymbol("NONE", "TableDecl");
+            //    }
+            //    else
+            //    {
+            //        // Create a Join Node
+            //        SyntaxNode oJoin = SyntaxNodeFactory.ContextSensitiveConvertTokenToNode(xoToken, xoList);
+              
+            //        // Create a Subquery statement?
+            //        return oJoin; 
 
-                SyntaxNode oPrevNode = Children[Children.Count - 1];
-
-                // If we have a table before this or another JOIN structure
-                if (oPrevNode.ExpectedType == SyntaxKind.IdentifierToken || // Identifier/(Table)
-                    oPrevNode.ExpectedType == SyntaxKind.JoinKeyword || // Or a previous Join Structure
-                    SyntaxNode.IsJoinTypeKeyword(oPrevNode.ExpectedType))
-                {
-                    // Create the correct join node
-                    SyntaxNode oJoin = SyntaxNodeFactory.ContextSensitiveConvertTokenToNode(xoToken, xoList);
-
-                    // Consume that node as our LEFT
-                    oJoin.AddChild(oPrevNode);
-
-                    // Remove from this node's children
-                    Children.RemoveAt(Children.Count - 1);
-
-                    // Store this Join as the last node
-                    Children.Add(oJoin);
-
-                    // Ask the Join to try and consume anything it can
-                    oJoin.TryConsumeList(xoList);
-                }
-
-                // Create a Subquery statement?
-                return GenerateSubQueryNode(xoToken, xoList);
-            }
+            //    }
+            //}
             else
             {
                 // Everything else
@@ -101,59 +88,6 @@ namespace Turing.Syntax.Constructs.Keywords
             }
         }
 
-
-        /// <summary>
-        /// Generate a TableSymbol which encompasses a Subquery
-        /// </summary>
-        /// <param name="xoToken"></param>
-        /// <param name="xoList"></param>
-        /// <returns></returns>
-        private SyntaxNode GenerateSubQueryNode (SyntaxToken xoToken, SyntaxTokenList xoList)
-        {
-            // If we get a select statement next
-            if (xoList.PeekToken().ExpectedType == SyntaxKind.SelectKeyword)
-            {
-                // Create a table symbol
-                TableSymbol oTable = new TableSymbol(xoToken);
-
-                // Add the parenthesis (
-                oTable.AddChild(new SyntaxTokenWrapper(xoToken));
-
-                // Build a Select node
-                SyntaxNode oSelect = xoList.PeekToken().ExpectedType == SyntaxKind.SelectKeyword ? 
-                    SyntaxNodeFactory.NonContextSensitiveConvertTokenToNode(xoList.PopToken()) :
-                    SymbolFactory.GenerateMissingButExpectedSymbol("SELECT", xoList.PopToken().RawSQLText); // Return an error node if we need to
-
-                // Add it to the Subquery Symbol
-                oTable.AddChild(oSelect);
-
-                // Try and build the Select statement
-                oSelect.TryConsumeList(xoList);
-
-                // Add the parenthesis )
-                if (xoList.PeekToken().ExpectedType == SyntaxKind.CloseParenthesisToken)
-                {
-                    AddChild(new SyntaxTokenWrapper(xoList.PopToken()));
-                }
-
-                // Assign the alias
-                oTable.Alias = SyntaxNodeFactory.ScanAheadForAlias(xoList);
-
-                return oSelect;
-            }
-            else
-            {
-                // Error Node, expecting SELECT
-                SyntaxNode oException = new ExceptionSyntaxNode();
-                oException.Comments.Add(
-                    new StatusItem(
-                        String.Format(
-                            ErrorMessageLibrary.EXPECTING_TOKEN_FOUND_ELSE,
-                            "SELECT",
-                            xoToken.RawSQLText
-                            )));
-                return oException;
-            }
-        }     
+  
     }
 }

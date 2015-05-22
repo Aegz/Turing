@@ -5,31 +5,10 @@ using Turing.Syntax.Collections;
 using Turing.Syntax.Constructs.Expressions;
 using Turing.Syntax.Constructs.Keywords;
 
-namespace Turing.Parser
+namespace Turing.Factories
 {
     class SyntaxNodeFactory
     {
-        /// <summary>
-        /// Generic Non context sensitive conversion
-        /// </summary>
-        /// <param name="xoToken"></param>
-        /// <returns></returns>
-        public static SyntaxNode NonContextSensitiveConvertTokenToNode(SyntaxToken xoToken)
-        {
-            switch (xoToken.ExpectedType)
-            {
-                case SyntaxKind.SelectKeyword:
-                    return new SelectSyntaxNode(xoToken);
-                case SyntaxKind.FromKeyword:
-                    return new FromSyntaxNode(xoToken);
-                
-                default:
-                    // Default to the original token since it doesn't need to be converted
-                    // any more
-                    return new SyntaxTokenWrapper(xoToken);
-            }
-        }
-
         /// <summary>
         /// Context sensitive conversion which will scan ahead to determine the best candidate
         /// for this node
@@ -80,23 +59,36 @@ namespace Turing.Parser
             }
         }
 
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="xoCurrentToken"></param>
+        /// <param name="xoList"></param>
+        /// <returns></returns>
         public static SyntaxNode ConstructExpressionNode(SyntaxToken xoCurrentToken, SyntaxTokenList xoList)
         {
             // Handle the more unique cases first
             // We start the condition with a NOT (entirely possible)
             if (xoCurrentToken.ExpectedType == SyntaxKind.NotKeyword)
             {
-                // NOT (Boolean Expression)
+                // We have a leading Not Expression
                 SyntaxNode oNot = new BooleanExpressionSyntaxNode(xoCurrentToken);
+
+                // Have the NOT node attempt to consume anything
+                oNot.TryConsumeList(xoList);
+
+                return oNot;
             }
             // If we have an identifier followed by an operator of some sort
             else if (SyntaxNode.IsIdentifier(xoCurrentToken.ExpectedType) || SyntaxNode.IsOperator(xoCurrentToken.ExpectedType))
             {
 
             }
+
+            //
             return null;
         }
+
 
 
         #region Common Functions

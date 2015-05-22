@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Turing.Diagnostics;
-using Turing.Parser;
+using Turing.Factories;
 using Turing.Syntax.Collections;
 
 namespace Turing.Syntax
@@ -39,7 +37,7 @@ namespace Turing.Syntax
 
         protected List<SyntaxNode> aoChildren;
 
-        protected List<SyntaxNode> Children
+        public List<SyntaxNode> Children
         {
             get
             {
@@ -56,6 +54,10 @@ namespace Turing.Syntax
         {
             // Just add it
             Children.Add(xoGiven);
+
+            // Set the parent
+            xoGiven.Parent = this;
+
             // Default to true
             return true;
         }
@@ -63,7 +65,6 @@ namespace Turing.Syntax
         #endregion
 
         #region Construction
-
 
         public SyntaxNode() : this (new SyntaxToken(SyntaxKind.UnknownToken, String.Empty))
         {
@@ -168,6 +169,47 @@ namespace Turing.Syntax
             return String.Join(" ", Children.Select((oNode) => oNode.ToString()));
         }
 
+        #region Consume Prev Sibling
+
+        // Delegate function responsible for determining if a sibling
+        // is eligible for consumption
+        public delegate Boolean IsPreviousNodeEligible(SyntaxNode xoNode);
+
+        //
+        protected IsPreviousNodeEligible ConsumptionEligibilityFn;
+
+        /// <summary>
+        /// Primarily used for compound styled nodes which need to consume the
+        /// previous sibling for left associativity
+        /// </summary>
+        /// <returns></returns>
+        public virtual Boolean TryConsumePreviousSibling()
+        {
+            // Check if we can even consume the previous sibling
+            if (Parent.Children.Count >= 0)
+            {
+                // If the eligibility fails
+                if (ConsumptionEligibilityFn != null && 
+                    !ConsumptionEligibilityFn(Parent.Children[Parent.Children.Count - 1]))
+                {
+                    return false;
+                }
+
+                // Consume the previous sibling
+                AddChild(Parent.Children[Parent.Children.Count - 1]);
+
+                // Remove the sibling from the parent
+                Parent.Children.RemoveAt(Parent.Children.Count - 1);
+
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        #endregion
 
         #region Static Identification Functions
 

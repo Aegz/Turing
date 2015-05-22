@@ -26,10 +26,13 @@ namespace Turing
             // A flat list which will be used by the parser to generate an actual tree
             List<SyntaxToken> aoList = new List<SyntaxToken>();
 
+            // Initialises the Parser
             Parser.SyntaxParser oParser = new Parser.SyntaxParser(oText);
 
+            // Try and generate a tree
             SyntaxNode oTemp = oParser.ParseTree();
 
+            // Temp to see some text out
             String sTemp = oTemp.ToString();
             Console.WriteLine();
 

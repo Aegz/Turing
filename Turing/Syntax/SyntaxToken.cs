@@ -11,7 +11,7 @@ namespace Turing.Syntax
     /// </summary>
     public class SyntaxToken
     {
-        public static readonly SyntaxToken NULL_TOKEN = new SyntaxToken(SyntaxKind.UnknownToken, "?");
+        public static readonly SyntaxToken NULL_TOKEN = new SyntaxToken(SyntaxKind.NullNode, "");
 
         public String RawSQLText // Always store the raw SQL text if you can for reproduction
         {
