@@ -18,6 +18,40 @@ namespace Turing.Factories
         /// <returns></returns>
         public static Symbol GenerateTableSymbol(SyntaxToken xoCurrentToken, SyntaxTokenList xoList)
         {
+            if (xoCurrentToken.ExpectedType == SyntaxKind.OpenParenthesisToken)
+            {
+                // Subquery start
+                // Create a table symbol
+                TableSymbol oSubquery = new SubquerySymbol(SyntaxToken.NULL_TOKEN);
+
+                // Add the parenthesis (
+                //oSubquery.AddChild(new SyntaxLeaf(xoCurrentToken));
+
+                // Build a Select node
+                SyntaxNode oSelect = xoList.PeekToken().ExpectedType == SyntaxKind.SelectKeyword ?
+                    SyntaxNodeFactory.ContextSensitiveConvertTokenToNode(xoList.PopToken(), xoList) :
+                    SyntaxNodeFactory.CreateExceptionNodeWithExpectingMessage("SELECT", xoList.PopToken().RawSQLText); // Return an error node if we need to
+
+                // Add it to the Subquery Symbol
+                oSubquery.AddChild(oSelect);
+
+                // Try and build the Select statement
+                oSelect.TryConsumeList(xoList);
+
+
+                // Add the parenthesis )
+                if (xoList.PeekToken().ExpectedType == SyntaxKind.CloseParenthesisToken)
+                {
+                    xoList.PopToken();
+                    //oSubquery.AddChild(new SyntaxLeaf(xoList.PopToken()));
+                }
+
+                // Assign the alias
+                oSubquery.Alias = SyntaxNodeFactory.ScanAheadForAlias(xoList);
+
+                return oSubquery;
+            }
+
             Symbol oDatabase;
             Symbol oSchema;
             // A Symbol consists of multiple parts
@@ -54,20 +88,23 @@ namespace Turing.Factories
                 // Type Check
                 xoList.PeekToken(iSchemaLocation).ExpectedType == SyntaxKind.IdentifierToken ?
                     new SchemaSymbol(xoList.PeekToken(iSchemaLocation)) :
-                    GenerateMissingButExpectedSymbol("SchemaIdn", xoList.PeekToken(iSchemaLocation).RawSQLText)
+                    CreateExceptionNodeWithExpectingMessage(
+                        "SchemaIdn", xoList.PeekToken(iSchemaLocation).RawSQLText)
                 :
                 new SchemaSymbol(SyntaxToken.NULL_TOKEN);
 
+            SyntaxToken oTableToken = xoList.PeekToken(iTableLocation);
             oTable = iTableLocation != -1 ?
                 // Type check
-                xoList.PeekToken(iTableLocation).ExpectedType == SyntaxKind.IdentifierToken ?
-                    new TableSymbol(xoList.PeekToken(iTableLocation)) :
-                    GenerateMissingButExpectedSymbol("TableIdn", xoList.PeekToken(iTableLocation).RawSQLText) :
+                oTableToken.ExpectedType == SyntaxKind.IdentifierToken ?
+                    new TableSymbol(oTableToken) :
+                    CreateExceptionNodeWithExpectingMessage("TableIdn", oTableToken.RawSQLText) :
                 new TableSymbol(SyntaxToken.NULL_TOKEN);
 
             // create the decorator obj
             oSchema.AddChild(oTable);
             oDatabase.AddChild(oSchema);
+
             // Pop the tokens
             xoList.PopTokens(Math.Max(iSchemaLocation, iTableLocation) + 1);
 
@@ -77,60 +114,7 @@ namespace Turing.Factories
             return oDatabase;
         }
         
-        /// <summary>
-        /// Generate a TableSymbol which encompasses a Subquery
-        /// </summary>
-        /// <param name="xoToken"></param>
-        /// <param name="xoList"></param>
-        /// <returns></returns>
-        public static SyntaxNode GenerateTableSymbol(SyntaxNode xoCurrentNode, SyntaxToken xoToken, SyntaxTokenList xoList)
-        {
-            // If we get a select statement next
-            if (xoList.PeekToken().ExpectedType == SyntaxKind.SelectKeyword)
-            {
-                // Create a table symbol
-                TableSymbol oTable = new TableSymbol(xoToken);
-
-                // Add the parenthesis (
-                oTable.AddChild(new SyntaxTokenWrapper(xoToken));
-
-                // Build a Select node
-                SyntaxNode oSelect = xoList.PeekToken().ExpectedType == SyntaxKind.SelectKeyword ?
-                    SyntaxNodeFactory.ContextSensitiveConvertTokenToNode(xoList.PopToken(), xoList) :
-                    SymbolFactory.GenerateMissingButExpectedSymbol("SELECT", xoList.PopToken().RawSQLText); // Return an error node if we need to
-
-                // Add it to the Subquery Symbol
-                oTable.AddChild(oSelect);
-
-                // Try and build the Select statement
-                oSelect.TryConsumeList(xoList);
-
-                // Add the parenthesis )
-                if (xoList.PeekToken().ExpectedType == SyntaxKind.CloseParenthesisToken)
-                {
-                    xoCurrentNode.AddChild(new SyntaxTokenWrapper(xoList.PopToken()));
-                }
-
-                // Assign the alias
-                oTable.Alias = SyntaxNodeFactory.ScanAheadForAlias(xoList);
-
-                return oTable;
-            }
-            else
-            {
-                // Error Node, expecting SELECT
-                SyntaxNode oException = new ExceptionSyntaxNode();
-                oException.Comments.Add(
-                    new StatusItem(
-                        String.Format(
-                            ErrorMessageLibrary.EXPECTING_TOKEN_FOUND_ELSE,
-                            "SELECT",
-                            xoToken.RawSQLText
-                            )));
-                return oException;
-            }
-        }
-
+    
         /// <summary>
         /// Generates a Column Symbol
         /// </summary>
@@ -168,15 +152,14 @@ namespace Turing.Factories
         }
 
 
-        public static Symbol GenerateMissingButExpectedSymbol(String xsExpected, String xsRawSQL)
+
+        public static Symbol CreateExceptionNodeWithExpectingMessage(String xsExpected, String xsRawSQL)
         {
             // Error
             Symbol oError = new NullSymbol(SyntaxToken.NULL_TOKEN);
-            oError.Comments.Add(
-                new StatusItem(
-                    String.Format(ErrorMessageLibrary.EXPECTING_TOKEN_FOUND_ELSE, xsExpected, xsRawSQL)));
+            oError.InsertStatusMessage(
+                String.Format(ErrorMessageLibrary.EXPECTING_TOKEN_FOUND_ELSE, xsExpected, xsRawSQL));
             return oError;
         }
-
     }
 }

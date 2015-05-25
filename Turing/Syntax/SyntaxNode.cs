@@ -9,7 +9,6 @@ namespace Turing.Syntax
 {
     public abstract class SyntaxNode 
     {
-
         #region Object Attributes
 
         public String RawSQLText // Always store the raw SQL text if you can for reproduction
@@ -25,7 +24,7 @@ namespace Turing.Syntax
         }
 
         public SyntaxNode Parent { get; set; }  // Parent Node
-        public List<StatusItem> Comments;       // Comments/Errors specific to this node
+        private List<StatusItem> Comments;       // Comments/Errors specific to this node
 
         protected List<SyntaxKind> AcceptedTypes;
 
@@ -80,7 +79,11 @@ namespace Turing.Syntax
 
         #endregion
 
-
+        /// <summary>
+        /// Allows this node to consume tokens from the given window
+        /// </summary>
+        /// <param name="xoWindow"></param>
+        /// <returns></returns>
         public virtual Boolean TryConsumeList(SyntaxTokenList xoWindow)
         {
             Boolean bNodesConsumedSuccessfully = false;
@@ -116,6 +119,7 @@ namespace Turing.Syntax
                 // Add the child to this nodes children
                 if (AddChild(oNode))
                 {
+                    // Set the variable once
                     if (!bNodesConsumedSuccessfully)
                     {
                         bNodesConsumedSuccessfully = true;
@@ -126,10 +130,6 @@ namespace Turing.Syntax
                     {
                         // If it successfully consumed something
                     }
-                    // ?? Scan ahead using the NEXT node to see if it can consume anything?
-                    // This lets us know when to move on to trying to buil
-
-                    // 3. Return this object after it consumed all the tokens it could
                 }
                 else
                 {
@@ -150,33 +150,28 @@ namespace Turing.Syntax
             return bNodesConsumedSuccessfully;
         }
 
-
+        /// <summary>
+        /// Allows this node to determine the order and type of nodes it creates
+        /// </summary>
+        /// <param name="xoToken"></param>
+        /// <param name="xoList"></param>
+        /// <returns></returns>
         public virtual SyntaxNode ConvertTokenIntoNode(SyntaxToken xoToken, SyntaxTokenList xoList)
         {
             // Always try and perform a contextual conversion
             return SyntaxNodeFactory.ContextSensitiveConvertTokenToNode(xoToken, xoList); ;
         }
 
-
-        public override String ToString()
-        {
-            return RawSQLText + " " + GetChildString();
-        }
-
-
-        public virtual String GetChildString()
-        {
-            return String.Join(" ", Children.Select((oNode) => oNode.ToString()));
-        }
-
         #region Consume Prev Sibling
 
         // Delegate function responsible for determining if a sibling
         // is eligible for consumption
-        public delegate Boolean IsPreviousNodeEligible(SyntaxNode xoNode);
+        //public delegate Boolean IsPreviousNodeEligible(SyntaxNode xoNode);
 
-        //
-        protected IsPreviousNodeEligible ConsumptionEligibilityFn;
+        protected virtual Boolean PreviousChildIsEligible(SyntaxNode xoNode)
+        {
+            return false;
+        }
 
         /// <summary>
         /// Primarily used for compound styled nodes which need to consume the
@@ -188,25 +183,47 @@ namespace Turing.Syntax
             // Check if we can even consume the previous sibling
             if (Parent.Children.Count >= 0)
             {
-                // If the eligibility fails
-                if (ConsumptionEligibilityFn != null && 
-                    !ConsumptionEligibilityFn(Parent.Children[Parent.Children.Count - 1]))
+                // Work backwards until we find a suitable candidate
+                for (int iIndex = Parent.Children.Count - 1; iIndex >= 0; iIndex--)
                 {
-                    return false;
+                    SyntaxNode oLoopingVar = Parent.Children[iIndex];
+
+                    // If we find a suitable candidate for consumption
+                    if (PreviousChildIsEligible(oLoopingVar) && !this.Equals(oLoopingVar))
+                    {
+                        // Consume the previous sibling
+                        AddChild(oLoopingVar);
+
+                        // Remove the sibling from the parent
+                        Parent.Children.RemoveAt(iIndex);
+
+                        // Return true here
+                        return true;
+                    }
                 }
-
-                // Consume the previous sibling
-                AddChild(Parent.Children[Parent.Children.Count - 1]);
-
-                // Remove the sibling from the parent
-                Parent.Children.RemoveAt(Parent.Children.Count - 1);
-
-                return true;
             }
-            else
-            {
-                return false;
-            }
+
+            // Default to false
+            return false;
+        }
+
+        #endregion
+
+        #region Common Utility
+        public override String ToString()
+        {
+            return RawSQLText + " " + GetChildString();
+        }
+
+
+        public virtual String GetChildString()
+        {
+            return String.Join(" ", Children.Select((oNode) => oNode.ToString()));
+        }
+
+        public virtual void InsertStatusMessage(String xsMessage)
+        {
+            Comments.Add(new StatusItem(xsMessage));
         }
 
         #endregion
@@ -266,7 +283,7 @@ namespace Turing.Syntax
                 xeType == SyntaxKind.LeftJoinKeyword ||
                 xeType == SyntaxKind.RightJoinKeyword ||
                 xeType == SyntaxKind.CrossJoinKeyword ||
-                xeType == SyntaxKind.OuterJoinKeyword;
+                xeType == SyntaxKind.OuterKeyword;
         }
 
         #endregion

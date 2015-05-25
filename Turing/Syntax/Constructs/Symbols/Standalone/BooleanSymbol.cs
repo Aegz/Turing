@@ -4,13 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Turing.Syntax
+namespace Turing.Syntax.Constructs.Symbols.Standalone
 {
-    class SyntaxTokenWrapper : SyntaxNode
+    class BooleanSymbol : Symbol
     {
-        public SyntaxTokenWrapper(SyntaxToken xoToken) : base (xoToken)
+        public BooleanSymbol(SyntaxToken xoToken) : base(xoToken)
         {
-
         }
+
+
     }
 }

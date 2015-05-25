@@ -80,7 +80,7 @@ namespace Turing.Lexer
                 case "INNER":
                     return SyntaxKind.InnerJoinKeyword;
                 case "OUTER":
-                    return SyntaxKind.OuterJoinKeyword;
+                    return SyntaxKind.OuterKeyword;
                 case "LEFT":
                     return SyntaxKind.LeftJoinKeyword;
                 case "RIGHT":

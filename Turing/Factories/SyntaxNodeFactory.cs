@@ -2,8 +2,10 @@
 using Turing.Diagnostics;
 using Turing.Syntax;
 using Turing.Syntax.Collections;
+using Turing.Syntax.Constructs;
 using Turing.Syntax.Constructs.Expressions;
 using Turing.Syntax.Constructs.Keywords;
+using Turing.Syntax.Constructs.Symbols.Standalone;
 
 namespace Turing.Factories
 {
@@ -24,71 +26,80 @@ namespace Turing.Factories
                     return new SelectSyntaxNode(xoCurrentToken);
                 case SyntaxKind.FromKeyword:
                     return new FromSyntaxNode(xoCurrentToken);
+                case SyntaxKind.WhereKeyword:
+                    return new WhereSyntaxNode(xoCurrentToken);
+
+                #region JOIN
                 case SyntaxKind.JoinKeyword:
-                    return new JoinSyntaxNode(xoCurrentToken);
+                    // All Join nodes on their own become Inner joins
+                    SyntaxNode oJoinNode = new JoinSyntaxNode(xoCurrentToken);
+                    oJoinNode.ExpectedType = SyntaxKind.InnerJoinKeyword;
+                    return oJoinNode;
                 case SyntaxKind.InnerJoinKeyword:
-                case SyntaxKind.OuterJoinKeyword:
+                case SyntaxKind.OuterKeyword:
                 case SyntaxKind.LeftJoinKeyword:
                 case SyntaxKind.RightJoinKeyword:
                 case SyntaxKind.CrossJoinKeyword:
                     // Create the Join Node
-                    SyntaxNode oTemp = new JoinSyntaxNode(xoCurrentToken);
+                    JoinSyntaxNode oTemp = new JoinSyntaxNode(xoCurrentToken);
+
+                    // If the next node is actually an OUTER keyword
+                    if (xoList.PeekToken().ExpectedType == SyntaxKind.OuterKeyword)
+                    {
+                        // Construct a proper Join keyword with the type declared
+                        oTemp.IsOuter = true;
+                        oTemp.RawSQLText += " " + xoList.PeekToken().RawSQLText; // add the text (OUTER)
+                        xoList.PopToken(); // Pull it off the list
+                    }
+
                     // If the next node is actually a Join
                     if (xoList.PeekToken().ExpectedType == SyntaxKind.JoinKeyword)
                     {
                         // Construct a proper Join keyword with the type declared
                         oTemp.ExpectedType = xoCurrentToken.ExpectedType; // Set the type
-                        oTemp.RawSQLText += " " + xoList.PeekToken().RawSQLText; // add the text
+                        oTemp.RawSQLText += " " + xoList.PeekToken().RawSQLText; // add the text (JOIN)
                         xoList.PopToken(); // Pull it off the list
                     }
                     else
                     {
                         // Add an error
-                        oTemp.Comments.Add(new StatusItem(
-                            String.Format(ErrorMessageLibrary.EXPECTING_TOKEN_FOUND_ELSE, xoList.PeekToken().RawSQLText, "JOIN")));
+                        oTemp.InsertStatusMessage(
+                            String.Format(ErrorMessageLibrary.EXPECTING_TOKEN_FOUND_ELSE, xoList.PeekToken().RawSQLText, "JOIN"));
                     }
                     // Return the Join node
                     return oTemp;
+                #endregion
+
                 case SyntaxKind.OnKeyword:
                     return new OnSyntaxNode(xoCurrentToken);
+
+                case SyntaxKind.NotKeyword:
+                    return new UnaryExpression(xoCurrentToken);
+                case SyntaxKind.BooleanToken: // true and false and NOT
+                    return new BooleanSymbol(xoCurrentToken);
+
+                #region Conditional Expressions
+                case SyntaxKind.EqualsToken:
+                case SyntaxKind.GreaterThanOrEqualToken:
+                case SyntaxKind.GreaterThanToken:
+                case SyntaxKind.LessThanOrEqualToToken:
+                case SyntaxKind.LessThanToken:
+                case SyntaxKind.DiamondToken:
+
+                case SyntaxKind.AndKeyword:
+                case SyntaxKind.OrKeyword:
+                    // Return a boolean expression (which will consume the previous node and the next one)
+                    return new BinaryExpression(xoCurrentToken);
+                    
+
+                #endregion
 
                 default:
                     // Default to the original token since it doesn't need to be converted
                     // any more
-                    return new SyntaxTokenWrapper(xoCurrentToken);
+                    return new SyntaxLeaf(xoCurrentToken);
             }
         }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="xoCurrentToken"></param>
-        /// <param name="xoList"></param>
-        /// <returns></returns>
-        public static SyntaxNode ConstructExpressionNode(SyntaxToken xoCurrentToken, SyntaxTokenList xoList)
-        {
-            // Handle the more unique cases first
-            // We start the condition with a NOT (entirely possible)
-            if (xoCurrentToken.ExpectedType == SyntaxKind.NotKeyword)
-            {
-                // We have a leading Not Expression
-                SyntaxNode oNot = new BooleanExpressionSyntaxNode(xoCurrentToken);
-
-                // Have the NOT node attempt to consume anything
-                oNot.TryConsumeList(xoList);
-
-                return oNot;
-            }
-            // If we have an identifier followed by an operator of some sort
-            else if (SyntaxNode.IsIdentifier(xoCurrentToken.ExpectedType) || SyntaxNode.IsOperator(xoCurrentToken.ExpectedType))
-            {
-
-            }
-
-            //
-            return null;
-        }
-
 
 
         #region Common Functions
@@ -131,7 +142,16 @@ namespace Turing.Factories
             return sAlias;
         }
 
+
+        public static SyntaxNode CreateExceptionNodeWithExpectingMessage(String xsExpected, String xsRawSQL)
+        {
+            // Error
+            SyntaxNode oError = new ExceptionSyntaxNode();
+            oError.InsertStatusMessage(
+                String.Format(ErrorMessageLibrary.EXPECTING_TOKEN_FOUND_ELSE, xsExpected, xsRawSQL));
+            return oError;
+        }
         #endregion
-        
+
     }
 }

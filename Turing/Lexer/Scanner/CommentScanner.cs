@@ -12,6 +12,7 @@ namespace Turing.Lexer.Scanner
 {
     class CommentScanner
     {
+
         public static SyntaxTrivia ScanSingleLineComment(SlidingTextWindow TextWindow)
         {
             // Check next char
@@ -58,7 +59,7 @@ namespace Turing.Lexer.Scanner
                     SyntaxTrivia oCommentNode = SyntaxFactory.SingleLineComment(sCommentLine);
 
                     // Add the erroraneous message
-                    oCommentNode.Comments.Add(new StatusItem(ErrorMessageLibrary.COMMENT_NOT_TERMINATED));
+                    oCommentNode.InsertStatusMessage(ErrorMessageLibrary.NOT_TERMINATED);
 
                     // return the comment node with everything in comments
                     return oCommentNode;
@@ -73,14 +74,11 @@ namespace Turing.Lexer.Scanner
                 SyntaxKind.UnknownToken, // Unknown
                 Convert.ToString(TextWindow.PeekCharacter())); // Get the character out of the stream
 
-            StatusItem oErrorMessage = new StatusItem(
+            oErraneousToken.InsertStatusMessage(
                 String.Format(
-                    ErrorMessageLibrary.UNEXPECTED_TOKEN_FOUND, 
-                    TextWindow.PopCharacter()));
-
-
-            // Add the erroraneous message
-            oErraneousToken.Comments.Add(oErrorMessage);
+                    ErrorMessageLibrary.UNEXPECTED_TOKEN_FOUND,
+                    TextWindow.PopCharacter())
+                    );
 
             // return the comment node with everything in comments
             return oErraneousToken;
@@ -132,10 +130,7 @@ namespace Turing.Lexer.Scanner
                 {
                     // Intermediate Var (Add all the text as a comment)
                     SyntaxTrivia oCommentNode = SyntaxFactory.MultiLineComment(sCommentLine);
-                    Diagnostics.StatusItem oStatusMessage = new Diagnostics.StatusItem(ErrorMessageLibrary.COMMENT_NOT_TERMINATED);
- 
-                    // Add the erroraneous message
-                    oCommentNode.Comments.Add(oStatusMessage);
+                    oCommentNode.InsertStatusMessage(ErrorMessageLibrary.NOT_TERMINATED);
 
                     // return the comment node with everything in comments
                     return oCommentNode;
@@ -150,14 +145,12 @@ namespace Turing.Lexer.Scanner
                 SyntaxKind.UnknownToken, // Unknown
                 Convert.ToString(TextWindow.PeekCharacter())); // Get the character out of the stream
 
-            StatusItem oErrorMessage = new StatusItem(
+            // 
+            oErraneousToken.InsertStatusMessage(
                 String.Format(
                     ErrorMessageLibrary.UNEXPECTED_TOKEN_FOUND,
                     TextWindow.PopCharacter()));
-
-            // Add the erroraneous message
-            oErraneousToken.Comments.Add(oErrorMessage);
-
+            
             // return the comment node with everything in comments
             return oErraneousToken;
         }

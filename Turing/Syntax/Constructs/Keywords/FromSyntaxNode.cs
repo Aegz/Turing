@@ -8,7 +8,7 @@ using Turing.Syntax.Constructs.Symbols.SingleChild;
 
 namespace Turing.Syntax.Constructs.Keywords
 {
-    class FromSyntaxNode : SyntaxNode
+    public class FromSyntaxNode : SyntaxNode
     {
         public FromSyntaxNode(SyntaxToken xoToken) : base(xoToken)
         {
@@ -21,19 +21,19 @@ namespace Turing.Syntax.Constructs.Keywords
                 // JOIN Keywords
                 { SyntaxKind.JoinKeyword },
                 { SyntaxKind.InnerJoinKeyword },
-                { SyntaxKind.OuterJoinKeyword },
+                { SyntaxKind.OuterKeyword },
                 { SyntaxKind.CrossJoinKeyword },
                 { SyntaxKind.LeftJoinKeyword },
                 { SyntaxKind.RightJoinKeyword },
 
                 // JOIN additional keywords
                 // This needs to be here since JOIN and ON are instantiated at different times
-                //{ SyntaxKind.OnKeyword },
+                { SyntaxKind.OnKeyword },
 
                 // Allow Bracket/Subqueries
                 { SyntaxKind.OpenParenthesisToken },
                 //{ SyntaxKind.SelectKeyword },
-                { SyntaxKind.CloseParenthesisToken },
+                //{ SyntaxKind.CloseParenthesisToken },
 
                 // Grammar
                 { SyntaxKind.DotDotToken },
@@ -52,35 +52,11 @@ namespace Turing.Syntax.Constructs.Keywords
         public override SyntaxNode ConvertTokenIntoNode(SyntaxToken xoToken, SyntaxTokenList xoList)
         {
             // If we need to perform a context sensitive conversion
-            if (SyntaxNode.IsIdentifier(xoToken.ExpectedType)) // Generic Identifiers only
+            if (SyntaxNode.IsIdentifier(xoToken.ExpectedType) ||            // Generic Identifiers only
+                xoToken.ExpectedType == SyntaxKind.OpenParenthesisToken)    // Subqueries
             {
                 return SymbolFactory.GenerateTableSymbol(xoToken, xoList);
             }
-            // ( - Subquery
-            else if (xoToken.ExpectedType == SyntaxKind.OpenParenthesisToken)
-            {
-                // Create a Subquery statement?
-                return SymbolFactory.GenerateTableSymbol(this, xoToken, xoList);
-            }
-            // Any Join keyword
-            //else if (xoToken.ExpectedType == SyntaxKind.JoinKeyword ||
-            //    SyntaxNode.IsJoinTypeKeyword(xoToken.ExpectedType))
-            //{
-            //    // Exit early on error
-            //    if (Children.Count == 0)
-            //    {
-            //        return SymbolFactory.GenerateMissingButExpectedSymbol("NONE", "TableDecl");
-            //    }
-            //    else
-            //    {
-            //        // Create a Join Node
-            //        SyntaxNode oJoin = SyntaxNodeFactory.ContextSensitiveConvertTokenToNode(xoToken, xoList);
-              
-            //        // Create a Subquery statement?
-            //        return oJoin; 
-
-            //    }
-            //}
             else
             {
                 // Everything else

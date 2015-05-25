@@ -6,14 +6,16 @@ using System.Threading.Tasks;
 
 namespace Turing.Syntax.Constructs
 {
-    public class QuerySyntaxNode : SyntaxNode
+    public class StatementSyntaxNode : SyntaxNode
     {
-        public QuerySyntaxNode() : base()
+        public StatementSyntaxNode() : base()
         {
+            // Always start with 1
+            //Children.Add(new StatementSyntaxNode());
 
         }
 
-        public QuerySyntaxNode(List<SyntaxNode> xaoChildren) : base()
+        public StatementSyntaxNode(List<SyntaxNode> xaoChildren) : base()
         {
             aoChildren = xaoChildren;
         }
@@ -26,6 +28,5 @@ namespace Turing.Syntax.Constructs
             }
             return base.AddChild(xoGiven);
         }
-
     }
 }

@@ -75,7 +75,7 @@ namespace NetezzaLexTests
         }
 
         [TestMethod]
-        public void TestIdentifierAlias()
+        public void TestTableAlias()
         {
             SlidingTextWindow oText = new SlidingTextWindow(
             @"   

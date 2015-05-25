@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using Turing.Factories;
 using Turing.Syntax.Collections;
 using Turing.Syntax.Constructs.Symbols;
+using Turing.Syntax.Constructs.Symbols.Collections;
 using Turing.Syntax.Constructs.Symbols.SingleChild;
 
 namespace Turing.Syntax.Constructs.Keywords
 {
-    class SelectSyntaxNode : SyntaxNode
+    public class SelectSyntaxNode : SyntaxNode
     {
         public SelectSyntaxNode(SyntaxToken xoToken) : base (xoToken)
         {
@@ -16,6 +17,7 @@ namespace Turing.Syntax.Constructs.Keywords
                 // Star and Columns
                 { SyntaxKind.StarToken },
                 { SyntaxKind.IdentifierToken },
+                { SyntaxKind.CommaToken },
                 { SyntaxKind.CaseKeyword }, // Case is unfortunately something that works in columns
                 //{ SyntaxKind.AsKeyword },
 
@@ -30,11 +32,15 @@ namespace Turing.Syntax.Constructs.Keywords
 
         public override SyntaxNode ConvertTokenIntoNode(SyntaxToken xoToken, SyntaxTokenList xoList)
         {
+            // Build a Symbol Composite
 
             // If we need to perform a context sensitive conversion
             if (SyntaxNode.IsIdentifier(xoToken.ExpectedType) || // Generic Identifiers allowed here too
                 xoToken.ExpectedType == SyntaxKind.StarToken) // * in Column is allowed
             {
+                // Initialise a list
+                SymbolList oList = new SymbolList();
+
                 // Generate the column
                 ColumnSymbol oColumn = new ColumnSymbol(xoToken);
 
@@ -48,13 +54,15 @@ namespace Turing.Syntax.Constructs.Keywords
                     oColumn.Alias = String.Empty; // Set it back to null
                 }
 
-                // Return the column
-                return oColumn;
+                // Add this column
+                oList.AddChild(oColumn);
+
+                // generate a symbol list (which will consume anything else that is a column)
+                return oList;
             }
 
             // Default to using the original conversion
             return base.ConvertTokenIntoNode(xoToken, xoList);
-
         }
     }
 }

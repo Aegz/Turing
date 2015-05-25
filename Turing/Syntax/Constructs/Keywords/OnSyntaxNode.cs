@@ -36,40 +36,22 @@ namespace Turing.Syntax.Constructs.Keywords
                 { SyntaxKind.LessThanOrEqualToToken },
                 { SyntaxKind.LessThanToken },
 
+                { SyntaxKind.CaseKeyword },
+                { SyntaxKind.AndKeyword },
+                { SyntaxKind.OrKeyword },
             });
         }
 
         public override SyntaxNode ConvertTokenIntoNode(SyntaxToken xoToken, SyntaxTokenList xoList)
         {
-            // Handle the more unique cases first
-            // We start the condition with a NOT (entirely possible)
-            if (xoToken.ExpectedType == SyntaxKind.NotKeyword)
+            // If we have an identifier on its own
+            if (SyntaxNode.IsIdentifier(xoToken.ExpectedType))
             {
-                // Then we should build an expression out
-                
-            }
-            // If we have an identifier followed by an operator of some sort
-            else if (SyntaxNode.IsIdentifier(xoToken.ExpectedType) || SyntaxNode.IsOperator(xoToken.ExpectedType))
-            {
-
-            }
-
-            // If we need to perform a context sensitive conversion
-            if (SyntaxNode.IsIdentifier(xoToken.ExpectedType)) // Table Identifiers
-            {
-                // Build a Column symbol
                 return SymbolFactory.GenerateColumnSymbol(xoToken, xoList);
             }
-            // If we come across a Expression Node 
-            // Shuffle these around whie keeping Right Precedence
-            //else if (true)
-            //{
-            //    // Shuffle the nodes around to build a series of cascading expressions
-            //    // that follow right precedence
-            //    return null;
-            //}
             else
             {
+                // Let the base conversion figure out what it is
                 return base.ConvertTokenIntoNode(xoToken, xoList);
             }
         }

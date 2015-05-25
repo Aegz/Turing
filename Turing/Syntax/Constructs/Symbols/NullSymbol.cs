@@ -11,5 +11,10 @@ namespace Turing.Syntax.Constructs.Symbols
         public NullSymbol(SyntaxToken xoToken) : base(xoToken)
         {
         }
+
+        public override string ToString()
+        {
+            return String.Empty;
+        }
     }
 }

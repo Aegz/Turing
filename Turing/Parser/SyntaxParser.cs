@@ -2,6 +2,7 @@
 using Turing.Syntax;
 using Turing.Syntax.Collections;
 using Turing.Factories;
+using Turing.Syntax.Constructs;
 
 namespace Turing.Parser
 {
@@ -44,23 +45,32 @@ namespace Turing.Parser
         /// <returns></returns>
         public SyntaxNode ParseTree()
         {
-            // If there is nothing to process, break early
-            if (TokenList.HasTokensLeftToProcess())
+            // Initialise the Query
+            QuerySyntaxNode oQuery = new QuerySyntaxNode();
+
+            // WHILE has tokens to process
+            // Anytime we get here, create a new statement?
+            while (TokenList.HasTokensLeftToProcess())
             {
+                // Initialise a new statement every time we get here
+                StatementSyntaxNode oStatement = new StatementSyntaxNode();
+
                 // Pull off the first node
                 SyntaxNode CurrentNode = SyntaxNodeFactory.ContextSensitiveConvertTokenToNode(TokenList.PopToken(), null);
 
                 // If we consumed anything
                 if (CurrentNode.TryConsumeList(TokenList))
                 {
-                    // Return the node
-                    return CurrentNode;
+                    // Append to the statement
+                    oStatement.AddChild(CurrentNode);
                 }
 
+                oQuery.AddChild(oStatement);
             }
 
-            // Default to exception
-            return null;
+            // Return the Query
+            return oQuery;
+ 
         }
 
     }

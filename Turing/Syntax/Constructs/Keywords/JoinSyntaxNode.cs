@@ -10,8 +10,10 @@ using Turing.Syntax.Constructs.Symbols;
 
 namespace Turing.Syntax.Constructs.Keywords
 {
-    class JoinSyntaxNode : SyntaxNode
+    public class JoinSyntaxNode : SyntaxNode
     {
+        public Boolean IsOuter = false;
+       
         public JoinSyntaxNode(SyntaxToken xoToken) : base(xoToken)
         {
             AcceptedTypes.AddRange(new List<SyntaxKind>
@@ -21,13 +23,17 @@ namespace Turing.Syntax.Constructs.Keywords
 
                 // Identifiers are allowed too
                 { SyntaxKind.IdentifierToken },
+                { SyntaxKind.OpenParenthesisToken },
             });
 
-            // Assign an eligibility function
-            ConsumptionEligibilityFn = PreviousChildIsEligible;
         }
 
-        private Boolean PreviousChildIsEligible(SyntaxNode xoNode)
+        /// <summary>
+        /// Determines which nodes are consumeable
+        /// </summary>
+        /// <param name="xoNode"></param>
+        /// <returns></returns>
+        protected override Boolean PreviousChildIsEligible(SyntaxNode xoNode)
         {
             return 
                     xoNode.ExpectedType == SyntaxKind.IdentifierToken || // Identifier/(Table)
@@ -35,28 +41,31 @@ namespace Turing.Syntax.Constructs.Keywords
                     SyntaxNode.IsJoinTypeKeyword(xoNode.ExpectedType); // Join type keyword
         }
 
+
         public override bool TryConsumeList(SyntaxTokenList xoWindow)
         {
             // Consume the previous sibling before consuming anything else
-            if (TryConsumePreviousSibling())
+            if (!TryConsumePreviousSibling())
             {
-                String FoundType = Parent.Children.Count > 0 ? Parent.Children[Parent.Children.Count - 1].RawSQLText : "NONE";
-
+                String FoundType = Parent.Children.Count > 0 ? Parent.Children.LastOrDefault(PreviousChildIsEligible).RawSQLText : "NONE";
+          
                 // ERROR? Nothing to consume?
-                Comments.Add(new StatusItem(
+                InsertStatusMessage(
                     String.Format(
                         ErrorMessageLibrary.EXPECTING_TOKEN_FOUND_ELSE,
                         "Identifier or Join", FoundType
-                    )));
+                    ));
             }
 
             return base.TryConsumeList(xoWindow);
         }
 
+
         public override SyntaxNode ConvertTokenIntoNode(SyntaxToken xoToken, SyntaxTokenList xoList)
         {
             // If we need to perform a context sensitive conversion
-            if (SyntaxNode.IsIdentifier(xoToken.ExpectedType)) // Table Identifiers
+            if (SyntaxNode.IsIdentifier(xoToken.ExpectedType) ||         // Generic Identifiers only
+                xoToken.ExpectedType == SyntaxKind.OpenParenthesisToken) // Subqueries
             {
                 // Build a table symbol if necessary
                 return SymbolFactory.GenerateTableSymbol(xoToken, xoList);
@@ -65,6 +74,20 @@ namespace Turing.Syntax.Constructs.Keywords
             {
                 return base.ConvertTokenIntoNode(xoToken, xoList);
             }
+        }
+
+        public override string ToString()
+        {
+            return GetChildString();
+        }
+
+        public override string GetChildString()
+        {
+            return String.Format(
+                "{0} {1} {2}",
+                (Children.Count > 0 ? Children[0].ToString() : ""),
+                RawSQLText,
+                (Children.Count > 1 ? Children[1].ToString() : ""));
         }
     }
 }

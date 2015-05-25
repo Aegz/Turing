@@ -1,11 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Turing.Syntax.Constructs.Symbols
 {
+    /// <summary>
+    /// Symbol is a node that can only have 1 child. Will often represent
+    /// a leaf
+    /// </summary>
     class Symbol : SyntaxNodeWithOneChild
     {
         public String Alias { get; set; }

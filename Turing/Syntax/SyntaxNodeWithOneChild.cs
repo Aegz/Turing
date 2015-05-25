@@ -2,6 +2,10 @@
 
 namespace Turing.Syntax
 {
+    /// <summary>
+    /// A syntax node that can only have a single child. Examples of where this might
+    /// be applicable include use of the Symbol
+    /// </summary>
     class SyntaxNodeWithOneChild : SyntaxNode
     {
         public SyntaxNodeWithOneChild (SyntaxToken xoToken) : base(xoToken)

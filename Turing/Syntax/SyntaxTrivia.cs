@@ -12,7 +12,7 @@ namespace Turing.Syntax
         public String RawSQLText { get; set; }
         public SyntaxKind ExpectedType { get; set; }
 
-        public List<StatusItem> Comments;
+        private List<StatusItem> Comments;
 
         public SyntaxTrivia(SyntaxKind xeType, String xsRawText) 
         {
@@ -20,5 +20,11 @@ namespace Turing.Syntax
             RawSQLText = xsRawText;
             Comments = new List<StatusItem>();
         }
+
+        public virtual void InsertStatusMessage(String xsMessage)
+        {
+            Comments.Add(new StatusItem(xsMessage));
+        }
+
     }
 }

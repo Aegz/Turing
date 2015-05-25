@@ -4,49 +4,46 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Turing.Syntax.Constructs.Expressions
+namespace Turing.Syntax.Constructs.Keywords
 {
-    class BooleanExpressionSyntaxNode : ExpressionSyntaxNode
+    class WhereSyntaxNode : SyntaxNode
     {
-        public BooleanExpressionSyntaxNode(SyntaxToken xoToken) : base(xoToken)
+        public WhereSyntaxNode(SyntaxToken xoToken) : base (xoToken)
         {
             AcceptedTypes.AddRange(new List<SyntaxKind>
             {
-                // Identifier are allowed 
+                // Identifiers are allowed too
                 { SyntaxKind.IdentifierToken },
-                { SyntaxKind.BooleanToken },
-                { SyntaxKind.NumericToken },
                 { SyntaxKind.LiteralToken },
-                { SyntaxKind.NullKeyword },
+                { SyntaxKind.NumericToken },
 
-                // Basic Operators
-                { SyntaxKind.PlusToken },
+                // MOVE TO Expression?
+
+                // Standard Operators
                 { SyntaxKind.MinusToken },
+                { SyntaxKind.PlusToken },
                 { SyntaxKind.StarToken },
                 { SyntaxKind.SlashToken },
 
-                // Unique Comparison Operators
+                // Conditional Operators
+                { SyntaxKind.EqualsToken },
                 { SyntaxKind.InKeyword },
                 { SyntaxKind.IsKeyword },
                 { SyntaxKind.NotKeyword },
                 { SyntaxKind.NullKeyword },
 
-                // Core Comparison Operators
-                { SyntaxKind.DiamondToken },
+                // Compound Operators
                 { SyntaxKind.GreaterThanOrEqualToken },
                 { SyntaxKind.GreaterThanToken },
                 { SyntaxKind.LessThanOrEqualToToken },
                 { SyntaxKind.LessThanToken },
-                { SyntaxKind.EqualsEqualsToken },
-                { SyntaxKind.EqualsToken },
 
-                // CASE (will be allowed in expressions
-                { SyntaxKind.CaseKeyword }
+                { SyntaxKind.CaseKeyword },
+                { SyntaxKind.AndKeyword },
+                { SyntaxKind.OrKeyword },
+
             });
         }
 
-
-
-        
     }
 }

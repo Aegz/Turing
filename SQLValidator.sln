@@ -19,6 +19,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "WebServices", "WebServices"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetezzaLexTests", "NetezzaLexTests\NetezzaLexTests.csproj", "{72665F67-36C8-4636-94E8-D8783D780294}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetezzaParseTests", "NetezzaParseTests\NetezzaParseTests.csproj", "{1EDE97A2-77F5-4539-B01B-63C4432100A5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,6 +43,10 @@ Global
 		{72665F67-36C8-4636-94E8-D8783D780294}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{72665F67-36C8-4636-94E8-D8783D780294}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{72665F67-36C8-4636-94E8-D8783D780294}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1EDE97A2-77F5-4539-B01B-63C4432100A5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1EDE97A2-77F5-4539-B01B-63C4432100A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1EDE97A2-77F5-4539-B01B-63C4432100A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1EDE97A2-77F5-4539-B01B-63C4432100A5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -52,5 +58,6 @@ Global
 		{8D4E3DD1-BD2E-43C2-8ED4-FD6FFD291249} = {E084EE8E-754F-47B4-9E61-22C4D58243DF}
 		{DA64721D-C674-4A38-9E06-B4CF885EC85D} = {8D4E3DD1-BD2E-43C2-8ED4-FD6FFD291249}
 		{72665F67-36C8-4636-94E8-D8783D780294} = {8D4E3DD1-BD2E-43C2-8ED4-FD6FFD291249}
+		{1EDE97A2-77F5-4539-B01B-63C4432100A5} = {8D4E3DD1-BD2E-43C2-8ED4-FD6FFD291249}
 	EndGlobalSection
 EndGlobal

@@ -42,7 +42,7 @@ namespace Turing.Syntax
 
         // JOIN
         InnerJoinKeyword,
-        OuterJoinKeyword,
+        OuterKeyword,
         LeftJoinKeyword,
         RightJoinKeyword,
         CrossJoinKeyword,
