@@ -29,15 +29,20 @@ namespace Turing.Syntax
         public SyntaxNode Parent { get; set; }  // Parent Node
         private List<StatusItem> Comments;       // Comments/Errors specific to this node
 
-        protected List<SyntaxKind> AcceptedTypes;
+        protected List<SyntaxKind> ConsumableTypes;
+        protected List<SyntaxKind> ClosingTypes; // used to represent the types that close this node off
 
         protected SyntaxToken Token { get; set; }
+
+
+        //
+        protected Boolean bHasConsumedNodes = false; // Tells you when it has actually built anything
 
         #endregion
 
         #region Node Attributes
 
-        protected List<SyntaxNode> aoChildren;
+        protected List<SyntaxNode> aoChildren; // Currently at protected for Query and Statement
 
         public List<SyntaxNode> Children
         {
@@ -75,7 +80,8 @@ namespace Turing.Syntax
         public SyntaxNode(SyntaxToken xoToken)
         {
             Token = xoToken;
-            AcceptedTypes = new List<SyntaxKind>(); // Always initialise the list
+            ConsumableTypes = new List<SyntaxKind>(); // Always initialise the list
+            ClosingTypes = new List<SyntaxKind>();
             Comments = new List<StatusItem>();
         }
 
@@ -88,11 +94,31 @@ namespace Turing.Syntax
         /// </summary>
         /// <param name="xoList"></param>
         /// <returns></returns>
-        public virtual Boolean PreprocessNextNodeAndCheckCompatibility(SyntaxTokenList xoList)
+        public Boolean CanConsumeNextNode(SyntaxTokenList xoList)
         {
-            return 
+            if (ClosingTypes.Contains(xoList.PeekToken().ExpectedType))
+            {
+                // Kill off the token and return false
+                xoList.PopToken();
+                return false;
+            }
+            else
+            {
+                return
                     !SyntaxNode.IsTerminatingNode(xoList.PeekToken().ExpectedType) && // Terminator Token
-                    AcceptedTypes.Contains(xoList.PeekToken().ExpectedType);        // Can't eat the next token
+                    ConsumableTypes.Contains(xoList.PeekToken().ExpectedType);        // Can't eat the next token
+            }
+        }
+
+        /// <summary>
+        /// Used when you can simply process a node but not construct anything from it
+        /// if it succeeds then it has successfully processed the node
+        /// </summary>
+        /// <param name="xoList"></param>
+        /// <returns></returns>
+        public virtual Boolean CanProcessNextNode(SyntaxTokenList xoList)
+        {
+            return false;
         }
 
         /// <summary>
@@ -102,9 +128,6 @@ namespace Turing.Syntax
         /// <returns></returns>
         public virtual Boolean TryConsumeList(SyntaxTokenList xoList)
         {
-            //
-            Boolean bNodesConsumedSuccessfully = false;
-
             // Only do work if we have anything left to process
             if (!xoList.HasTokensLeftToProcess() ||   // We have stuff to process
                 SyntaxNode.IsTerminatingNode(xoList.PeekToken().ExpectedType)) // We have not reached a terminator
@@ -115,40 +138,43 @@ namespace Turing.Syntax
 
             // While we have nodes to process
             while (xoList.HasTokensLeftToProcess())
-            {
-                // Intermediate var
-                SyntaxToken oNextToken = xoList.PeekToken();
-
-            // PRE
-                // Do any necessary pre processing which can include things 
-                // such as cleansing and dropping irrelevant nodes
-                // If we have a terminating condition
-                if (!PreprocessNextNodeAndCheckCompatibility(xoList)) 
+            {              
+                // PRE
+                if (CanProcessNextNode(xoList))
                 {
-                    // Break out and say it failed
-                    return bNodesConsumedSuccessfully;
+                    // Do any necessary pre processing which can include things 
+                    // such as cleansing and dropping irrelevant nodes
+                    // Cleanse the next node if necessary
+
                 }
-
-            // CONSTRUCT
-                // 1. Construct a Node based off the next token
-                SyntaxNode oNode = this.ConvertTokenIntoNode(xoList);
-
-            // POST
-                // Do any necessary post processing on the given node
-                // Which includes adding it as a child
-                if (PostprocessNodeAndAddAsChild(oNode, xoList))
+                // CONSTRUCT
+                else if (CanConsumeNextNode(xoList))
                 {
-                    // Set the variable once
-                    if (!bNodesConsumedSuccessfully)
+                    // 1. Construct a Node based off the next token
+                    SyntaxNode oNode = this.ConvertTokenIntoNode(xoList);
+
+                // POST
+                    // Do any necessary post processing on the given node
+                    // Which includes adding it as a child
+                    if (PostprocessNodeAndAddAsChild(oNode, xoList))
                     {
-                        bNodesConsumedSuccessfully = true;
+                        // Set the variable once
+                        if (!bHasConsumedNodes)
+                        {
+                            bHasConsumedNodes = true;
+                        }
                     }
-                }
 
+                }
+                // TERMINATE
+                else
+                {
+                    return bHasConsumedNodes;
+                }
             }
             
             // Default to true
-            return bNodesConsumedSuccessfully;
+            return bHasConsumedNodes;
         }
 
         /// <summary>
@@ -163,7 +189,13 @@ namespace Turing.Syntax
             return SyntaxNodeFactory.ContextSensitiveConvertTokenToNode(xoList); ;
         }
 
-
+        /// <summary>
+        /// Postprocessing method that can be overriden if some activity needs to be
+        /// done immediately after a node is constructed
+        /// </summary>
+        /// <param name="xoNode"></param>
+        /// <param name="xoList"></param>
+        /// <returns></returns>
         public virtual Boolean PostprocessNodeAndAddAsChild(SyntaxNode xoNode, SyntaxTokenList xoList)
         {
             // Add the child to this nodes children
@@ -250,7 +282,7 @@ namespace Turing.Syntax
 
         public virtual String GetChildString()
         {
-            return String.Join(" ", Children.Select((oNode) => oNode.ToString()));
+            return String.Join(" ", Children);
         }
 
         public SyntaxNode FindFirst(SyntaxKind xeExpectedKind)

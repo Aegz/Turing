@@ -10,7 +10,7 @@ namespace Turing.Syntax.Constructs.Keywords
     {
         public FromSyntaxNode(SyntaxToken xoToken) : base(xoToken)
         {
-            AcceptedTypes.AddRange(new List<SyntaxKind>
+            ConsumableTypes.AddRange(new List<SyntaxKind>
             {
                 // Database and Table Identifiers only
                 { SyntaxKind.IdentifierToken },

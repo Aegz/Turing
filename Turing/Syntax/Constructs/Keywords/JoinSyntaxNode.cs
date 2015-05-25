@@ -16,7 +16,7 @@ namespace Turing.Syntax.Constructs.Keywords
        
         public JoinSyntaxNode(SyntaxToken xoToken) : base(xoToken)
         {
-            AcceptedTypes.AddRange(new List<SyntaxKind>
+            ConsumableTypes.AddRange(new List<SyntaxKind>
             {
                 // On keywords
                 { SyntaxKind.OnKeyword },

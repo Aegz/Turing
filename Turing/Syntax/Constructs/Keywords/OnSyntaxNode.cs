@@ -8,7 +8,7 @@ namespace Turing.Syntax.Constructs.Keywords
     {
         public OnSyntaxNode(SyntaxToken xoToken) : base(xoToken)
         {
-            AcceptedTypes.AddRange(new List<SyntaxKind>
+            ConsumableTypes.AddRange(new List<SyntaxKind>
             {
                 // Identifiers are allowed too
                 { SyntaxKind.IdentifierToken },

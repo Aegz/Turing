@@ -12,7 +12,7 @@ namespace Turing.Syntax.Constructs.Symbols.SingleChild
     {
         public SubquerySymbol(SyntaxToken xoToken) : base (xoToken)
         {
-            AcceptedTypes.AddRange(new List<SyntaxKind>
+            ConsumableTypes.AddRange(new List<SyntaxKind>
             {
                 { SyntaxKind.SelectKeyword }
             });
@@ -23,13 +23,14 @@ namespace Turing.Syntax.Constructs.Symbols.SingleChild
         /// </summary>
         /// <param name="xoList"></param>
         /// <returns></returns>
-        public override bool PreprocessNextNodeAndCheckCompatibility(SyntaxTokenList xoList)
+        public override bool CanProcessNextNode(SyntaxTokenList xoList)
         {
             // If we have a Open parenthesis starting node
             // And we just found a closing Token
             if (this.ExpectedType == SyntaxKind.OpenParenthesisToken &&
                 xoList.PeekToken().ExpectedType == SyntaxKind.CloseParenthesisToken)
             {
+                // Drop the close parenthesis
                 xoList.PopToken();
 
                 // Find an alias
@@ -42,10 +43,10 @@ namespace Turing.Syntax.Constructs.Symbols.SingleChild
                     InsertStatusMessage("No Alias assigned. One has been generated");
                 }
 
-                return false;
+                return true;
             }
 
-            return base.PreprocessNextNodeAndCheckCompatibility(xoList);
+            return base.CanProcessNextNode(xoList);
         }
 
 

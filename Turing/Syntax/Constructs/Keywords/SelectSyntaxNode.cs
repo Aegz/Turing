@@ -12,7 +12,7 @@ namespace Turing.Syntax.Constructs.Keywords
     {
         public SelectSyntaxNode(SyntaxToken xoToken) : base (xoToken)
         {
-            AcceptedTypes.AddRange(new List<SyntaxKind>
+            ConsumableTypes.AddRange(new List<SyntaxKind>
             {
                 // Star and Columns
                 { SyntaxKind.StarToken },
