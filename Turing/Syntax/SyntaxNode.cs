@@ -82,7 +82,13 @@ namespace Turing.Syntax
 
         #endregion
 
-        public virtual Boolean CanNextNodeBeProcessed(SyntaxTokenList xoList)
+        /// <summary>
+        /// Returns true if the next node is something this node can interpret
+        /// and returns false if it cannot do anything with the next node
+        /// </summary>
+        /// <param name="xoList"></param>
+        /// <returns></returns>
+        public virtual Boolean PreprocessNextNodeAndCheckCompatibility(SyntaxTokenList xoList)
         {
             return 
                     !SyntaxNode.IsTerminatingNode(xoList.PeekToken().ExpectedType) && // Terminator Token
@@ -92,65 +98,53 @@ namespace Turing.Syntax
         /// <summary>
         /// Allows this node to consume tokens from the given window
         /// </summary>
-        /// <param name="xoWindow"></param>
+        /// <param name="xoList"></param>
         /// <returns></returns>
-        public virtual Boolean TryConsumeList(SyntaxTokenList xoWindow)
+        public virtual Boolean TryConsumeList(SyntaxTokenList xoList)
         {
             //
             Boolean bNodesConsumedSuccessfully = false;
 
             // Only do work if we have anything left to process
-            if (!xoWindow.HasTokensLeftToProcess() ||   // We have stuff to process
-                SyntaxNode.IsTerminatingNode(xoWindow.PeekToken().ExpectedType)) // We have not reached a terminator
+            if (!xoList.HasTokensLeftToProcess() ||   // We have stuff to process
+                SyntaxNode.IsTerminatingNode(xoList.PeekToken().ExpectedType)) // We have not reached a terminator
             {
                 // Nothing left to process
                 return false;
             }
 
             // While we have nodes to process
-            while (xoWindow.HasTokensLeftToProcess())
+            while (xoList.HasTokensLeftToProcess())
             {
                 // Intermediate var
-                SyntaxToken oNextToken = xoWindow.PeekToken();
+                SyntaxToken oNextToken = xoList.PeekToken();
 
+            // PRE
+                // Do any necessary pre processing which can include things 
+                // such as cleansing and dropping irrelevant nodes
                 // If we have a terminating condition
-                if (!CanNextNodeBeProcessed(xoWindow)) 
+                if (!PreprocessNextNodeAndCheckCompatibility(xoList)) 
                 {
                     // Break out and say it failed
                     return bNodesConsumedSuccessfully;
                 }
 
+            // CONSTRUCT
                 // 1. Construct a Node based off the next token
-                SyntaxNode oNode = this.ConvertTokenIntoNode(xoWindow);
+                SyntaxNode oNode = this.ConvertTokenIntoNode(xoList);
 
-                // Add the child to this nodes children
-                if (AddChild(oNode))
+            // POST
+                // Do any necessary post processing on the given node
+                // Which includes adding it as a child
+                if (PostprocessNodeAndAddAsChild(oNode, xoList))
                 {
                     // Set the variable once
                     if (!bNodesConsumedSuccessfully)
                     {
                         bNodesConsumedSuccessfully = true;
                     }
-
-                    // 2. Depth first traversal from the child
-                    if (oNode.TryConsumeList(xoWindow))
-                    {
-                        // If it successfully consumed something
-                    }
                 }
-                else
-                {
-                    // Couldn't be added? Error and skip node
-                    StatusItem oError = new StatusItem(
-                        String.Format(
-                            ErrorMessageLibrary.ADD_INVALID_NODE,
-                            ReasonMessageLibrary.DUPLICATE_NODE,
-                            this.RawSQLText,
-                            oNextToken.RawSQLText));
 
-                    //
-                    this.Comments.Add(oError);
-                }
             }
             
             // Default to true
@@ -168,6 +162,37 @@ namespace Turing.Syntax
             // Always try and perform a contextual conversion
             return SyntaxNodeFactory.ContextSensitiveConvertTokenToNode(xoList); ;
         }
+
+
+        public virtual Boolean PostprocessNodeAndAddAsChild(SyntaxNode xoNode, SyntaxTokenList xoList)
+        {
+            // Add the child to this nodes children
+            if (AddChild(xoNode))
+            {
+                // 2. Depth first traversal from the child
+                if (xoNode.TryConsumeList(xoList))
+                {
+                    // If it successfully consumed something
+                    
+                }
+                return true;
+            }
+            else
+            {
+                // Couldn't be added? Error and skip node
+                StatusItem oError = new StatusItem(
+                    String.Format(
+                        ErrorMessageLibrary.ADD_INVALID_NODE,
+                        ReasonMessageLibrary.DUPLICATE_NODE,
+                        this.RawSQLText,
+                        xoNode.RawSQLText));
+
+                //
+                this.Comments.Add(oError);
+                return false;
+            }
+        }
+
 
         #region Consume Prev Sibling
 

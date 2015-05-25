@@ -25,36 +25,6 @@ namespace Turing.Factories
                 // Subquery start
                 // Create a table symbol
                 TableSymbol oSubquery = new SubquerySymbol(xoList.PopToken());
-
-                // Build a Select node
-                SyntaxNode oSelect = xoList.PeekToken().ExpectedType == SyntaxKind.SelectKeyword ?
-                    SyntaxNodeFactory.ContextSensitiveConvertTokenToNode(xoList) :
-                    SyntaxNodeFactory.FactoryCreateExceptionNodeWithExpectingError("SELECT", xoList.PopToken().RawSQLText); // Return an error node if we need to
-
-                // Add it to the Subquery Symbol
-                oSubquery.AddChild(oSelect);
-
-                // Try and build the Select statement
-                oSelect.TryConsumeList(xoList);
-
-                // Add the parenthesis )
-                if (xoList.PeekToken().ExpectedType == SyntaxKind.CloseParenthesisToken)
-                {
-                    xoList.PopToken();
-                    //oSubquery.AddChild(new SyntaxLeaf(xoList.PopToken()));
-                }
-
-                // Assign the alias
-                oSubquery.Alias = SyntaxNodeFactory.ScanAheadForAlias(xoList);
-
-                // ALIAS must always be assigned
-                if (String.IsNullOrWhiteSpace(oSubquery.Alias))
-                {
-                    // ?? TODO: Generate a new alias
-                    oSubquery.InsertStatusMessage("No Alias assigned to SubQuery. One was generated");
-                    oSubquery.Alias = "@GEN";
-                }
-
                 return oSubquery;
             }
 

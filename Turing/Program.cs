@@ -13,7 +13,7 @@ namespace Turing
                         SELECT  
                             col1, col2
                         FROM
-                            APMART_FP.ADMIN.FPC_SERVICE svc
+                            (SELECT * FROM APMART_FP.ADMIN.FPC_SERVICE svc)
                         WHERE (svc.MKT_PROD_CD = 'MOB PT' AND svc.SVC_STAT_CD <> 'C') AND (svc.SVC_IDNTY <> '0415783039')
                 ");
 

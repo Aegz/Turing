@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Turing.Diagnostics;
+using Turing.Syntax.Collections;
 
 namespace Turing.Syntax.Constructs.Symbols.SingleChild
 {
@@ -10,8 +12,8 @@ namespace Turing.Syntax.Constructs.Symbols.SingleChild
     {
         public DatabaseSymbol(SyntaxToken xoToken) : base(xoToken)
         {
-        }
 
+        }
 
         public override string ToString()
         {

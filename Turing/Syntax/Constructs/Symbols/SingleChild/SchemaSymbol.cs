@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Turing.Diagnostics;
+using Turing.Factories;
+using Turing.Syntax.Collections;
 
 namespace Turing.Syntax.Constructs.Symbols.SingleChild
 {
@@ -10,8 +13,8 @@ namespace Turing.Syntax.Constructs.Symbols.SingleChild
     {
         public SchemaSymbol(SyntaxToken xoToken) : base (xoToken)
         {
-        }
 
+        }
 
         public override string ToString()
         {
