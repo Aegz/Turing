@@ -29,7 +29,7 @@ namespace Turing.Factories
                 // Build a Select node
                 SyntaxNode oSelect = xoList.PeekToken().ExpectedType == SyntaxKind.SelectKeyword ?
                     SyntaxNodeFactory.ContextSensitiveConvertTokenToNode(xoList) :
-                    SyntaxNodeFactory.CreateExceptionNodeWithExpectingMessage("SELECT", xoList.PopToken().RawSQLText); // Return an error node if we need to
+                    SyntaxNodeFactory.FactoryCreateExceptionNodeWithExpectingError("SELECT", xoList.PopToken().RawSQLText); // Return an error node if we need to
 
                 // Add it to the Subquery Symbol
                 oSubquery.AddChild(oSelect);

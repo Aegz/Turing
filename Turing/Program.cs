@@ -30,7 +30,6 @@ namespace Turing
             // Temp to see some text out
             String sTemp = oTemp.ToString();
             Console.WriteLine();
-
         }
     }
 }
