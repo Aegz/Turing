@@ -77,7 +77,6 @@
     <Compile Include="Syntax\Constructs\Symbols\SingleChild\SchemaSymbol.cs" />
     <Compile Include="Factories\SymbolFactory.cs" />
     <Compile Include="Syntax\Constructs\Symbols\SingleChild\SubquerySymbol.cs" />
-    <Compile Include="Syntax\Constructs\Symbols\Standalone\BooleanSymbol.cs" />
     <Compile Include="Syntax\SyntaxLeaf.cs" />
     <Compile Include="Syntax\SyntaxNodeWithOneChild.cs" />
     <Compile Include="Syntax\Constructs\Symbols\Symbol.cs" />
@@ -91,7 +90,9 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Syntax\Constructs\Symbols\Standalone\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Turing.Factories;
+using Turing.Syntax.Collections;
 
 namespace Turing.Syntax.Constructs.Keywords
 {
-    class WhereSyntaxNode : SyntaxNode
+    public class WhereSyntaxNode : SyntaxNode
     {
         public WhereSyntaxNode(SyntaxToken xoToken) : base (xoToken)
         {
@@ -16,7 +18,7 @@ namespace Turing.Syntax.Constructs.Keywords
                 { SyntaxKind.IdentifierToken },
                 { SyntaxKind.LiteralToken },
                 { SyntaxKind.NumericToken },
-
+                { SyntaxKind.OpenParenthesisToken },
                 // MOVE TO Expression?
 
                 // Standard Operators
@@ -43,6 +45,17 @@ namespace Turing.Syntax.Constructs.Keywords
                 { SyntaxKind.OrKeyword },
 
             });
+        }
+
+        public override SyntaxNode ConvertTokenIntoNode(SyntaxTokenList xoList)
+        {
+            // If we have an identifier on its own
+            if (SyntaxNode.IsIdentifier(xoList.PeekToken().ExpectedType))
+            {
+                return SymbolFactory.GenerateColumnSymbol(xoList);
+            }
+
+            return base.ConvertTokenIntoNode(xoList);
         }
 
     }

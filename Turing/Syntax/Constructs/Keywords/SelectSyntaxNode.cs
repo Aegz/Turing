@@ -30,25 +30,26 @@ namespace Turing.Syntax.Constructs.Keywords
             });
         }
 
-        public override SyntaxNode ConvertTokenIntoNode(SyntaxToken xoToken, SyntaxTokenList xoList)
+        public override SyntaxNode ConvertTokenIntoNode(SyntaxTokenList xoList)
         {
             // Build a Symbol Composite
+            SyntaxToken oCurrentToken = xoList.PeekToken();
 
             // If we need to perform a context sensitive conversion
-            if (SyntaxNode.IsIdentifier(xoToken.ExpectedType) || // Generic Identifiers allowed here too
-                xoToken.ExpectedType == SyntaxKind.StarToken) // * in Column is allowed
+            if (SyntaxNode.IsIdentifier(oCurrentToken.ExpectedType) || // Generic Identifiers allowed here too
+                oCurrentToken.ExpectedType == SyntaxKind.StarToken) // * in Column is allowed
             {
                 // Initialise a list
                 SymbolList oList = new SymbolList();
 
                 // Generate the column
-                ColumnSymbol oColumn = new ColumnSymbol(xoToken);
+                ColumnSymbol oColumn = new ColumnSymbol(xoList.PopToken());
 
                 // Scan ahead for an alias to attach
                 oColumn.Alias = SyntaxNodeFactory.ScanAheadForAlias(xoList);
 
                 // If Alias was found for a *
-                if (xoToken.ExpectedType == SyntaxKind.StarToken)
+                if (oCurrentToken.ExpectedType == SyntaxKind.StarToken)
                 {
                     // Perform context sensitive conversion here
                     oColumn.Alias = String.Empty; // Set it back to null
@@ -62,7 +63,7 @@ namespace Turing.Syntax.Constructs.Keywords
             }
 
             // Default to using the original conversion
-            return base.ConvertTokenIntoNode(xoToken, xoList);
+            return base.ConvertTokenIntoNode(xoList);
         }
     }
 }

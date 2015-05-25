@@ -15,7 +15,10 @@ namespace Turing.Syntax.Constructs.Symbols.SingleChild
 
         public override string ToString()
         {
-            return RawSQLText + (Children.Count > 0 ? "." + base.GetChildString() : " " + Alias);
+            return RawSQLText +
+                (Children.Count > 0 ?
+                    "." + base.GetChildString() :
+                    String.Empty);
         }
     }
 }

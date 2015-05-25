@@ -49,18 +49,20 @@ namespace Turing.Syntax.Constructs.Keywords
         /// <param name="xoToken"></param>
         /// <param name="xoList"></param>
         /// <returns></returns>
-        public override SyntaxNode ConvertTokenIntoNode(SyntaxToken xoToken, SyntaxTokenList xoList)
+        public override SyntaxNode ConvertTokenIntoNode(SyntaxTokenList xoList)
         {
+            SyntaxToken xoCurrentToken = xoList.PeekToken();
+
             // If we need to perform a context sensitive conversion
-            if (SyntaxNode.IsIdentifier(xoToken.ExpectedType) ||            // Generic Identifiers only
-                xoToken.ExpectedType == SyntaxKind.OpenParenthesisToken)    // Subqueries
+            if (SyntaxNode.IsIdentifier(xoCurrentToken.ExpectedType) ||            // Generic Identifiers only
+                xoCurrentToken.ExpectedType == SyntaxKind.OpenParenthesisToken)    // Subqueries
             {
-                return SymbolFactory.GenerateTableSymbol(xoToken, xoList);
+                return SymbolFactory.GenerateTableSymbol(xoList);
             }
             else
             {
                 // Everything else
-                return base.ConvertTokenIntoNode(xoToken, xoList);
+                return base.ConvertTokenIntoNode(xoList);
             }
         }
 

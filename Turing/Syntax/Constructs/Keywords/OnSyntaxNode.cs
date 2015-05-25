@@ -42,17 +42,17 @@ namespace Turing.Syntax.Constructs.Keywords
             });
         }
 
-        public override SyntaxNode ConvertTokenIntoNode(SyntaxToken xoToken, SyntaxTokenList xoList)
+        public override SyntaxNode ConvertTokenIntoNode(SyntaxTokenList xoList)
         {
             // If we have an identifier on its own
-            if (SyntaxNode.IsIdentifier(xoToken.ExpectedType))
+            if (SyntaxNode.IsIdentifier(xoList.PeekToken().ExpectedType))
             {
-                return SymbolFactory.GenerateColumnSymbol(xoToken, xoList);
+                return SymbolFactory.GenerateColumnSymbol(xoList);
             }
             else
             {
                 // Let the base conversion figure out what it is
-                return base.ConvertTokenIntoNode(xoToken, xoList);
+                return base.ConvertTokenIntoNode(xoList);
             }
         }
 

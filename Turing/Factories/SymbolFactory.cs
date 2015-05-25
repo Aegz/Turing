@@ -16,20 +16,19 @@ namespace Turing.Factories
         /// <param name="xoCurrentToken"></param>
         /// <param name="xoList"></param>
         /// <returns></returns>
-        public static Symbol GenerateTableSymbol(SyntaxToken xoCurrentToken, SyntaxTokenList xoList)
+        public static Symbol GenerateTableSymbol(SyntaxTokenList xoList)
         {
+            SyntaxToken xoCurrentToken = xoList.PeekToken();
+
             if (xoCurrentToken.ExpectedType == SyntaxKind.OpenParenthesisToken)
             {
                 // Subquery start
                 // Create a table symbol
-                TableSymbol oSubquery = new SubquerySymbol(SyntaxToken.NULL_TOKEN);
-
-                // Add the parenthesis (
-                //oSubquery.AddChild(new SyntaxLeaf(xoCurrentToken));
+                TableSymbol oSubquery = new SubquerySymbol(xoList.PopToken());
 
                 // Build a Select node
                 SyntaxNode oSelect = xoList.PeekToken().ExpectedType == SyntaxKind.SelectKeyword ?
-                    SyntaxNodeFactory.ContextSensitiveConvertTokenToNode(xoList.PopToken(), xoList) :
+                    SyntaxNodeFactory.ContextSensitiveConvertTokenToNode(xoList) :
                     SyntaxNodeFactory.CreateExceptionNodeWithExpectingMessage("SELECT", xoList.PopToken().RawSQLText); // Return an error node if we need to
 
                 // Add it to the Subquery Symbol
@@ -37,7 +36,6 @@ namespace Turing.Factories
 
                 // Try and build the Select statement
                 oSelect.TryConsumeList(xoList);
-
 
                 // Add the parenthesis )
                 if (xoList.PeekToken().ExpectedType == SyntaxKind.CloseParenthesisToken)
@@ -48,6 +46,14 @@ namespace Turing.Factories
 
                 // Assign the alias
                 oSubquery.Alias = SyntaxNodeFactory.ScanAheadForAlias(xoList);
+
+                // ALIAS must always be assigned
+                if (String.IsNullOrWhiteSpace(oSubquery.Alias))
+                {
+                    // ?? TODO: Generate a new alias
+                    oSubquery.InsertStatusMessage("No Alias assigned to SubQuery. One was generated");
+                    oSubquery.Alias = "@GEN";
+                }
 
                 return oSubquery;
             }
@@ -61,15 +67,15 @@ namespace Turing.Factories
             int iTableLocation = 0;
 
             // Trailing item is a .. (Database)
-            if (xoList.PeekToken().ExpectedType == SyntaxKind.DotDotToken)
+            if (xoList.PeekToken(1).ExpectedType == SyntaxKind.DotDotToken)
             {
                 iSchemaLocation = -1;
-                iTableLocation = 1;
+                iTableLocation = 2;
             }
-            else if (xoList.PeekToken().ExpectedType == SyntaxKind.DotToken)
+            else if (xoList.PeekToken(1).ExpectedType == SyntaxKind.DotToken)
             {
-                iSchemaLocation = 1;
-                iTableLocation = 3;
+                iSchemaLocation = 2;
+                iTableLocation = 4;
             }
             // Standalone Table
             else
@@ -121,19 +127,21 @@ namespace Turing.Factories
         /// <param name="xoCurrentToken"></param>
         /// <param name="xoList"></param>
         /// <returns></returns>
-        public static Symbol GenerateColumnSymbol(SyntaxToken xoCurrentToken, SyntaxTokenList xoList)
+        public static Symbol GenerateColumnSymbol(SyntaxTokenList xoList)
         {
+            SyntaxToken xoCurrentToken = xoList.PeekToken();
+
             // A Symbol consists of multiple parts
             Symbol oTable;
             Symbol oColumn;
 
             // Trailing item is . (table.column)
-            if (xoList.PeekToken().ExpectedType == SyntaxKind.DotToken)
+            if (xoList.PeekToken(1).ExpectedType == SyntaxKind.DotToken)
             {
                 oTable = new TableSymbol(xoCurrentToken);
-                oColumn = new ColumnSymbol(xoList.PeekToken(1)); // Grab the Column
+                oColumn = new ColumnSymbol(xoList.PeekToken(2)); // Grab the Column
                 oTable.AddChild(oColumn);
-                xoList.PopTokens(2); // Skip over the next 2
+                xoList.PopTokens(3); // Skip over the next 2
             }
             // Standalone Column
             else
@@ -152,13 +160,13 @@ namespace Turing.Factories
         }
 
 
-
         public static Symbol CreateExceptionNodeWithExpectingMessage(String xsExpected, String xsRawSQL)
         {
             // Error
             Symbol oError = new NullSymbol(SyntaxToken.NULL_TOKEN);
             oError.InsertStatusMessage(
                 String.Format(ErrorMessageLibrary.EXPECTING_TOKEN_FOUND_ELSE, xsExpected, xsRawSQL));
+
             return oError;
         }
     }

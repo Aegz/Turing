@@ -228,6 +228,30 @@ namespace Turing.Lexer
                          eTemp,
                          sResult);
                 // These two can be compound
+                case '<':
+                    // If we really have an equals equals token
+                    if (TextWindow.PeekCharacter(1) == '=')
+                    {
+                        // Return something
+                        return new SyntaxToken(
+                             SyntaxKind.LessThanOrEqualToToken,
+                             TextWindow.PopCharacter(2));
+                    }
+                    // If we really have an equals equals token
+                    if (TextWindow.PeekCharacter(1) == '>')
+                    {
+                        // Return something
+                        return new SyntaxToken(
+                             SyntaxKind.DiamondToken,
+                             TextWindow.PopCharacter(2));
+                    }
+                    else
+                    {
+                        // Return something
+                        return new SyntaxToken(
+                             SyntaxKind.LessThanToken,
+                             Convert.ToString(TextWindow.PopCharacter()));
+                    }
                 case '>':
                     // If we really have an equals equals token
                     if (TextWindow.PeekCharacter(1) == '=')
@@ -244,22 +268,7 @@ namespace Turing.Lexer
                              SyntaxKind.GreaterThanToken,
                              Convert.ToString(TextWindow.PopCharacter()));
                     }
-                case '<':
-                    // If we really have an equals equals token
-                    if (TextWindow.PeekCharacter(1) == '=')
-                    {
-                        // Return something
-                        return new SyntaxToken(
-                             SyntaxKind.LessThanOrEqualToToken,
-                             TextWindow.PopCharacter(2));
-                    }
-                    else
-                    {
-                        // Return something
-                        return new SyntaxToken(
-                             SyntaxKind.LessThanToken,
-                             Convert.ToString(TextWindow.PopCharacter()));
-                    }
+
 
                 // .
                 case '.':

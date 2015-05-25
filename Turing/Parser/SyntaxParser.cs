@@ -56,7 +56,7 @@ namespace Turing.Parser
                 StatementSyntaxNode oStatement = new StatementSyntaxNode();
 
                 // Pull off the first node
-                SyntaxNode CurrentNode = SyntaxNodeFactory.ContextSensitiveConvertTokenToNode(TokenList.PopToken(), null);
+                SyntaxNode CurrentNode = SyntaxNodeFactory.ContextSensitiveConvertTokenToNode(TokenList);
 
                 // If we consumed anything
                 if (CurrentNode.TryConsumeList(TokenList))

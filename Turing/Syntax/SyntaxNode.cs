@@ -4,6 +4,9 @@ using System.Linq;
 using Turing.Diagnostics;
 using Turing.Factories;
 using Turing.Syntax.Collections;
+using Turing.Syntax.Constructs.Expressions;
+using Turing.Syntax.Constructs.Keywords;
+using Turing.Syntax.Constructs.Symbols.Collections;
 
 namespace Turing.Syntax
 {
@@ -28,7 +31,7 @@ namespace Turing.Syntax
 
         protected List<SyntaxKind> AcceptedTypes;
 
-        SyntaxToken Token { get; set; }
+        protected SyntaxToken Token { get; set; }
 
         #endregion
 
@@ -79,6 +82,13 @@ namespace Turing.Syntax
 
         #endregion
 
+        public virtual Boolean CanNextNodeBeProcessed(SyntaxTokenList xoList)
+        {
+            return 
+                    !SyntaxNode.IsTerminatingNode(xoList.PeekToken().ExpectedType) && // Terminator Token
+                    AcceptedTypes.Contains(xoList.PeekToken().ExpectedType);        // Can't eat the next token
+        }
+
         /// <summary>
         /// Allows this node to consume tokens from the given window
         /// </summary>
@@ -86,6 +96,7 @@ namespace Turing.Syntax
         /// <returns></returns>
         public virtual Boolean TryConsumeList(SyntaxTokenList xoWindow)
         {
+            //
             Boolean bNodesConsumedSuccessfully = false;
 
             // Only do work if we have anything left to process
@@ -103,18 +114,14 @@ namespace Turing.Syntax
                 SyntaxToken oNextToken = xoWindow.PeekToken();
 
                 // If we have a terminating condition
-                if (SyntaxNode.IsTerminatingNode(oNextToken.ExpectedType) || // Terminator Token
-                    !AcceptedTypes.Contains(oNextToken.ExpectedType))        // Can't eat the next token
+                if (!CanNextNodeBeProcessed(xoWindow)) 
                 {
                     // Break out and say it failed
                     return bNodesConsumedSuccessfully;
                 }
 
-                // Get the next Token
-                oNextToken = xoWindow.PopToken();
-
                 // 1. Construct a Node based off the next token
-                SyntaxNode oNode = this.ConvertTokenIntoNode(oNextToken, xoWindow);
+                SyntaxNode oNode = this.ConvertTokenIntoNode(xoWindow);
 
                 // Add the child to this nodes children
                 if (AddChild(oNode))
@@ -156,10 +163,10 @@ namespace Turing.Syntax
         /// <param name="xoToken"></param>
         /// <param name="xoList"></param>
         /// <returns></returns>
-        public virtual SyntaxNode ConvertTokenIntoNode(SyntaxToken xoToken, SyntaxTokenList xoList)
+        public virtual SyntaxNode ConvertTokenIntoNode(SyntaxTokenList xoList)
         {
             // Always try and perform a contextual conversion
-            return SyntaxNodeFactory.ContextSensitiveConvertTokenToNode(xoToken, xoList); ;
+            return SyntaxNodeFactory.ContextSensitiveConvertTokenToNode(xoList); ;
         }
 
         #region Consume Prev Sibling
@@ -210,15 +217,35 @@ namespace Turing.Syntax
         #endregion
 
         #region Common Utility
+
         public override String ToString()
         {
             return RawSQLText + " " + GetChildString();
         }
 
-
         public virtual String GetChildString()
         {
             return String.Join(" ", Children.Select((oNode) => oNode.ToString()));
+        }
+
+        public SyntaxNode FindFirst(SyntaxKind xeExpectedKind)
+        {
+            if (Token.ExpectedType == xeExpectedKind)
+            {
+                return this;
+            }
+            else
+            {
+                foreach (SyntaxNode oChildren in Children)
+                {
+                    SyntaxNode oChildFound = oChildren.FindFirst(xeExpectedKind);
+                    if (oChildFound != null)
+                    {
+                        return oChildFound;
+                    }
+                }
+            }
+            return null;
         }
 
         public virtual void InsertStatusMessage(String xsMessage)
@@ -269,6 +296,7 @@ namespace Turing.Syntax
                 xeKind == SyntaxKind.IsKeyword ||
                 xeKind == SyntaxKind.InKeyword ||
 
+                xeKind == SyntaxKind.EqualsToken ||
                 xeKind == SyntaxKind.PlusToken ||
                 xeKind == SyntaxKind.MinusToken ||
                 xeKind == SyntaxKind.SlashToken ||

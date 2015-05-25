@@ -13,11 +13,9 @@ namespace Turing
                         SELECT  
                             col1, col2
                         FROM
-                        (
-                            SELECT * FROM FPC_SERVICE
-                        )
+                            APMART_FP.ADMIN.FPC_SERVICE svc
+                        WHERE (svc.MKT_PROD_CD = 'MOB PT' AND svc.SVC_STAT_CD <> 'C') AND (svc.SVC_IDNTY <> '0415783039')
                 ");
-
 
         static void Main(string[] args)
         {
@@ -26,6 +24,8 @@ namespace Turing
 
             // Try and generate a tree
             SyntaxNode oTemp = oParser.ParseTree();
+
+            SyntaxNode oFound = oTemp.FindFirst(SyntaxKind.SelectKeyword);
 
             // Temp to see some text out
             String sTemp = oTemp.ToString();

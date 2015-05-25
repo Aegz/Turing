@@ -5,7 +5,7 @@ using Turing.Syntax.Collections;
 using Turing.Syntax.Constructs;
 using Turing.Syntax.Constructs.Expressions;
 using Turing.Syntax.Constructs.Keywords;
-using Turing.Syntax.Constructs.Symbols.Standalone;
+using Turing.Syntax.Constructs.Symbols.Collections;
 
 namespace Turing.Factories
 {
@@ -18,8 +18,11 @@ namespace Turing.Factories
         /// <param name="xoCurrentToken"></param>
         /// <param name="xoList"></param>
         /// <returns></returns>
-        public static SyntaxNode ContextSensitiveConvertTokenToNode(SyntaxToken xoCurrentToken, SyntaxTokenList xoList)
+        public static SyntaxNode ContextSensitiveConvertTokenToNode(SyntaxTokenList xoList)
         {
+            // Always pop on entering this fn
+            SyntaxToken xoCurrentToken = xoList.PopToken();
+
             switch (xoCurrentToken.ExpectedType)
             {
                 case SyntaxKind.SelectKeyword:
@@ -76,7 +79,7 @@ namespace Turing.Factories
                 case SyntaxKind.NotKeyword:
                     return new UnaryExpression(xoCurrentToken);
                 case SyntaxKind.BooleanToken: // true and false and NOT
-                    return new BooleanSymbol(xoCurrentToken);
+                    return new SyntaxLeaf(xoCurrentToken);
 
                 #region Conditional Expressions
                 case SyntaxKind.EqualsToken:
@@ -85,14 +88,91 @@ namespace Turing.Factories
                 case SyntaxKind.LessThanOrEqualToToken:
                 case SyntaxKind.LessThanToken:
                 case SyntaxKind.DiamondToken:
-
                 case SyntaxKind.AndKeyword:
                 case SyntaxKind.OrKeyword:
                     // Return a boolean expression (which will consume the previous node and the next one)
                     return new BinaryExpression(xoCurrentToken);
-                    
 
                 #endregion
+
+                // The type of the expression will be determined by the Token's
+                // Type and we will use this to compare compatibility
+                case SyntaxKind.LiteralToken:
+                case SyntaxKind.NumericToken:
+                    return new SyntaxLeaf(xoCurrentToken);
+
+                case SyntaxKind.OpenParenthesisToken:
+                    // Given a (, Try and guess what type of () this is
+                    SyntaxNode oReturn;
+
+                    // 1. ( SubQuery ) - (SELECT * FROM ..) svc
+                    // First Keyword in is SELECT
+                    if (xoList.PeekToken().ExpectedType == SyntaxKind.SelectKeyword)
+                    {
+                        // Create SubQuery Symbol
+                        oReturn = SymbolFactory.GenerateTableSymbol(xoList);
+                    }
+                    // 2. ( Symbol List ) - (1, 2, 3) or (svc.MKT_PROD_CD, svc.SVC_STAT_CD) 
+                    // 3. ( Expressions ) - WHERE (X =Y) or (X <> Y AND X = 0)
+                    else
+                    {
+                        Boolean bCommaFound = false; // If you find any commas before the closing bracket
+                        Boolean bOperatorFound = false; // If you find any operators before the closing bracket
+                        for (int iIndex = 0; iIndex < xoList.Count; iIndex++)
+                        {
+                            SyntaxToken oLoopingNode = xoList.PeekToken(iIndex);
+                            if (oLoopingNode.ExpectedType == SyntaxKind.CloseParenthesisToken ||
+                                bCommaFound ||
+                                bOperatorFound)
+                            {
+                                break;
+                            }
+                            else if (oLoopingNode.ExpectedType == SyntaxKind.CommaToken)
+                            {
+                                bCommaFound = true;
+                            }
+                            else if (SyntaxNode.IsOperator(oLoopingNode.ExpectedType))
+                            {
+                                bOperatorFound = true;
+                            }
+                        }
+
+                        //
+                        // 4. SubQuery in Expression - Where X IN (SELECT Svc_IDNTY FROM svc)
+                        // Only allow this type from an IN
+                        // EXPRESSION
+                        if (bOperatorFound)
+                        {
+                            // Most likely an expression list
+                            oReturn = new UnaryExpression(xoCurrentToken);
+                        }
+                        // Symbol List
+                        else if (bCommaFound)
+                        {
+                            //
+                            oReturn = new SymbolList();
+                        }
+                        // Single expression?
+                        else if (xoList.PeekToken().ExpectedType == SyntaxKind.IdentifierToken)
+                        {
+                            // ?? TODO: FIX THis, very risky
+
+                            // It could be just one identifier on its own
+                            oReturn = SymbolFactory.GenerateColumnSymbol(xoList);
+                        }
+                        else // Both empty
+                        {
+                            // Probably an expression type
+                            return new UnaryExpression(xoCurrentToken);
+                        }
+                    }
+
+
+                    // Have the child consume?
+                    //oReturn.TryConsumeList(xoList);
+                    // Skip it
+                    //xoList.PopToken();
+                    return oReturn;
 
                 default:
                     // Default to the original token since it doesn't need to be converted

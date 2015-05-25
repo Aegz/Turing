@@ -14,7 +14,7 @@ namespace Turing.Syntax.Constructs.Symbols.SingleChild
 
         public override string ToString()
         {
-            return "(" + (Children.Count > 0 ? base.GetChildString() : " ") + ")" + Alias;
+            return "(" + (Children.Count > 0 ? base.GetChildString() : " ") + ") " + Alias;
         }
     }
 }

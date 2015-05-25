@@ -14,7 +14,7 @@ namespace NetezzaParseTests
     public class ParsingTests
     {
         [TestMethod]
-        public void TestSelectTree()
+        public void TestSelectFromDBTableTree()
         {
             SlidingTextWindow oText = new SlidingTextWindow(
                 @"   
@@ -25,47 +25,22 @@ namespace NetezzaParseTests
                         APSHARE_FPVIEWS..FPC_SERVICE svc          
                 ");
 
-            // A flat list which will be used by the parser to generate an actual tree
-            List<SyntaxToken> aoList = new List<SyntaxToken>();
-
             // Initialises the Parser
             SyntaxParser oParser = new SyntaxParser(oText);
-
             // Try and generate a tree
             SyntaxNode oTemp = oParser.ParseTree();
 
-            // Make sure we have a Query
-            Assert.IsTrue(oTemp.GetType() == typeof(QuerySyntaxNode));
+            SyntaxNode oSelect = oTemp.FindFirst(SyntaxKind.SelectKeyword);
+            Assert.IsTrue(oSelect != null);
 
-            // Make sure we have only statements underneath
-            foreach (SyntaxNode oStatement in oTemp.Children)
-            {
-                Assert.IsTrue(oStatement.GetType() == typeof(StatementSyntaxNode));
+            SyntaxNode oFrom = oSelect.FindFirst(SyntaxKind.FromKeyword);
+            Assert.IsTrue(oFrom != null);
 
-                // All core keywords here are SELECT
-                foreach (SyntaxNode oCoreKeyword in oStatement.Children)
-                {
-                    Assert.IsTrue(oCoreKeyword.GetType() == typeof(SelectSyntaxNode));
-                    // All core keywords here are FROM
-                    foreach (SyntaxNode oFromKeyword in oCoreKeyword.Children)
-                    {
-                        if (oFromKeyword.GetType() == typeof(FromSyntaxNode))
-                        {
-                            // Should be an identifier
-                            foreach (SyntaxNode oTable in oFromKeyword.Children)
-                            {
-                                Assert.IsTrue(oTable.ExpectedType == SyntaxKind.IdentifierToken);
-                            }
-                        }
-                        else
-                        {
-                            Assert.IsTrue(oFromKeyword.GetType() == typeof(SymbolList));
-                        }
-                    }
-                }
-            }
+            SyntaxNode oTableIdn = oFrom.FindFirst(SyntaxKind.IdentifierToken);
+            Assert.IsTrue(oTableIdn != null);
         }
 
+        [TestMethod]
         public void TestSubqueryTree()
         {
             SlidingTextWindow oText = new SlidingTextWindow(
@@ -76,11 +51,8 @@ namespace NetezzaParseTests
                         FROM
                         (
                             SELECT * FROM FPC_SERVICE    
-                        )      
+                        ) svc
                 ");
-
-            // A flat list which will be used by the parser to generate an actual tree
-            List<SyntaxToken> aoList = new List<SyntaxToken>();
 
             // Initialises the Parser
             SyntaxParser oParser = new SyntaxParser(oText);
@@ -89,35 +61,124 @@ namespace NetezzaParseTests
             SyntaxNode oTemp = oParser.ParseTree();
 
             // Make sure we have a Query
-            Assert.IsTrue(oTemp.GetType() == typeof(QuerySyntaxNode));
+            Assert.AreEqual(oTemp.GetType(), typeof(QuerySyntaxNode));
 
-            // Make sure we have only statements underneath
-            foreach (SyntaxNode oStatement in oTemp.Children)
-            {
-                Assert.IsTrue(oStatement.GetType() == typeof(StatementSyntaxNode));
+            // Test that a subquery type node was built
+            SyntaxNode oSubQuery = oTemp.FindFirst(SyntaxKind.OpenParenthesisToken);
+            Assert.IsTrue(oSubQuery != null);
 
-                // All core keywords here are SELECT
-                foreach (SyntaxNode oCoreKeyword in oStatement.Children)
-                {
-                    Assert.IsTrue(oCoreKeyword.GetType() == typeof(SelectSyntaxNode));
-                    // All core keywords here are FROM
-                    foreach (SyntaxNode oFromKeyword in oCoreKeyword.Children)
-                    {
-                        if (oFromKeyword.GetType() == typeof(FromSyntaxNode))
-                        {
-                            // Should be an identifier
-                            foreach (SyntaxNode oTable in oFromKeyword.Children)
-                            {
-                                Assert.IsTrue(oTable.ExpectedType == SyntaxKind.IdentifierToken);
-                            }
-                        }
-                        else
-                        {
-                            Assert.IsTrue(oFromKeyword.GetType() == typeof(SymbolList));
-                        }
-                    }
-                }
-            }
+            // Test that there is a select keyword in that subquery
+            SyntaxNode oSelect = oSubQuery.FindFirst(SyntaxKind.SelectKeyword);
+            Assert.IsTrue(oSelect != null);
+
+            // Test that the identifier was generated properly
+            SyntaxNode oTableIdn = oSelect.FindFirst(SyntaxKind.IdentifierToken);
+            Assert.IsTrue(oTableIdn != null);
+
+
+        }
+
+        [TestMethod]
+        public void TestAnd()
+        {
+            SlidingTextWindow oText = new SlidingTextWindow(
+                @"   
+                        /* TEST */      
+                        SELECT  
+                            col1, col2
+                        FROM
+                        (
+                            SELECT * FROM FPC_SERVICE
+                        ) svc
+                        WHERE svc.MKT_PROD_CD = 'MOB PT' AND svc.SVC_STAT_CD <> 'C'      
+                ");
+
+            // Initialises the Parser
+            SyntaxParser oParser = new SyntaxParser(oText);
+
+            // Try and generate a tree
+            SyntaxNode oTemp = oParser.ParseTree();
+
+            // Test that a subquery type node was built
+            SyntaxNode oWhere = oTemp.FindFirst(SyntaxKind.WhereKeyword);
+            Assert.IsTrue(oWhere != null);
+
+            // Test that there is a select keyword in that subquery
+            SyntaxNode oAND = oWhere.FindFirst(SyntaxKind.AndKeyword);
+            Assert.IsTrue(oAND != null);
+
+            // Test that the AND was generated properly (exactly 2 children)
+            Assert.AreEqual(oAND.Children.Count, 2);
+        }
+
+
+        [TestMethod]
+        public void TestParenthesisedExpression()
+        {
+            SlidingTextWindow oText = new SlidingTextWindow(
+                @"   
+                        /* TEST */
+                        SELECT
+                            col1, col2
+                        FROM
+                            APMART_FP.ADMIN.FPC_SERVICE svc
+                        WHERE (svc.MKT_PROD_CD = 'MOB PT' AND svc.SVC_STAT_CD<> 'C')    
+                ");
+
+            // Initialises the Parser
+            SyntaxParser oParser = new SyntaxParser(oText);
+
+            // Try and generate a tree
+            SyntaxNode oTemp = oParser.ParseTree();
+
+            // Test that a subquery type node was built
+            SyntaxNode oWhere = oTemp.FindFirst(SyntaxKind.WhereKeyword);
+            Assert.IsTrue(oWhere != null);
+
+            SyntaxNode oParenthesis = oWhere.Children[0];
+            Assert.AreEqual(oParenthesis.ExpectedType, SyntaxKind.OpenParenthesisToken);
+
+            // Test that there is a select keyword in that subquery
+            SyntaxNode oAND = oParenthesis.Children[0];
+            Assert.AreEqual(oAND.ExpectedType, SyntaxKind.AndKeyword);
+
+        }
+
+        [TestMethod]
+        public void TestParenthesisedExpressionAND()
+        {
+            SlidingTextWindow oText = new SlidingTextWindow(
+                @"   
+                        /* TEST */
+                        SELECT
+                            col1, col2
+                        FROM
+                            APMART_FP.ADMIN.FPC_SERVICE svc
+                        WHERE (svc.MKT_PROD_CD = 'MOB PT' AND svc.SVC_STAT_CD<> 'C') AND (svc.SVC_IDNTY <> '0415783039')   
+                ");
+
+            // Initialises the Parser
+            SyntaxParser oParser = new SyntaxParser(oText);
+
+            // Try and generate a tree
+            SyntaxNode oTemp = oParser.ParseTree();
+
+            // Test that a subquery type node was built
+            SyntaxNode oWhere = oTemp.FindFirst(SyntaxKind.WhereKeyword);
+            Assert.IsTrue(oWhere != null);
+
+
+            // Test that there is a select keyword in that subquery
+            SyntaxNode oFirstAND = oWhere.Children[0];
+            Assert.AreEqual(oFirstAND.ExpectedType, SyntaxKind.AndKeyword);
+
+            SyntaxNode oParenthesis = oFirstAND.Children[0];
+            Assert.AreEqual(oParenthesis.ExpectedType, SyntaxKind.OpenParenthesisToken);
+
+            // Test that there is a select keyword in that subquery
+            SyntaxNode oSecondParenthesis = oFirstAND.Children[1];
+            Assert.AreEqual(oSecondParenthesis.ExpectedType, SyntaxKind.OpenParenthesisToken);
+
         }
 
 
@@ -136,42 +197,22 @@ namespace NetezzaParseTests
                         ON svc.SVC_IDNTY = omr.SVC_IDNTY        
                 ");
 
-            // A flat list which will be used by the parser to generate an actual tree
-            List<SyntaxToken> aoList = new List<SyntaxToken>();
-
             // Initialises the Parser
             SyntaxParser oParser = new SyntaxParser(oText);
 
             // Try and generate a tree
             SyntaxNode oTemp = oParser.ParseTree();
 
-            // Make sure we have a Query
-            Assert.IsTrue(oTemp.GetType() == typeof(QuerySyntaxNode));
+            // Test that a subquery type node was built
+            SyntaxNode oFrom = oTemp.FindFirst(SyntaxKind.FromKeyword);
+            Assert.IsTrue(oFrom != null);
 
-            // Make sure we have only statements underneath
-            foreach (SyntaxNode oStatement in oTemp.Children)
-            {
-                // All core keywords here are SELECT
-                foreach (SyntaxNode oCoreKeyword in oStatement.Children)
-                {
-                    // All core keywords here are FROM
-                    foreach (SyntaxNode oFromKeyword in oCoreKeyword.Children)
-                    {
-                        if (oFromKeyword.GetType() == typeof(FromSyntaxNode))
-                        {
-                            // Should be a JOIN
-                            foreach (SyntaxNode oTable in oFromKeyword.Children)
-                            {
-                                Assert.IsTrue(oTable.GetType() == typeof(JoinSyntaxNode));
-                            }
-                        }
-                        else
-                        {
-                            Assert.IsTrue(oFromKeyword.GetType() == typeof(SymbolList));
-                        }
-                    }
-                }
-            }
+            SyntaxNode oInnerJoin = oFrom.Children[0];
+            Assert.AreEqual(oInnerJoin.ExpectedType, SyntaxKind.InnerJoinKeyword);
+
+            // test children are correct
+            Assert.AreEqual(oInnerJoin.Children[0].ExpectedType, SyntaxKind.IdentifierToken);
+            Assert.AreEqual(oInnerJoin.Children[1].ExpectedType, SyntaxKind.IdentifierToken);
         }
 
         [TestMethod]
@@ -195,9 +236,6 @@ namespace NetezzaParseTests
                            svc.MKT_PROD_CD = 'MOB PT'       
                 ");
 
-            // A flat list which will be used by the parser to generate an actual tree
-            List<SyntaxToken> aoList = new List<SyntaxToken>();
-
             // Initialises the Parser
             SyntaxParser oParser = new SyntaxParser(oText);
 
@@ -205,33 +243,27 @@ namespace NetezzaParseTests
             SyntaxNode oTemp = oParser.ParseTree();
 
             // Make sure we have a Query
-            Assert.IsTrue(oTemp.GetType() == typeof(QuerySyntaxNode));
+            Assert.AreEqual(oTemp.GetType(), typeof(QuerySyntaxNode));
 
-            // Make sure we have only statements underneath
-            foreach (SyntaxNode oStatement in oTemp.Children)
-            {
-                // All core keywords here are SELECT
-                foreach (SyntaxNode oCoreKeyword in oStatement.Children)
-                {
-                    // All core keywords here are FROM
-                    foreach (SyntaxNode oFromKeyword in oCoreKeyword.Children)
-                    {
-                        if (oFromKeyword.GetType() == typeof(FromSyntaxNode))
-                        {
-                            // Should be a JOIN
-                            foreach (SyntaxNode oTable in oFromKeyword.Children)
-                            {
-                                Assert.IsTrue(oTable.GetType() == typeof(JoinSyntaxNode));
-                            }
-                        }
-                        else
-                        {
-                            Assert.IsTrue(oFromKeyword.GetType() == typeof(SymbolList));
-                        }
-                    }
-                }
-            }
+
+            // Test that a subquery type node was built
+            SyntaxNode oFrom = oTemp.FindFirst(SyntaxKind.FromKeyword);
+            Assert.IsTrue(oFrom != null);
+
+            SyntaxNode oLeftJoin = oFrom.Children[0];
+            Assert.AreEqual(oLeftJoin.ExpectedType, SyntaxKind.LeftJoinKeyword);
+            Assert.AreEqual(oLeftJoin.Children[1].ExpectedType, SyntaxKind.IdentifierToken);
+
+            SyntaxNode oInnerJoin = oLeftJoin.Children[0];
+            Assert.AreEqual(oInnerJoin.ExpectedType, SyntaxKind.InnerJoinKeyword);
+            
+
+            // test children are correct
+            Assert.AreEqual(oInnerJoin.Children[0].ExpectedType, SyntaxKind.IdentifierToken);
+            Assert.AreEqual(oInnerJoin.Children[1].ExpectedType, SyntaxKind.OpenParenthesisToken);
         }
+
+
 
     }
 }
