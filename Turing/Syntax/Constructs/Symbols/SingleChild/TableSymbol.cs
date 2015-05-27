@@ -3,11 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Turing.Syntax.Strategies;
 
 namespace Turing.Syntax.Constructs.Symbols.SingleChild
 {
     class TableSymbol : Symbol
     {
+        public TableSymbol(SyntaxToken xoToken, NodeStrategy xoStrategy) : base (xoToken, xoStrategy)
+        {
+        }
         public TableSymbol(SyntaxToken xoToken) : base (xoToken)
         {
         }

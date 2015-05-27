@@ -9,16 +9,15 @@ namespace Turing
     {
         static SlidingTextWindow oText = new SlidingTextWindow(
                 @"   
-                        /* TEST */      
-                        SELECT  
-                            col2
+                        /* TEST */
+                        SELECT
+                            (col1), (col2)
                         FROM
-                            APMART_FP.ADMIN.FPC_SERVICE svc1
-                        INNER JOIN 
-                            APMART_FPVIEWS..FPC_PEW svc2
-                        ON 
-                            svc1.TEMP = svc2.TEMP
-                        WHERE (svc1.svc_idnty = '0415783039' AND svc1.svc_idnty1 = '0415783039')
+                            APMART_FP.ADMIN.FPC_SERVICE svc 
+                        INNER JOIN
+                            APSHARE_FP..WR02052_OMR_BASE omr
+                        ON svc.SVC_IDNTY = omr.SVC_IDNTY   
+                        WHERE (svc.MKT_PROD_CD = 'MOB PT' AND svc.SVC_STAT_CD<> 'C') AND (svc.SVC_IDNTY <> '0415783039') 
                 ");
 
         static void Main(string[] args)
@@ -29,7 +28,9 @@ namespace Turing
             // Try and generate a tree
             SyntaxNode oTemp = oParser.ParseTree();
 
-            SyntaxNode oFound = oTemp.FindFirst(SyntaxKind.SelectKeyword);
+            SyntaxNode oSelect = oTemp.FindFirst(SyntaxKind.SelectKeyword);
+            SyntaxNode oFrom = oTemp.FindFirst(SyntaxKind.FromKeyword);
+            SyntaxNode oWhere = oTemp.FindFirst(SyntaxKind.WhereKeyword);
 
             // Temp to see some text out
             String sTemp = oTemp.ToString();

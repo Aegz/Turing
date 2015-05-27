@@ -7,7 +7,7 @@ using Turing.Syntax;
 namespace NetezzaLexTests
 {
     [TestClass]
-    public class LexicalTests
+    public class SelectTests
     {
         [TestMethod]
         public void TestSelectStatementBasic()
@@ -226,6 +226,36 @@ namespace NetezzaLexTests
             Assert.AreEqual(oParser.TokenList[16].ExpectedType, SyntaxKind.OpenParenthesisToken);
             Assert.AreEqual(oParser.TokenList[16].RawSQLText, "(");
         }
+
+        [TestMethod]
+        public void TestSelectExpression()
+        {
+            SlidingTextWindow oText = new SlidingTextWindow(
+            @"   
+                        /* TEST */      
+                        SELECT  
+                        COUNT(*)
+                        FROM
+                        APSHARE_FPVIEWS..FPC_SERVICE svc     
+                             
+                ");
+
+            SyntaxParser oParser = new SyntaxParser(oText);
+
+            // Should be 8 (including 1 for the EOF Token)
+            Assert.AreEqual(11, oParser.TokenList.Count);
+            // First item should be a select keyword (ignoring all comments which is trivia)
+            Assert.AreEqual(oParser.TokenList[0].ExpectedType, SyntaxKind.SelectKeyword);
+            // COUNT
+            Assert.AreEqual(oParser.TokenList[1].ExpectedType, SyntaxKind.CountKeyword);
+            // (
+            Assert.AreEqual(oParser.TokenList[2].ExpectedType, SyntaxKind.OpenParenthesisToken);
+            // (
+            Assert.AreEqual(oParser.TokenList[3].ExpectedType, SyntaxKind.StarToken);
+            // )
+            Assert.AreEqual(oParser.TokenList[4].ExpectedType, SyntaxKind.CloseParenthesisToken);
+        }
+
 
     }
 }

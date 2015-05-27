@@ -5,7 +5,9 @@ using Turing.Syntax.Collections;
 using Turing.Syntax.Constructs;
 using Turing.Syntax.Constructs.Expressions;
 using Turing.Syntax.Constructs.Keywords;
+using Turing.Syntax.Constructs.Symbols;
 using Turing.Syntax.Constructs.Symbols.Collections;
+using Turing.Syntax.Constructs.Symbols.SingleChild;
 using Turing.Syntax.Strategies;
 
 namespace Turing.Factories
@@ -19,24 +21,33 @@ namespace Turing.Factories
         /// <param name="xoCurrentToken"></param>
         /// <param name="xoList"></param>
         /// <returns></returns>
-        public static SyntaxNode ContextSensitiveConvertTokenToNode(SyntaxTokenList xoList)
+        public static SyntaxNode ContextSensitiveConvertTokenToNode(SyntaxNode xoCurrentNode, SyntaxTokenList xoList)
         {
-            // Always pop on entering this fn
-            SyntaxToken xoCurrentToken = xoList.PopToken();
+            // Is any identifier or Expression (function/literal)
+            if (SyntaxKindFacts.IsFunction(xoList.PeekToken().ExpectedType))
+            {
+                // COUNT (*)
+                return FactoryCreateColumnExpr(xoList);
+            }
+            else if (xoList.PeekToken().ExpectedType == SyntaxKind.IdentifierToken)
+            {
+                // Purely an identifier
+                return FactoryCreateColumn(xoList);
+            }
 
             //return new SyntaxNode(xoCurrentToken, NodeStrategyFactory.FactoryCreateStrategy(xoCurrentToken.ExpectedType));
-            switch (xoCurrentToken.ExpectedType)
+            switch (xoList.PeekToken().ExpectedType)
             {
                 case SyntaxKind.SelectKeyword:
                 case SyntaxKind.FromKeyword:
                 case SyntaxKind.WhereKeyword:
                 case SyntaxKind.OnKeyword:
-                    return new SyntaxNode(xoCurrentToken, NodeStrategyFactory.FactoryCreateStrategy(xoCurrentToken.ExpectedType));
+                    return new SyntaxNode(xoList.PeekToken(), NodeStrategyFactory.FactoryCreateStrategy(xoList.PopToken().ExpectedType));
 
                 #region JOIN
                 case SyntaxKind.JoinKeyword:
                     // All Join nodes on their own become Inner joins
-                    SyntaxNode oJoinNode = new JoinSyntaxNode(xoCurrentToken);
+                    SyntaxNode oJoinNode = new JoinSyntaxNode(xoList.PopToken());
                     oJoinNode.ExpectedType = SyntaxKind.InnerJoinKeyword;
                     return oJoinNode;
                 case SyntaxKind.InnerJoinKeyword:
@@ -44,35 +55,8 @@ namespace Turing.Factories
                 case SyntaxKind.LeftJoinKeyword:
                 case SyntaxKind.RightJoinKeyword:
                 case SyntaxKind.CrossJoinKeyword:
-                    // Create the Join Node
-                    JoinSyntaxNode oTemp = new JoinSyntaxNode(xoCurrentToken);
-
-                    // If the next node is actually an OUTER keyword
-                    if (xoList.PeekToken().ExpectedType == SyntaxKind.OuterKeyword)
-                    {
-                        // Construct a proper Join keyword with the type declared
-                        oTemp.RawSQLText += " " + xoList.PeekToken().RawSQLText; // add the text (OUTER)
-                        xoList.PopToken(); // Pull it off the list
-                    }
-
-                    // If the next node is actually a Join
-                    if (xoList.PeekToken().ExpectedType == SyntaxKind.JoinKeyword)
-                    {
-                        // Construct a proper Join keyword with the type declared
-                        oTemp.ExpectedType = xoCurrentToken.ExpectedType; // Set the type
-                        oTemp.RawSQLText += " " + xoList.PeekToken().RawSQLText; // add the text (JOIN)
-                        xoList.PopToken(); // Pull it off the list
-                    }
-                    else
-                    {
-                        // Add an error
-                        oTemp.InsertStatusMessage(
-                            String.Format(ErrorMessageLibrary.EXPECTING_TOKEN_FOUND_ELSE, xoList.PeekToken().RawSQLText, "JOIN"));
-                    }
-                    // Return the Join node
-                    return oTemp;
+                    return FactoryCreateCompoundJoin(xoList);
                 #endregion
-
 
                 #region Conditional Expressions
                 case SyntaxKind.EqualsToken:
@@ -84,7 +68,7 @@ namespace Turing.Factories
                 case SyntaxKind.AndKeyword:
                 case SyntaxKind.OrKeyword:
                     // Return a boolean expression (which will consume the previous node and the next one)
-                    return new BinaryExpression(xoCurrentToken);
+                    return new BinaryExpression(xoList.PopToken());
 
                 #endregion
 
@@ -93,18 +77,18 @@ namespace Turing.Factories
                 case SyntaxKind.LiteralToken:
                 case SyntaxKind.BooleanToken: // true and false and NOT
                 case SyntaxKind.NumericToken:
-                    return new SyntaxLeaf(xoCurrentToken);
+                    return new SyntaxLeaf(xoList.PopToken());
 
                 case SyntaxKind.OpenParenthesisToken:
                     // Given a (, Try and guess what type of () this is
-                    return FactoryInterpretOpenParenthesisToken(xoCurrentToken, xoList);
+                    return FactoryInterpretOpenParenthesisToken(xoCurrentNode, xoList);
                 case SyntaxKind.NotKeyword:
-                    return new UnaryExpression(xoCurrentToken);
+                    return new UnaryExpression(xoList.PopToken());
 
                 default:
                     // Default to the original token since it doesn't need to be converted
                     // any more
-                    return new SyntaxLeaf(xoCurrentToken);
+                    return new SyntaxLeaf(xoList.PopToken());
             }
         }
 
@@ -118,23 +102,25 @@ namespace Turing.Factories
         /// 1. SubQuery                 (SELECT * FROM X) Y
         /// 2. An Expression grouping   WHERE (X==Y) AND ((X > Z) OR (X > A))
         /// 3. SymbolList               GROUP BY (SVC_IDNTY, MKT_PROD_CD)
+        /// 4. Solo Column
         /// </summary>
         /// <param name="xoCurrentToken"></param>
         /// <param name="xoList"></param>
         /// <returns></returns>
-        private static SyntaxNode FactoryInterpretOpenParenthesisToken(SyntaxToken xoCurrentToken, SyntaxTokenList xoList)
+        private static SyntaxNode FactoryInterpretOpenParenthesisToken(SyntaxNode xoCurrentNode, SyntaxTokenList xoList)
         {
             // Given a (, Try and guess what type of () this is
             SyntaxNode oReturn;
+            SyntaxToken xoCurrentToken = xoList.PopToken();
 
             // 1. ( SubQuery ) - (SELECT * FROM ..) svc
             // 4. SubQuery in Expression - Where X IN (SELECT Svc_IDNTY FROM svc)
-            // ?? TODO: Fix this one because it should be SymbolList
+           
             // First Keyword in is SELECT
             if (xoList.PeekToken().ExpectedType == SyntaxKind.SelectKeyword)
             {
                 // Create SubQuery Symbol
-                oReturn = SymbolFactory.GenerateTableSymbol(xoList);
+                oReturn = FactoryCreateTable(xoList);
             }
             // 2. ( Symbol List ) - (1, 2, 3) or (svc.MKT_PROD_CD, svc.SVC_STAT_CD) 
             // 3. ( Expressions ) - WHERE (X =Y) or (X <> Y AND X = 0)
@@ -142,22 +128,42 @@ namespace Turing.Factories
             {
                 Boolean bCommaFound = false; // If you find any commas before the closing bracket
                 Boolean bOperatorFound = false; // If you find any operators before the closing bracket
+                Boolean bAllIdentifiersOrDots = true;
+
                 for (int iIndex = 0; iIndex < xoList.Count; iIndex++)
                 {
                     SyntaxToken oLoopingNode = xoList.PeekToken(iIndex);
+                    // Scan until we find something that helps us determine what this parenthesis is
+                    // Or a close parenthesis
                     if (oLoopingNode.ExpectedType == SyntaxKind.CloseParenthesisToken ||
                         bCommaFound ||
                         bOperatorFound)
                     {
                         break;
                     }
+                    // Found Comma -> SymbolList
                     else if (oLoopingNode.ExpectedType == SyntaxKind.CommaToken)
                     {
                         bCommaFound = true;
+                        bAllIdentifiersOrDots = false;
                     }
-                    else if (SyntaxNode.IsOperator(oLoopingNode.ExpectedType))
+                    // Found an operaotr -> Expression
+                    else if (
+                        SyntaxKindFacts.IsAdjunctConditionalOperator(oLoopingNode.ExpectedType) || // And or
+                        SyntaxKindFacts.IsConditionalOperator(oLoopingNode.ExpectedType) ||        // <> >= =
+                        SyntaxKindFacts.IsArithmaticOperator(oLoopingNode.ExpectedType))           // +
                     {
                         bOperatorFound = true;
+                        bAllIdentifiersOrDots = false;
+                    }
+                    // Found something to say this is not a single column
+                    else if (bAllIdentifiersOrDots && 
+                        (oLoopingNode.ExpectedType != SyntaxKind.IdentifierToken ||
+                        oLoopingNode.ExpectedType != SyntaxKind.DotDotToken ||
+                        oLoopingNode.ExpectedType != SyntaxKind.DotToken )
+                        )
+                    {
+                        bAllIdentifiersOrDots = false;
                     }
                 }
 
@@ -173,13 +179,17 @@ namespace Turing.Factories
                     //
                     oReturn = new SymbolList(xoCurrentToken);
                 }
-                // Single expression?
-                else if (xoList.PeekToken().ExpectedType == SyntaxKind.IdentifierToken)
+                // Single column
+                else if (bAllIdentifiersOrDots)
                 {
-                    // ?? TODO: FIX THis, very risky
+                    // This must have an openning and closing parenthesis
+                    oReturn = FactoryCreateColumn(xoList);
 
-                    // It could be just one identifier on its own
-                    oReturn = SymbolFactory.GenerateColumnSymbol(xoList);
+                    // Ignore a trailing Close parenthesis
+                    if (xoList.PeekToken().ExpectedType == SyntaxKind.CloseParenthesisToken)
+                    {
+                        xoList.PopToken();
+                    }
                 }
                 else // Both empty
                 {
@@ -194,6 +204,168 @@ namespace Turing.Factories
             // Skip it
             //xoList.PopToken();
             return oReturn;
+        }
+
+        /// <summary>
+        /// Generates a simple Table Symbol (used only in FROM)
+        /// </summary>
+        /// <param name="xoCurrentToken"></param>
+        /// <param name="xoList"></param>
+        /// <returns></returns>
+        public static SyntaxNode FactoryCreateTable(SyntaxTokenList xoList)
+        {
+            SyntaxToken xoCurrentToken = xoList.PeekToken();
+
+            if (xoCurrentToken.ExpectedType == SyntaxKind.OpenParenthesisToken)
+            {
+                // Subquery start
+                // Create a table symbol
+                TableSymbol oSubquery = new SubquerySymbol(xoList.PopToken());
+                return oSubquery;
+            }
+
+            SyntaxNode oDatabase;
+            SyntaxNode oSchema;
+            // A Symbol consists of multiple parts
+            SyntaxNode oTable;
+
+            int iSchemaLocation = 0;
+            int iTableLocation = 0;
+
+            // Trailing item is a .. (Database)
+            if (xoList.PeekToken(1).ExpectedType == SyntaxKind.DotDotToken)
+            {
+                iSchemaLocation = -1;
+                iTableLocation = 2;
+            }
+            else if (xoList.PeekToken(1).ExpectedType == SyntaxKind.DotToken)
+            {
+                iSchemaLocation = 2;
+                iTableLocation = 4;
+            }
+            // Standalone Table
+            else
+            {
+                iSchemaLocation = -1;
+                iTableLocation = 0;
+            }
+
+            oDatabase =
+                iTableLocation != 0 ? // Theres no database decl or schema decl
+                new DatabaseSymbol(xoCurrentToken) :
+                new DatabaseSymbol(new SyntaxToken(SyntaxKind.IdentifierToken, String.Empty));
+
+            // Generate the Schema Node
+            oSchema = iSchemaLocation != -1 ?
+                // Type Check
+                xoList.PeekToken(iSchemaLocation).ExpectedType == SyntaxKind.IdentifierToken ?
+                    new SchemaSymbol(xoList.PeekToken(iSchemaLocation)) :
+                    FactoryCreateExceptionNodeWithExpectingError(
+                        "SchemaIdn", xoList.PeekToken(iSchemaLocation).RawSQLText)
+                :
+                new SchemaSymbol(new SyntaxToken(SyntaxKind.IdentifierToken, String.Empty));
+
+            SyntaxToken oTableToken = xoList.PeekToken(iTableLocation);
+            oTable = iTableLocation != -1 ?
+                // Type check
+                oTableToken.ExpectedType == SyntaxKind.IdentifierToken ?
+                    new TableSymbol(oTableToken) :
+                    FactoryCreateExceptionNodeWithExpectingError("TableIdn", oTableToken.RawSQLText) :
+                new TableSymbol(new SyntaxToken(SyntaxKind.IdentifierToken, String.Empty));
+
+            // create the decorator obj
+            oSchema.AddChild(oTable);
+            oDatabase.AddChild(oSchema);
+
+            // Pop the tokens
+            xoList.PopTokens(Math.Max(iSchemaLocation, iTableLocation) + 1);
+
+            // Assign the alias
+            ((Symbol)oTable).Alias = SyntaxNodeFactory.ScanAheadForAlias(xoList);
+
+            return oDatabase;
+        }
+
+        /// <summary>
+        /// Generates a Column Symbol (Used everywhere else)
+        /// </summary>
+        /// <param name="xoCurrentToken"></param>
+        /// <param name="xoList"></param>
+        /// <returns></returns>
+        public static SyntaxNode FactoryCreateColumn(SyntaxTokenList xoList)
+        {
+            SyntaxToken xoCurrentToken = xoList.PeekToken();
+
+            // A Symbol consists of multiple parts
+            Symbol oTable;
+            Symbol oColumn;
+
+            // Trailing item is . (table.column)
+            if (xoList.PeekToken(1).ExpectedType == SyntaxKind.DotToken)
+            {
+                oTable = new TableSymbol(xoCurrentToken);
+                oColumn = new ColumnSymbol(xoList.PeekToken(2)); // Grab the Column
+                oTable.AddChild(oColumn);
+                xoList.PopTokens(3); // Skip over the next 2
+            }
+            // Standalone Column
+            else
+            {
+                oTable = new TableSymbol(new SyntaxToken(SyntaxKind.IdentifierToken, String.Empty));
+                oColumn = new ColumnSymbol(xoCurrentToken); // Grab the Column
+                oTable.AddChild(oColumn);
+                xoList.PopToken(); // Skip over the next 1
+            }
+
+
+            // Assign the alias
+            oColumn.Alias = SyntaxNodeFactory.ScanAheadForAlias(xoList);
+
+            // Return the top level node
+            return oTable;
+        }
+
+
+        public static SyntaxNode FactoryCreateColumnExpr(SyntaxTokenList xoList)
+        {
+            // generate the item
+            Symbol oColumnExp = new ColumnSymbol(xoList.PopToken(), NodeStrategyFactory.FUNCTION_STRATEGY);
+
+            // Consume Ahead
+            oColumnExp.TryConsumeList(xoList);
+
+            // Assign the alias
+            oColumnExp.Alias = SyntaxNodeFactory.ScanAheadForAlias(xoList);
+
+            // Return the column
+            return oColumnExp;
+        }
+
+        public static SyntaxNode FactoryCreateCompoundJoin (SyntaxTokenList xoList)
+        {
+            // Create the Join Node
+            JoinSyntaxNode oTemp = new JoinSyntaxNode(xoList.PopToken());
+
+            // If the next node is actually an OUTER keyword
+            if (xoList.PeekToken().ExpectedType == SyntaxKind.OuterKeyword)
+            {
+                // Construct a proper Join keyword with the type declared
+                oTemp.RawSQLText += " " + xoList.PopToken().RawSQLText; // add the text (OUTER)
+            }
+            // If the next node is actually a Join
+            if (xoList.PeekToken().ExpectedType == SyntaxKind.JoinKeyword)
+            {
+                // Construct a proper Join keyword with the type declared
+                oTemp.RawSQLText += " " + xoList.PopToken().RawSQLText; // add the text (JOIN)
+            }
+            else
+            {
+                // Add an error
+                oTemp.InsertStatusMessage(
+                    String.Format(ErrorMessageLibrary.EXPECTING_TOKEN_FOUND_ELSE, xoList.PopToken().RawSQLText, "JOIN"));
+            }
+            // Return the Join node
+            return oTemp;
         }
 
 

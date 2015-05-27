@@ -9,6 +9,14 @@ namespace Turing.Syntax
     class SyntaxKindFacts
     {
 
+        public static Boolean IsTerminatingNode(SyntaxKind xeKind)
+        {
+            return
+                xeKind == SyntaxKind.EOFNode ||
+                xeKind == SyntaxKind.EOFTrivia ||
+                xeKind == SyntaxKind.SemiColonToken;
+        }
+
 
         public static Boolean IsJoinKeyword(SyntaxKind xeKind)
         {
@@ -20,6 +28,7 @@ namespace Turing.Syntax
                 xeKind == SyntaxKind.LeftJoinKeyword ||
                 xeKind == SyntaxKind.RightJoinKeyword;
         }
+
 
         public static Boolean IsUnaryOperator(SyntaxKind xeKind)
         {
@@ -59,6 +68,8 @@ namespace Turing.Syntax
                 xeKind == SyntaxKind.SlashToken;
         }
 
+
+
         public static Boolean IsIdentifier(SyntaxKind xeKind)
         {
             return
@@ -71,10 +82,20 @@ namespace Turing.Syntax
         {
             return
                 // Literals are types of expressions
-                xeKind == SyntaxKind.NumericToken ||
+                IsLiteral(xeKind) ||
+                IsFunction(xeKind);
+        }
+
+        public static Boolean IsLiteral(SyntaxKind xeKind)
+        {
+            return xeKind == SyntaxKind.NumericToken ||
                 xeKind == SyntaxKind.LiteralToken ||
-                xeKind == SyntaxKind.BooleanToken ||
-                ((int)xeKind >= (int)SyntaxKind.AverageKeyword &&
+                xeKind == SyntaxKind.BooleanToken;
+        }
+
+        public static Boolean IsFunction(SyntaxKind xeKind)
+        {
+            return ((int)xeKind >= (int)SyntaxKind.AverageKeyword &&
                 (int)xeKind <= (int)SyntaxKind.UpperKeyword);
         }
 

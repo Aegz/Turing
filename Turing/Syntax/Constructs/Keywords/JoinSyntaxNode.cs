@@ -16,7 +16,6 @@ namespace Turing.Syntax.Constructs.Keywords
     {
         public JoinSyntaxNode(SyntaxToken xoToken) : base(xoToken, NodeStrategyFactory.JOIN_STRATEGY)
         {
-
         }
 
         /// <summary>

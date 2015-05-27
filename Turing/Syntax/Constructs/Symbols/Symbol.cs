@@ -16,13 +16,16 @@ namespace Turing.Syntax.Constructs.Symbols
     {
         public String Alias { get; set; }
 
-        public Symbol(SyntaxToken xoToken) : base(xoToken, NodeStrategyFactory.IDENTIFIER_STRATEGY)
+        public Symbol(SyntaxToken xoToken, NodeStrategy xoStrategy) : base(xoToken, xoStrategy)
+        {
+        }
+
+        public Symbol(SyntaxToken xoToken) : this(xoToken, NodeStrategyFactory.FactoryCreateStrategy(xoToken.ExpectedType))
         {
         }
 
         public Symbol() : this(SyntaxToken.NULL_TOKEN)
         {
-
         }
 
         public String GetAlias()

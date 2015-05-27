@@ -71,7 +71,6 @@
     <Compile Include="Syntax\Constructs\Symbols\SingleChild\DatabaseSymbol.cs" />
     <Compile Include="Syntax\Constructs\Symbols\NullSymbol.cs" />
     <Compile Include="Syntax\Constructs\Symbols\SingleChild\SchemaSymbol.cs" />
-    <Compile Include="Factories\SymbolFactory.cs" />
     <Compile Include="Syntax\Constructs\Symbols\SingleChild\SubquerySymbol.cs" />
     <Compile Include="Syntax\Strategies\NodeStrategy.cs" />
     <Compile Include="Syntax\Strategies\NodeStrategyFactory.cs" />

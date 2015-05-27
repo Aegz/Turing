@@ -99,7 +99,7 @@ namespace Turing.Syntax
         {
             // Only do work if we have anything left to process
             if (!xoList.HasTokensLeftToProcess() ||   // We have stuff to process
-                SyntaxNode.IsTerminatingNode(xoList.PeekToken().ExpectedType)) // We have not reached a terminator
+                SyntaxKindFacts.IsTerminatingNode(xoList.PeekToken().ExpectedType)) // We have not reached a terminator
             {
                 // Nothing left to process
                 return false;
@@ -293,65 +293,5 @@ namespace Turing.Syntax
 
         #endregion
 
-        #region Static Identification Functions
-
-        public static Boolean IsIdentifier(SyntaxKind xeKind)
-        {
-            return
-                xeKind == SyntaxKind.IdentifierToken;
-        }
-
-        public static Boolean IsCoreNode(SyntaxKind xeKind)
-        {
-            return
-                xeKind == SyntaxKind.SelectKeyword ||
-                xeKind == SyntaxKind.InsertKeyword ||
-                xeKind == SyntaxKind.UpdateKeyword ||
-                xeKind == SyntaxKind.CreateKeyword ||
-                xeKind == SyntaxKind.AlterKeyword ||
-                xeKind == SyntaxKind.WithKeyword ||
-                xeKind == SyntaxKind.DeleteKeyword;
-        }
-
-        public static Boolean IsTerminatingNode(SyntaxKind xeKind)
-        {
-            return
-                xeKind == SyntaxKind.EOFNode ||
-                xeKind == SyntaxKind.EOFTrivia ||
-                xeKind == SyntaxKind.SemiColonToken;
-        }
-
-        public static Boolean IsOperator(SyntaxKind xeKind)
-        {
-            return
-                xeKind == SyntaxKind.GreaterThanOrEqualToken ||
-                xeKind == SyntaxKind.GreaterThanToken ||
-                xeKind == SyntaxKind.LessThanOrEqualToToken ||
-                xeKind == SyntaxKind.LessThanToken ||
-                xeKind == SyntaxKind.DiamondToken ||
-
-                xeKind == SyntaxKind.NotKeyword ||
-                xeKind == SyntaxKind.IsKeyword ||
-                xeKind == SyntaxKind.InKeyword ||
-
-                xeKind == SyntaxKind.EqualsToken ||
-                xeKind == SyntaxKind.PlusToken ||
-                xeKind == SyntaxKind.MinusToken ||
-                xeKind == SyntaxKind.SlashToken ||
-                xeKind == SyntaxKind.StarToken ||
-                xeKind == SyntaxKind.PlusToken;
-        }
-
-        public static Boolean IsJoinTypeKeyword(SyntaxKind xeType)
-        {
-            return
-                xeType == SyntaxKind.InnerJoinKeyword ||
-                xeType == SyntaxKind.LeftJoinKeyword ||
-                xeType == SyntaxKind.RightJoinKeyword ||
-                xeType == SyntaxKind.CrossJoinKeyword ||
-                xeType == SyntaxKind.OuterKeyword;
-        }
-
-        #endregion
     }
 }
