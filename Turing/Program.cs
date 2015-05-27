@@ -11,10 +11,14 @@ namespace Turing
                 @"   
                         /* TEST */      
                         SELECT  
-                            col1, col2
+                            col2
                         FROM
-                            (SELECT * FROM APMART_FP.ADMIN.FPC_SERVICE svc)
-                        WHERE (svc.MKT_PROD_CD = 'MOB PT' AND svc.SVC_STAT_CD <> 'C') AND (svc.SVC_IDNTY <> '0415783039')
+                            APMART_FP.ADMIN.FPC_SERVICE svc1
+                        INNER JOIN 
+                            APMART_FPVIEWS..FPC_PEW svc2
+                        ON 
+                            svc1.TEMP = svc2.TEMP
+                        WHERE (svc1.svc_idnty = '0415783039' AND svc1.svc_idnty1 = '0415783039')
                 ");
 
         static void Main(string[] args)

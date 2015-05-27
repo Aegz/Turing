@@ -5,7 +5,6 @@ using Turing.Parser;
 using System.Collections.Generic;
 using Turing.Lexer;
 using Turing.Syntax.Constructs;
-using Turing.Syntax.Constructs.Keywords;
 using Turing.Syntax.Constructs.Symbols.Collections;
 
 namespace NetezzaParseTests

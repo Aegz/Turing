@@ -6,6 +6,7 @@ using Turing.Syntax.Constructs;
 using Turing.Syntax.Constructs.Expressions;
 using Turing.Syntax.Constructs.Keywords;
 using Turing.Syntax.Constructs.Symbols.Collections;
+using Turing.Syntax.Strategies;
 
 namespace Turing.Factories
 {
@@ -23,14 +24,14 @@ namespace Turing.Factories
             // Always pop on entering this fn
             SyntaxToken xoCurrentToken = xoList.PopToken();
 
+            //return new SyntaxNode(xoCurrentToken, NodeStrategyFactory.FactoryCreateStrategy(xoCurrentToken.ExpectedType));
             switch (xoCurrentToken.ExpectedType)
             {
                 case SyntaxKind.SelectKeyword:
-                    return new SelectSyntaxNode(xoCurrentToken);
                 case SyntaxKind.FromKeyword:
-                    return new FromSyntaxNode(xoCurrentToken);
                 case SyntaxKind.WhereKeyword:
-                    return new WhereSyntaxNode(xoCurrentToken);
+                case SyntaxKind.OnKeyword:
+                    return new SyntaxNode(xoCurrentToken, NodeStrategyFactory.FactoryCreateStrategy(xoCurrentToken.ExpectedType));
 
                 #region JOIN
                 case SyntaxKind.JoinKeyword:
@@ -50,7 +51,6 @@ namespace Turing.Factories
                     if (xoList.PeekToken().ExpectedType == SyntaxKind.OuterKeyword)
                     {
                         // Construct a proper Join keyword with the type declared
-                        oTemp.IsOuter = true;
                         oTemp.RawSQLText += " " + xoList.PeekToken().RawSQLText; // add the text (OUTER)
                         xoList.PopToken(); // Pull it off the list
                     }
@@ -73,8 +73,6 @@ namespace Turing.Factories
                     return oTemp;
                 #endregion
 
-                case SyntaxKind.OnKeyword:
-                    return new OnSyntaxNode(xoCurrentToken);
 
                 #region Conditional Expressions
                 case SyntaxKind.EqualsToken:
@@ -173,7 +171,7 @@ namespace Turing.Factories
                 else if (bCommaFound)
                 {
                     //
-                    oReturn = new SymbolList();
+                    oReturn = new SymbolList(xoCurrentToken);
                 }
                 // Single expression?
                 else if (xoList.PeekToken().ExpectedType == SyntaxKind.IdentifierToken)

@@ -45,7 +45,7 @@ namespace Turing.Lexer
             List<SyntaxTrivia> aoTrailing = LexSyntaxTrivia(true);
             
             // Only assign the trivia if we had something left
-            if (oTemp != null && oTemp.ExpectedType != SyntaxKind.EOFToken)
+            if (oTemp != null && oTemp.ExpectedType != SyntaxKind.EOFNode)
             {
                 // Assign the trivia
                 oTemp.LeadingTrivia = aoLeading;
@@ -149,7 +149,7 @@ namespace Turing.Lexer
             // Break early
             if (!TextWindow.HasCharactersLeftToProcess())
             {
-                return new SyntaxToken(SyntaxKind.EOFToken, "");
+                return new SyntaxToken(SyntaxKind.EOFNode, "");
             }
 
             // Intermediate var
@@ -173,7 +173,7 @@ namespace Turing.Lexer
                         Debug.Write("Invalid literal token? (" + TextWindow.PopCharacter(9999) + ")");
                         // Problem.. return a dead token
                         return new SyntaxToken(
-                            SyntaxKind.UnknownToken,
+                            SyntaxKind.UnknownNode,
                             Convert.ToString(TextWindow.PopCharacter()));
                     }
                     
@@ -375,7 +375,7 @@ namespace Turing.Lexer
                         Debug.Write("Invalid identifier token? (" + TextWindow.PeekCharacter() + ")");
                         // Problem.. return a dead token
                         return new SyntaxToken(
-                            SyntaxKind.UnknownToken, 
+                            SyntaxKind.UnknownNode, 
                             Convert.ToString(TextWindow.PopCharacter()));
                     }
                 
@@ -401,7 +401,7 @@ namespace Turing.Lexer
                         Debug.Write("Invalid numeric token? (" + TextWindow.PeekCharacter() + ")");
                         // Problem.. return a dead token
                         return new SyntaxToken(
-                            SyntaxKind.UnknownToken,
+                            SyntaxKind.UnknownNode,
                             Convert.ToString(TextWindow.PopCharacter()));
                     }
 

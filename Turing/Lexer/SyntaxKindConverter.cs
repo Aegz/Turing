@@ -25,6 +25,7 @@ namespace Turing.Lexer
                 case "EXTRACT":
                     return SyntaxKind.ExecuteKeyword;
 
+                #region Statements
                 // CORE
                 case "SEL":
                 case "SELECT":
@@ -42,9 +43,10 @@ namespace Turing.Lexer
                 case "CREATE":
                     return SyntaxKind.CreateKeyword;
 
+                #endregion
 
                 // Attributes
-
+                #region Attributes
                 // CREATE
                 case "VIEW":
                     return SyntaxKind.ViewKeyword;
@@ -75,7 +77,9 @@ namespace Turing.Lexer
                 // UPDATE
                 case "SET":
                     return SyntaxKind.SetKeyword;
+                #endregion
 
+                #region Join
                 // JOIN
                 case "INNER":
                     return SyntaxKind.InnerJoinKeyword;
@@ -91,7 +95,9 @@ namespace Turing.Lexer
                     return SyntaxKind.JoinKeyword;
                 case "ON":
                     return SyntaxKind.OnKeyword;
+                #endregion
 
+                #region Conditional Operators
                 // Conditional
                 case "IN":
                     return SyntaxKind.InKeyword;
@@ -106,6 +112,9 @@ namespace Turing.Lexer
                 case "OR":
                     return SyntaxKind.OrKeyword;
 
+                #endregion
+
+                #region CASE
                 // CASE Specific
                 case "CASE":
                     return SyntaxKind.CaseKeyword;
@@ -117,19 +126,94 @@ namespace Turing.Lexer
                     return SyntaxKind.ElseKeyword;
                 case "END":
                     return SyntaxKind.EndKeyword;
+                #endregion
 
                 // Other
                 case "AS":
                     return SyntaxKind.AsKeyword;
+                case "ALL":
+                    return SyntaxKind.AllKeyword;
+                case "DISTINCT":
+                    return SyntaxKind.DistinctKeyword;
+                case "UNIQUE":
+                    return SyntaxKind.UniqueKeyword;
+                case "ASC":
+                    return SyntaxKind.ASCKeyword;
+                case "DESC":
+                    return SyntaxKind.DESCKeyword;
 
                 // True/False
                 case "TRUE":
                 case "FALSE":
                     return SyntaxKind.BooleanToken;
 
+                // First/Last
+                case "FIRST":
+                    return SyntaxKind.FirstKeyword;
+                case "LAST":
+                    return SyntaxKind.LastKeyword;
+
+
+
+                #region Functions
+
+                case "AVG":
+                case "AVERAGE":
+                    return SyntaxKind.AverageKeyword;
+                case "COUNT":
+                    return SyntaxKind.CountKeyword;
+                case "MAX":
+                    return SyntaxKind.MaxKeyword;
+                case "SUM":
+                    return SyntaxKind.SumKeyword;
+
+                case "COALESCE":
+                    return SyntaxKind.CoalesceKeyword;
+                case "POSITION":
+                    return SyntaxKind.PositionKeyword;
+                case "PARTITION":
+                    return SyntaxKind.PartitionKeyword;
+                case "RANK":
+                    return SyntaxKind.RankKeyword;
+                case "ROW_NUMBER":
+                    return SyntaxKind.RowNumberKeyword;
+                case "SUBSTRING":
+                    return SyntaxKind.SubStringKeyword;
+                case "TRIM":
+                    return SyntaxKind.TrimKeyword;
+                case "LEADING":
+                    return SyntaxKind.LeadingKeyword;
+                case "TRAILING":
+                    return SyntaxKind.TrailingKeyword;
+
+                case "LOWER":
+                    return SyntaxKind.LowerKeyword;
+                case "UPPER":
+                    return SyntaxKind.UpperKeyword;
+
+                // DATE
+                case "DATE_PART":
+                    return SyntaxKind.DatePartKeyword;
+                case "DATE_TRUNC":
+                    return SyntaxKind.DateTruncKeyword;
+                case "TIMEOFDAY":
+                    return SyntaxKind.TimeOfDayKeyword;
+                case "TIMESTAMP":
+                    return SyntaxKind.DateTruncKeyword;
+
+                // Conversion
+                case "CAST":
+                    return SyntaxKind.CastKeyword;
+                case "TO_CHAR":
+                    return SyntaxKind.ToCharKeyword;
+                case "TO_DATE":
+                    return SyntaxKind.ToDateKeyword;
+
+
+                #endregion
 
                 default:
-                    return SyntaxKind.UnknownToken;
+                    return SyntaxKind.UnknownNode;
             }
         }
     }

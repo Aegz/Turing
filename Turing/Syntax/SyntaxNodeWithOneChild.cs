@@ -1,4 +1,5 @@
 ﻿using System;
+using Turing.Syntax.Strategies;
 
 namespace Turing.Syntax
 {
@@ -8,7 +9,7 @@ namespace Turing.Syntax
     /// </summary>
     class SyntaxNodeWithOneChild : SyntaxNode
     {
-        public SyntaxNodeWithOneChild (SyntaxToken xoToken) : base(xoToken)
+        public SyntaxNodeWithOneChild (SyntaxToken xoToken, NodeStrategy xoStrategy) : base(xoToken, xoStrategy)
         {
         }
 

@@ -1,10 +1,11 @@
 ﻿using System;
+using Turing.Syntax.Strategies;
 
 namespace Turing.Syntax
 {
     class SyntaxLeaf : SyntaxNode
     {
-        public SyntaxLeaf(SyntaxToken xoToken) : base(xoToken)
+        public SyntaxLeaf(SyntaxToken xoToken) : base(xoToken, NodeStrategyFactory.NULL_STRATEGY)
         {
         }
 

@@ -8,14 +8,10 @@ namespace Turing.Syntax.Constructs
 {
     public class QuerySyntaxNode : SyntaxNode
     {
-        public QuerySyntaxNode() : base()
-        {
 
-        }
-
-        public QuerySyntaxNode(List<SyntaxNode> xaoChildren) : base()
+        public QuerySyntaxNode() : base(SyntaxToken.NULL_TOKEN)
         {
-            aoChildren = xaoChildren;
+            
         }
 
         public override bool AddChild(SyntaxNode xoGiven)

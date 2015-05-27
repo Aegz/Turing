@@ -8,17 +8,13 @@ namespace Turing.Syntax.Constructs
 {
     public class StatementSyntaxNode : SyntaxNode
     {
-        public StatementSyntaxNode() : base()
+        public StatementSyntaxNode() : base(SyntaxToken.NULL_TOKEN)
         {
             // Always start with 1
             //Children.Add(new StatementSyntaxNode());
 
         }
 
-        public StatementSyntaxNode(List<SyntaxNode> xaoChildren) : base()
-        {
-            aoChildren = xaoChildren;
-        }
 
         public override bool AddChild(SyntaxNode xoGiven)
         {

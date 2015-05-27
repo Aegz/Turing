@@ -7,24 +7,15 @@ using Turing.Diagnostics;
 using Turing.Factories;
 using Turing.Syntax.Collections;
 using Turing.Syntax.Constructs.Symbols;
+using Turing.Syntax.Strategies;
 
 namespace Turing.Syntax.Constructs.Keywords
 {
+    // ?? TODO: Roll this into a strategy that has a fn for consuming previous children
     public class JoinSyntaxNode : SyntaxNode
     {
-        public Boolean IsOuter = false;
-       
-        public JoinSyntaxNode(SyntaxToken xoToken) : base(xoToken)
+        public JoinSyntaxNode(SyntaxToken xoToken) : base(xoToken, NodeStrategyFactory.JOIN_STRATEGY)
         {
-            ConsumableTypes.AddRange(new List<SyntaxKind>
-            {
-                // On keywords
-                { SyntaxKind.OnKeyword },
-
-                // Identifiers are allowed too
-                { SyntaxKind.IdentifierToken },
-                { SyntaxKind.OpenParenthesisToken },
-            });
 
         }
 
@@ -35,13 +26,16 @@ namespace Turing.Syntax.Constructs.Keywords
         /// <returns></returns>
         protected override Boolean PreviousChildIsEligible(SyntaxNode xoNode)
         {
-            return 
-                    xoNode.ExpectedType == SyntaxKind.IdentifierToken || // Identifier/(Table)
-                    xoNode.ExpectedType == SyntaxKind.JoinKeyword || // Or a previous Join Structure
-                    SyntaxNode.IsJoinTypeKeyword(xoNode.ExpectedType); // Join type keyword
+            return
+                    SyntaxKindFacts.IsIdentifier(SyntaxKind.IdentifierToken) || // Identifier/(Table)
+                    SyntaxKindFacts.IsJoinKeyword(xoNode.ExpectedType); // Join type keyword
         }
 
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="xoWindow"></param>
+        /// <returns></returns>
         public override bool TryConsumeList(SyntaxTokenList xoWindow)
         {
             // Consume the previous sibling before consuming anything else
@@ -61,22 +55,6 @@ namespace Turing.Syntax.Constructs.Keywords
         }
 
 
-        public override SyntaxNode ConvertTokenIntoNode(SyntaxTokenList xoList)
-        {
-            SyntaxToken xoCurrentToken = xoList.PeekToken();
-            // If we need to perform a context sensitive conversion
-            if (SyntaxNode.IsIdentifier(xoCurrentToken.ExpectedType) ||         // Generic Identifiers only
-                xoCurrentToken.ExpectedType == SyntaxKind.OpenParenthesisToken) // Subqueries
-            {
-                // Build a table symbol if necessary
-                return SymbolFactory.GenerateTableSymbol(xoList);
-            }
-            else
-            {
-                return base.ConvertTokenIntoNode(xoList);
-            }
-        }
-
         public override string ToString()
         {
             return GetChildString();
@@ -85,10 +63,11 @@ namespace Turing.Syntax.Constructs.Keywords
         public override string GetChildString()
         {
             return String.Format(
-                "{0} {1} {2}",
+                "{0} {1} {2} {3}", //ON
                 (Children.Count > 0 ? Children[0].ToString() : ""),
                 RawSQLText,
-                (Children.Count > 1 ? Children[1].ToString() : ""));
+                (Children.Count > 1 ? Children[1].ToString() : ""),
+                (Children.Count > 2 ? Children[2].ToString() : ""));
         }
     }
 }

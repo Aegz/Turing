@@ -57,7 +57,7 @@ namespace Turing.Factories
             oDatabase =
                 iTableLocation != 0 ? // Theres no database decl or schema decl
                 new DatabaseSymbol(xoCurrentToken) :
-                new DatabaseSymbol(SyntaxToken.NULL_TOKEN);
+                new DatabaseSymbol(new SyntaxToken(SyntaxKind.IdentifierToken, String.Empty));
 
             // Generate the Schema Node
             oSchema = iSchemaLocation != -1 ?
@@ -67,7 +67,7 @@ namespace Turing.Factories
                     CreateExceptionNodeWithExpectingMessage(
                         "SchemaIdn", xoList.PeekToken(iSchemaLocation).RawSQLText)
                 :
-                new SchemaSymbol(SyntaxToken.NULL_TOKEN);
+                new SchemaSymbol(new SyntaxToken(SyntaxKind.IdentifierToken, String.Empty));
 
             SyntaxToken oTableToken = xoList.PeekToken(iTableLocation);
             oTable = iTableLocation != -1 ?
@@ -75,7 +75,7 @@ namespace Turing.Factories
                 oTableToken.ExpectedType == SyntaxKind.IdentifierToken ?
                     new TableSymbol(oTableToken) :
                     CreateExceptionNodeWithExpectingMessage("TableIdn", oTableToken.RawSQLText) :
-                new TableSymbol(SyntaxToken.NULL_TOKEN);
+                new TableSymbol(new SyntaxToken(SyntaxKind.IdentifierToken, String.Empty));
 
             // create the decorator obj
             oSchema.AddChild(oTable);
@@ -116,9 +116,10 @@ namespace Turing.Factories
             // Standalone Column
             else
             {
-                oTable = new TableSymbol(SyntaxToken.NULL_TOKEN);
+                oTable = new TableSymbol(new SyntaxToken(SyntaxKind.IdentifierToken, String.Empty));
                 oColumn = new ColumnSymbol(xoCurrentToken); // Grab the Column
                 oTable.AddChild(oColumn);
+                xoList.PopToken(); // Skip over the next 1
             }
 
 

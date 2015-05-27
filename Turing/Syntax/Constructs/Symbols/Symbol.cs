@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Turing.Syntax.Strategies;
 
 namespace Turing.Syntax.Constructs.Symbols
 {
@@ -15,7 +16,7 @@ namespace Turing.Syntax.Constructs.Symbols
     {
         public String Alias { get; set; }
 
-        public Symbol(SyntaxToken xoToken) : base(xoToken)
+        public Symbol(SyntaxToken xoToken) : base(xoToken, NodeStrategyFactory.IDENTIFIER_STRATEGY)
         {
         }
 

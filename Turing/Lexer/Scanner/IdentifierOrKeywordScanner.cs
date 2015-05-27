@@ -15,7 +15,7 @@ namespace Turing.Lexer.Scanner
                 SyntaxKind eNewType = SyntaxKindConverter.ConvertKeywordIntoSyntaxKind(xoToken.RawSQLText);
 
                 // If it is not a core keyword then presume its an identifier
-                xoToken.ExpectedType = eNewType != SyntaxKind.UnknownToken ? eNewType : SyntaxKind.IdentifierToken;
+                xoToken.ExpectedType = eNewType != SyntaxKind.UnknownNode ? eNewType : SyntaxKind.IdentifierToken;
 
                 return true;
             }
@@ -100,7 +100,7 @@ namespace Turing.Lexer.Scanner
                     case '"':
                     case '\'':
                         // Closing case (anything that is not valid in an identifier)
-                        xoToken = new SyntaxToken(SyntaxKind.UnknownToken, sCharactersScannedSoFar);
+                        xoToken = new SyntaxToken(SyntaxKind.UnknownNode, sCharactersScannedSoFar);
                         // Skip ahead the length of the token
                         TextWindow.SkipAhead(xoToken.RawSQLText.Length);
                         // Is true if we had a valid token (string)
@@ -111,7 +111,7 @@ namespace Turing.Lexer.Scanner
                         if (iIndex > 0 && sCharactersScannedSoFar[sCharactersScannedSoFar.Length -1] == '_')
                         {
                             // Closing case (anything that is not valid in an identifier)
-                            xoToken = new SyntaxToken(SyntaxKind.UnknownToken, sCharactersScannedSoFar);
+                            xoToken = new SyntaxToken(SyntaxKind.UnknownNode, sCharactersScannedSoFar);
                             // Skip ahead the length of the token
                             TextWindow.SkipAhead(xoToken.RawSQLText.Length);
                             // Is true if we had a valid token (string)

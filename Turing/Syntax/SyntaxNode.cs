@@ -1,16 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Turing.Diagnostics;
-using Turing.Factories;
 using Turing.Syntax.Collections;
-using Turing.Syntax.Constructs.Expressions;
-using Turing.Syntax.Constructs.Keywords;
-using Turing.Syntax.Constructs.Symbols.Collections;
+using Turing.Syntax.Strategies;
 
 namespace Turing.Syntax
 {
-    public abstract class SyntaxNode 
+    public class SyntaxNode 
     {
         #region Object Attributes
 
@@ -34,9 +30,11 @@ namespace Turing.Syntax
 
         protected SyntaxToken Token { get; set; }
 
+        protected NodeStrategy oStrategy;
 
         //
         protected Boolean bHasConsumedNodes = false; // Tells you when it has actually built anything
+        public Boolean IsComplete = false;
 
         #endregion
 
@@ -73,53 +71,24 @@ namespace Turing.Syntax
 
         #region Construction
 
-        public SyntaxNode() : this (new SyntaxToken(SyntaxKind.UnknownToken, String.Empty))
+        public SyntaxNode (SyntaxToken xoToken) : this (xoToken, NodeStrategyFactory.DEFAULT_STRATEGY)
         {
         }
 
-        public SyntaxNode(SyntaxToken xoToken)
+        public SyntaxNode(SyntaxToken xoToken, NodeStrategy xoStrategy)
         {
             Token = xoToken;
             ConsumableTypes = new List<SyntaxKind>(); // Always initialise the list
             ClosingTypes = new List<SyntaxKind>();
             Comments = new List<StatusItem>();
+
+            oStrategy = xoStrategy;
         }
 
 
         #endregion
 
-        /// <summary>
-        /// Returns true if the next node is something this node can interpret
-        /// and returns false if it cannot do anything with the next node
-        /// </summary>
-        /// <param name="xoList"></param>
-        /// <returns></returns>
-        public Boolean CanConsumeNextNode(SyntaxTokenList xoList)
-        {
-            if (ClosingTypes.Contains(xoList.PeekToken().ExpectedType))
-            {
-                // Kill off the token and return false
-                xoList.PopToken();
-                return false;
-            }
-            else
-            {
-                return
-                    !SyntaxNode.IsTerminatingNode(xoList.PeekToken().ExpectedType) && // Terminator Token
-                    ConsumableTypes.Contains(xoList.PeekToken().ExpectedType);        // Can't eat the next token
-            }
-        }
-
-        /// <summary>
-        /// Used when you can simply process a node but not construct anything from it
-        /// if it succeeds then it has successfully processed the node
-        /// </summary>
-        /// <param name="xoList"></param>
-        /// <returns></returns>
-        public virtual Boolean CanProcessNextNode(SyntaxTokenList xoList)
-        {
-            return false;
-        }
+        #region Core Consumption
 
         /// <summary>
         /// Allows this node to consume tokens from the given window
@@ -138,43 +107,79 @@ namespace Turing.Syntax
 
             // While we have nodes to process
             while (xoList.HasTokensLeftToProcess())
-            {              
-                // PRE
-                if (CanProcessNextNode(xoList))
-                {
-                    // Do any necessary pre processing which can include things 
-                    // such as cleansing and dropping irrelevant nodes
-                    // Cleanse the next node if necessary
-
-                }
-                // CONSTRUCT
-                else if (CanConsumeNextNode(xoList))
-                {
-                    // 1. Construct a Node based off the next token
-                    SyntaxNode oNode = this.ConvertTokenIntoNode(xoList);
-
-                // POST
-                    // Do any necessary post processing on the given node
-                    // Which includes adding it as a child
-                    if (PostprocessNodeAndAddAsChild(oNode, xoList))
-                    {
-                        // Set the variable once
-                        if (!bHasConsumedNodes)
-                        {
-                            bHasConsumedNodes = true;
-                        }
-                    }
-
-                }
-                // TERMINATE
-                else
+            {
+                // Allow a break early criteria
+                if (IsComplete)
                 {
                     return bHasConsumedNodes;
                 }
+                else
+                {
+                    // PRE
+                    if (CanProcessNextNode(xoList))
+                    {
+
+                        // Do any necessary pre processing which can include things 
+                        // such as cleansing and dropping irrelevant nodes
+                        // Cleanse the next node if necessary
+
+                    }
+                    // CONSTRUCT
+                    else if (CanConsumeNextNode(xoList))
+                    {
+                        // 1. Construct a Node based off the next token
+                        SyntaxNode oNode = this.ConvertTokenIntoNode(xoList);
+
+                        // POST
+                        // Do any necessary post processing on the given node
+                        // Which includes adding it as a child
+                        if (PostprocessNodeAndAddAsChild(oNode, xoList))
+                        {
+                            // Set the variable once
+                            if (!bHasConsumedNodes)
+                            {
+                                bHasConsumedNodes = true;
+                            }
+                        }
+
+                    }
+                    // TERMINATE
+                    else
+                    {
+                        return bHasConsumedNodes;
+                    }
+                }
+          
             }
-            
+
             // Default to true
             return bHasConsumedNodes;
+        }
+
+        #endregion
+
+        #region Consume, Preprocess, Construct and Postprocess
+        
+        /// <summary>
+        /// Returns true if the next node is something this node can interpret
+        /// and returns false if it cannot do anything with the next node
+        /// </summary>
+        /// <param name="xoList"></param>
+        /// <returns></returns>
+        public Boolean CanConsumeNextNode(SyntaxTokenList xoList)
+        {
+            return oStrategy.ConsumptionFn(this, xoList);
+        }
+
+        /// <summary>
+        /// Used when you can simply process a node but not construct anything from it
+        /// if it succeeds then it has successfully processed the node
+        /// </summary>
+        /// <param name="xoList"></param>
+        /// <returns></returns>
+        public virtual Boolean CanProcessNextNode(SyntaxTokenList xoList)
+        {
+            return oStrategy.PreProcessFn(this, xoList);
         }
 
         /// <summary>
@@ -185,8 +190,7 @@ namespace Turing.Syntax
         /// <returns></returns>
         public virtual SyntaxNode ConvertTokenIntoNode(SyntaxTokenList xoList)
         {
-            // Always try and perform a contextual conversion
-            return SyntaxNodeFactory.ContextSensitiveConvertTokenToNode(xoList); ;
+            return oStrategy.ConvertTokenFn(this, xoList);
         }
 
         /// <summary>
@@ -198,33 +202,10 @@ namespace Turing.Syntax
         /// <returns></returns>
         public virtual Boolean PostprocessNodeAndAddAsChild(SyntaxNode xoNode, SyntaxTokenList xoList)
         {
-            // Add the child to this nodes children
-            if (AddChild(xoNode))
-            {
-                // 2. Depth first traversal from the child
-                if (xoNode.TryConsumeList(xoList))
-                {
-                    // If it successfully consumed something
-                    
-                }
-                return true;
-            }
-            else
-            {
-                // Couldn't be added? Error and skip node
-                StatusItem oError = new StatusItem(
-                    String.Format(
-                        ErrorMessageLibrary.ADD_INVALID_NODE,
-                        ReasonMessageLibrary.DUPLICATE_NODE,
-                        this.RawSQLText,
-                        xoNode.RawSQLText));
-
-                //
-                this.Comments.Add(oError);
-                return false;
-            }
+            return oStrategy.PostProcessFn(this, xoNode, xoList);
         }
 
+        #endregion
 
         #region Consume Prev Sibling
 
@@ -335,7 +316,7 @@ namespace Turing.Syntax
         public static Boolean IsTerminatingNode(SyntaxKind xeKind)
         {
             return
-                xeKind == SyntaxKind.EOFToken ||
+                xeKind == SyntaxKind.EOFNode ||
                 xeKind == SyntaxKind.EOFTrivia ||
                 xeKind == SyntaxKind.SemiColonToken;
         }

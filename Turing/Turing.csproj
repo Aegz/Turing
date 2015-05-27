@@ -63,11 +63,7 @@
     <Compile Include="Syntax\Constructs\Expressions\BinaryExpression.cs" />
     <Compile Include="Syntax\Constructs\Expressions\ExpressionSyntaxNode.cs" />
     <Compile Include="Syntax\Constructs\Expressions\UnaryExpression.cs" />
-    <Compile Include="Syntax\Constructs\Keywords\FromSyntaxNode.cs" />
     <Compile Include="Syntax\Constructs\Keywords\JoinSyntaxNode.cs" />
-    <Compile Include="Syntax\Constructs\Keywords\OnSyntaxNode.cs" />
-    <Compile Include="Syntax\Constructs\Keywords\SelectSyntaxNode.cs" />
-    <Compile Include="Syntax\Constructs\Keywords\WhereSyntaxNode.cs" />
     <Compile Include="Syntax\Constructs\StatementSyntaxNode.cs" />
     <Compile Include="Syntax\Constructs\QuerySyntaxNode.cs" />
     <Compile Include="Syntax\Constructs\Symbols\Collections\SymbolList.cs" />
@@ -77,6 +73,9 @@
     <Compile Include="Syntax\Constructs\Symbols\SingleChild\SchemaSymbol.cs" />
     <Compile Include="Factories\SymbolFactory.cs" />
     <Compile Include="Syntax\Constructs\Symbols\SingleChild\SubquerySymbol.cs" />
+    <Compile Include="Syntax\Strategies\NodeStrategy.cs" />
+    <Compile Include="Syntax\Strategies\NodeStrategyFactory.cs" />
+    <Compile Include="Syntax\SyntaxKindFacts.cs" />
     <Compile Include="Syntax\SyntaxLeaf.cs" />
     <Compile Include="Syntax\SyntaxNodeWithOneChild.cs" />
     <Compile Include="Syntax\Constructs\Symbols\Symbol.cs" />
@@ -90,7 +89,9 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Syntax\Strategies\CoreStrategies\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

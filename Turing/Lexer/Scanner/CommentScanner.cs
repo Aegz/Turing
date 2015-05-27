@@ -71,7 +71,7 @@ namespace Turing.Lexer.Scanner
 
             // Intermediate Var (Add all the text as a comment)
             SyntaxTrivia oErraneousToken = new SyntaxTrivia(
-                SyntaxKind.UnknownToken, // Unknown
+                SyntaxKind.UnknownNode, // Unknown
                 Convert.ToString(TextWindow.PeekCharacter())); // Get the character out of the stream
 
             oErraneousToken.InsertStatusMessage(
@@ -142,7 +142,7 @@ namespace Turing.Lexer.Scanner
 
             // Intermediate Var (Add all the text as a comment)
             SyntaxTrivia oErraneousToken = new SyntaxTrivia(
-                SyntaxKind.UnknownToken, // Unknown
+                SyntaxKind.UnknownNode, // Unknown
                 Convert.ToString(TextWindow.PeekCharacter())); // Get the character out of the stream
 
             // 
