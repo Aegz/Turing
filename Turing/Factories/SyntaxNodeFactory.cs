@@ -341,6 +341,7 @@ namespace Turing.Factories
             return oColumnExp;
         }
 
+
         public static SyntaxNode FactoryCreateCompoundJoin (SyntaxTokenList xoList)
         {
             // Create the Join Node

@@ -26,28 +26,22 @@ namespace Turing.Syntax.Strategies
             NodeStrategyFactory.DefaultConvertToken,
             NodeStrategyFactory.NullThreeArgument); 
 
-        //public static readonly NodeStrategy IDENTIFIER_STRATEGY = new NodeStrategy(
-        //    NodeStrategyFactory.IdentifierCanConsumeNext,
-        //    NodeStrategyFactory.DefaultCanProcessNext,
-        //    NodeStrategyFactory.DefaultConvertToken,
-        //    NodeStrategyFactory.DefaultAddChild); 
-
         public static readonly NodeStrategy SYMBOL_LIST_STRATEGY = new NodeStrategy(
             NodeStrategyFactory.SymbolListCanConsumeNext,
             NodeStrategyFactory.SymbolListCanProcessNext,
-            NodeStrategyFactory.ColumnSymbolConvertToken,
+            NodeStrategyFactory.DefaultConvertToken,
             NodeStrategyFactory.DefaultAddChild); // Default
 
         public static readonly NodeStrategy BINARY_EXPRESSION_STRATEGY = new NodeStrategy(
             NodeStrategyFactory.BinaryExpressionCanConsumeNext,
             NodeStrategyFactory.DefaultCanProcessNext,
-            NodeStrategyFactory.ColumnSymbolConvertToken,
+            NodeStrategyFactory.DefaultConvertToken,
             NodeStrategyFactory.DefaultAddChild); // Default
 
         public static readonly NodeStrategy UNARY_EXPRESSION_STRATEGY = new NodeStrategy(
             NodeStrategyFactory.ExpressionCanConsumeNext,
             NodeStrategyFactory.UnaryExpressionProcessNext,
-            NodeStrategyFactory.ColumnSymbolConvertToken,
+            NodeStrategyFactory.DefaultConvertToken,
             NodeStrategyFactory.DefaultAddChild); // Default
 
         public static readonly NodeStrategy JOIN_STRATEGY = new NodeStrategy(
@@ -65,7 +59,7 @@ namespace Turing.Syntax.Strategies
         public static readonly NodeStrategy FUNCTION_STRATEGY = new NodeStrategy(
             NodeStrategyFactory.FunctionCanConsumeNext,
             NodeStrategyFactory.FunctionCanProcessNext,
-            NodeStrategyFactory.ColumnSymbolConvertToken,
+            NodeStrategyFactory.DefaultConvertToken,
             NodeStrategyFactory.DefaultAddChild); // Default
 
         #endregion
@@ -124,7 +118,6 @@ namespace Turing.Syntax.Strategies
                 // return it
                 return oReturnNode;
             }
-    
         }
 
         #endregion
@@ -435,6 +428,12 @@ namespace Turing.Syntax.Strategies
         /// <returns></returns>
         public static Boolean DefaultCanProcessNext(SyntaxNode xoCurrentNode, SyntaxTokenList xoList)
         {
+            // Terminate if we find an eof of any sort
+            if (SyntaxKindFacts.IsTerminatingNode(xoList.PeekToken().ExpectedType))
+            {
+                xoCurrentNode.IsComplete = true;
+            }
+
             // Can we preprocess the next node
             return false;
         }

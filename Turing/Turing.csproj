@@ -44,7 +44,7 @@
     <Compile Include="Diagnostics\ErrorMessageLibrary.cs" />
     <Compile Include="Diagnostics\ReasonMessageLibrary.cs" />
     <Compile Include="Diagnostics\StatusItem.cs" />
-    <Compile Include="Factories\SyntaxFactory.cs" />
+    <Compile Include="Lexer\SyntaxTriviaFactory.cs" />
     <Compile Include="Lexer\SyntaxLexer.cs" />
     <Compile Include="Lexer\Scanner\CommentScanner.cs" />
     <Compile Include="Lexer\Scanner\IdentifierOrKeywordScanner.cs" />

@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Turing.Syntax;
 
-namespace Turing.Factories
+namespace Turing.Lexer
 {
     class SyntaxFactory
     {
@@ -13,12 +9,6 @@ namespace Turing.Factories
         // Hardcoded static instances
         public static readonly SyntaxTrivia Space = new SyntaxTrivia(SyntaxKind.WhitespaceTrivia, " ");
         public static readonly SyntaxTrivia EmptyChar = new SyntaxTrivia(SyntaxKind.EmptyCharTrivia, "");
-
-        #endregion
-
-        #region Common Tokens
-
-        public static readonly SyntaxToken Plus = new SyntaxToken(SyntaxKind.PlusToken, "+");
 
         #endregion
 
