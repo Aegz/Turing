@@ -6,14 +6,6 @@ using Turing.Syntax.Collections;
 
 namespace Turing.Syntax.Strategies
 {
-    /// <summary>
-    /// Encapsulation of the result from any consumption function
-    /// </summary>
-    public struct ConsumptionResult
-    {
-        public CanConsumeResult Result;
-        public SyntaxNode OutNode;
-    }
 
     /// <summary>
     /// Enumerated type to encapsulate possible results
@@ -25,8 +17,8 @@ namespace Turing.Syntax.Strategies
         Complete = 1,   // Cannot process anymore
         Consume  = 2,   // Can consume the node
         Skip     = 3,   // Skip the next node
-
     }
+
 
     public class NodeStrategy
     {

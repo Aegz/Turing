@@ -49,7 +49,8 @@ namespace Turing.Factories
                 #region JOIN
                 case SyntaxKind.JoinKeyword:
                     // All Join nodes on their own become Inner joins
-                    SyntaxNode oJoinNode = new JoinSyntaxNode(xoList.PopToken());
+                    //SyntaxNode oJoinNode = new JoinSyntaxNode(xoList.PopToken());
+                    SyntaxNode oJoinNode = new SyntaxNode(xoList.PeekToken(), NodeStrategyFactory.FactoryCreateStrategy(xoList.PopToken().ExpectedType));
                     oJoinNode.ExpectedType = SyntaxKind.InnerJoinKeyword;
                     return oJoinNode;
                 case SyntaxKind.InnerJoinKeyword:
@@ -347,7 +348,8 @@ namespace Turing.Factories
         public static SyntaxNode FactoryCreateCompoundJoin (SyntaxTokenList xoList)
         {
             // Create the Join Node
-            JoinSyntaxNode oTemp = new JoinSyntaxNode(xoList.PopToken());
+            //JoinSyntaxNode oTemp = new JoinSyntaxNode(xoList.PopToken());
+            SyntaxNode oTemp = new SyntaxNode(xoList.PeekToken(), NodeStrategyFactory.FactoryCreateStrategy(xoList.PopToken().ExpectedType)); 
 
             // If the next node is actually an OUTER keyword
             if (xoList.PeekToken().ExpectedType == SyntaxKind.OuterKeyword)

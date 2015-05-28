@@ -38,7 +38,9 @@ namespace Turing.Syntax.Constructs.Keywords
         public override bool TryConsumeList(SyntaxTokenList xoWindow)
         {
             // Consume the previous sibling before consuming anything else
-            if (!TryConsumePreviousSibling())
+            if (!TryConsumePreviousSibling((oKind) =>
+                    SyntaxKindFacts.IsIdentifier(oKind) || // Identifier/(Table)
+                    SyntaxKindFacts.IsJoinKeyword(oKind)))
             {
                 String FoundType = Parent.Children.Count > 0 ? Parent.Children.LastOrDefault(PreviousChildIsEligible).RawSQLText : "NONE";
           

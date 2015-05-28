@@ -96,11 +96,17 @@ namespace Turing.Syntax.Strategies
                         oReturnNode.EligibilityFn = IdentifierCanConsumeNext;
                         break;
 
-                    // Open Parenthesis must have the ability to close itself
-                    case SyntaxKind.OpenParenthesisToken:
-                        oReturnNode.EligibilityFn = UnaryExpressionCanConsumeNext; // This could be an issue
+                    // JOIN
+                    case SyntaxKind.JoinKeyword:
+                    case SyntaxKind.InnerJoinKeyword:
+                    case SyntaxKind.OuterKeyword:
+                    case SyntaxKind.LeftJoinKeyword:
+                    case SyntaxKind.RightJoinKeyword:
+                    case SyntaxKind.CrossJoinKeyword:
+                        oReturnNode.EligibilityFn = JoinCanConsumeNext;
+                        oReturnNode.TryConsumeNextFn = TableSymbolConvertToken;
+                        oReturnNode.PostProcessFn = JoinPostProcess;
                         break;
-
                 }
 
                 // Store it
@@ -244,6 +250,28 @@ namespace Turing.Syntax.Strategies
             }
 
             return DefaultCanConsumeNext(xoCurrentNode, xoList);
+        }
+
+        public static Boolean JoinPostProcess(SyntaxNode xoCurrentNode, SyntaxNode xoNewNode, SyntaxTokenList xoList)
+        {
+            // Consume the last sibling that fits the criteria
+            if (xoCurrentNode.TryConsumePreviousSibling(
+                (oKind) => 
+                    SyntaxKindFacts.IsIdentifier(oKind) || // Identifier/(Table)
+                    SyntaxKindFacts.IsJoinKeyword(oKind))
+                )
+            {
+                // Consumed child successfully
+            }
+            else
+            {
+                // Error
+                // Insert dummy Child
+                xoCurrentNode.AddChild(new SyntaxNode(new SyntaxToken(SyntaxKind.IdentifierToken, "MISSING IDN"), NULL_STRATEGY));
+            }
+
+            // Return true here
+            return DefaultAddChild(xoCurrentNode, xoNewNode, xoList);
         }
 
         #endregion

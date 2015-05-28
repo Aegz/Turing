@@ -110,10 +110,6 @@ namespace Turing.Syntax
             // While we have nodes to process
             while (xoList.HasTokensLeftToProcess())
             {
-                if (ExpectedType == SyntaxKind.OpenParenthesisToken)
-                {
-                    String sTemp = "123";
-                }
                 // Call the Consumption fn
                 CanConsumeResult oResult = oStrategy.EligibilityFn(this, xoList);
 
@@ -163,7 +159,7 @@ namespace Turing.Syntax
         /// previous sibling for left associativity
         /// </summary>
         /// <returns></returns>
-        public virtual Boolean TryConsumePreviousSibling()
+        public virtual Boolean TryConsumePreviousSibling(Func<SyntaxKind, Boolean> xoEligibilityCriteria)
         {
             // Check if we can even consume the previous sibling
             if (Parent != null && Parent.Children.Count >= 0)
@@ -174,7 +170,8 @@ namespace Turing.Syntax
                     SyntaxNode oLoopingVar = Parent.Children[iIndex];
 
                     // If we find a suitable candidate for consumption
-                    if (PreviousChildIsEligible(oLoopingVar) && !this.Equals(oLoopingVar))
+                    if (xoEligibilityCriteria(oLoopingVar.ExpectedType) && 
+                        !this.Equals(oLoopingVar))
                     {
                         // Consume the previous sibling
                         AddChild(oLoopingVar);
