@@ -513,12 +513,12 @@ namespace Turing.Syntax.Strategies
             }
             else
             {
-                //
-                xoCurrentNode.InsertStatusMessage(String.Format(
-                        ErrorMessageLibrary.ADD_INVALID_NODE,
-                        ReasonMessageLibrary.DUPLICATE_NODE,
-                        xoCurrentNode.RawSQLText,
-                        xoNode.RawSQLText));
+                // Could not add node, add a message
+                xoCurrentNode.Comments.Add(ErrorMessageLibrary.GetErrorMessage(
+                    8010, 
+                    ReasonMessageLibrary.GetReasonMessage(8010),
+                    xoCurrentNode.RawSQLText,
+                    xoNode.RawSQLText));
 
                 return false;
             }

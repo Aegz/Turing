@@ -43,13 +43,7 @@ namespace Turing.Syntax.Constructs.Keywords
                     SyntaxKindFacts.IsJoinKeyword(oKind)))
             {
                 String FoundType = Parent.Children.Count > 0 ? Parent.Children.LastOrDefault(PreviousChildIsEligible).RawSQLText : "NONE";
-          
-                // ERROR? Nothing to consume?
-                InsertStatusMessage(
-                    String.Format(
-                        ErrorMessageLibrary.EXPECTING_TOKEN_FOUND_ELSE,
-                        "Identifier or Join", FoundType
-                    ));
+
             }
 
             return base.TryConsumeList(xoWindow);

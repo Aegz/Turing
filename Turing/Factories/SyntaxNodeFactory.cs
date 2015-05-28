@@ -366,8 +366,8 @@ namespace Turing.Factories
             else
             {
                 // Add an error
-                oTemp.InsertStatusMessage(
-                    String.Format(ErrorMessageLibrary.EXPECTING_TOKEN_FOUND_ELSE, xoList.PopToken().RawSQLText, "JOIN"));
+                oTemp.Comments.Add(ErrorMessageLibrary.GetErrorMessage(8000, xoList.PopToken().RawSQLText, "JOIN"));
+
             }
             // Return the Join node
             return oTemp;
@@ -378,8 +378,7 @@ namespace Turing.Factories
         {
             // Error
             SyntaxNode oError = new ExceptionSyntaxNode();
-            oError.InsertStatusMessage(
-                String.Format(ErrorMessageLibrary.EXPECTING_TOKEN_FOUND_ELSE, xsExpected, xsRawSQL));
+            oError.Comments.Add(ErrorMessageLibrary.GetErrorMessage(8000, xsExpected, xsRawSQL));
             return oError;
         }
 

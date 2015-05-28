@@ -23,7 +23,7 @@ namespace Turing.Syntax
         }
 
         public SyntaxNode Parent { get; set; }  // Parent Node
-        private List<StatusItem> Comments;       // Comments/Errors specific to this node
+        public List<StatusItem> Comments;       // Comments/Errors specific to this node
 
         protected List<SyntaxKind> ConsumableTypes;
         protected List<SyntaxKind> ClosingTypes; // used to represent the types that close this node off
@@ -221,11 +221,6 @@ namespace Turing.Syntax
                 }
             }
             return null;
-        }
-
-        public virtual void InsertStatusMessage(String xsMessage)
-        {
-            Comments.Add(new StatusItem(xsMessage));
         }
 
         #endregion

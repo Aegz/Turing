@@ -59,7 +59,7 @@ namespace Turing.Lexer.Scanner
                     SyntaxTrivia oCommentNode = SyntaxFactory.SingleLineComment(sCommentLine);
 
                     // Add the erroraneous message
-                    oCommentNode.InsertStatusMessage(ErrorMessageLibrary.NOT_TERMINATED);
+                    oCommentNode.Comments.Add(ErrorMessageLibrary.GetErrorMessage(8002, "Single Line Comment")); 
 
                     // return the comment node with everything in comments
                     return oCommentNode;
@@ -74,12 +74,8 @@ namespace Turing.Lexer.Scanner
                 SyntaxKind.UnknownNode, // Unknown
                 Convert.ToString(TextWindow.PeekCharacter())); // Get the character out of the stream
 
-            oErraneousToken.InsertStatusMessage(
-                String.Format(
-                    ErrorMessageLibrary.UNEXPECTED_TOKEN_FOUND,
-                    TextWindow.PopCharacter())
-                    );
-
+            oErraneousToken.Comments.Add(ErrorMessageLibrary.GetErrorMessage(8001, Convert.ToString(TextWindow.PopCharacter())));
+         
             // return the comment node with everything in comments
             return oErraneousToken;
         }
@@ -130,7 +126,9 @@ namespace Turing.Lexer.Scanner
                 {
                     // Intermediate Var (Add all the text as a comment)
                     SyntaxTrivia oCommentNode = SyntaxFactory.MultiLineComment(sCommentLine);
-                    oCommentNode.InsertStatusMessage(ErrorMessageLibrary.NOT_TERMINATED);
+
+                    oCommentNode.Comments.Add(ErrorMessageLibrary.GetErrorMessage(8002, "Multi Line Comment"));
+
 
                     // return the comment node with everything in comments
                     return oCommentNode;
@@ -146,11 +144,8 @@ namespace Turing.Lexer.Scanner
                 Convert.ToString(TextWindow.PeekCharacter())); // Get the character out of the stream
 
             // 
-            oErraneousToken.InsertStatusMessage(
-                String.Format(
-                    ErrorMessageLibrary.UNEXPECTED_TOKEN_FOUND,
-                    TextWindow.PopCharacter()));
-            
+            oErraneousToken.Comments.Add(ErrorMessageLibrary.GetErrorMessage(8001, Convert.ToString(TextWindow.PopCharacter())));
+
             // return the comment node with everything in comments
             return oErraneousToken;
         }

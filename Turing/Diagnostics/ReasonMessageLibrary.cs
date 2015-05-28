@@ -8,10 +8,21 @@ namespace Turing.Diagnostics
 {
     class ReasonMessageLibrary
     {
-        public static readonly String INCORRECT_POSITION = @"Node was incorrectly positioned";
+        private static Dictionary<int, String> Library = new Dictionary<int, string>()
+        {
+            { 8010, "Node is enforcing uniqueness and a duplicate was added" },
+        };
 
-        public static readonly String DUPLICATE_NODE = "Node is enforcing uniqueness and a duplicate was added";
-
-
+        public static String GetReasonMessage(int xiIndex)
+        {
+            if (Library.ContainsKey(xiIndex))
+            {
+                return Library[xiIndex];
+            }
+            else
+            {
+                return "No such Reason Code";
+            }
+        }
     }
 }
