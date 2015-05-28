@@ -97,6 +97,8 @@ namespace Turing.Syntax
         /// <returns></returns>
         public virtual Boolean TryConsumeList(SyntaxTokenList xoList)
         {
+            // Pre work - Consume Sibling
+
             // Only do work if we have anything left to process
             if (!xoList.HasTokensLeftToProcess() ||   // We have stuff to process
                 SyntaxKindFacts.IsTerminatingNode(xoList.PeekToken().ExpectedType)) // We have not reached a terminator
@@ -108,32 +110,19 @@ namespace Turing.Syntax
             // While we have nodes to process
             while (xoList.HasTokensLeftToProcess())
             {
-                // Allow a break early criteria
-                if (IsComplete)
+                if (ExpectedType == SyntaxKind.OpenParenthesisToken)
                 {
-                    return bHasConsumedNodes;
+                    String sTemp = "123";
                 }
-                else
+                // Call the Consumption fn
+                CanConsumeResult oResult = oStrategy.EligibilityFn(this, xoList);
+
+                // Switch based on the result of the attempt
+                switch (oResult)
                 {
-                    // PRE
-                    if (CanProcessNextNode(xoList))
-                    {
-
-                        // Do any necessary pre processing which can include things 
-                        // such as cleansing and dropping irrelevant nodes
-                        // Cleanse the next node if necessary
-
-                    }
-                    // CONSTRUCT
-                    else if (CanConsumeNextNode(xoList))
-                    {
-                        // 1. Construct a Node based off the next token
-                        SyntaxNode oNode = this.ConvertTokenIntoNode(xoList);
-
-                        // POST
-                        // Do any necessary post processing on the given node
-                        // Which includes adding it as a child
-                        if (PostprocessNodeAndAddAsChild(oNode, xoList))
+                    case CanConsumeResult.Consume:
+                        SyntaxNode oNewNode = oStrategy.TryConsumeNextFn(this, xoList);
+                        if (oStrategy.PostProcessFn(this, oNewNode, xoList))
                         {
                             // Set the variable once
                             if (!bHasConsumedNodes)
@@ -141,15 +130,14 @@ namespace Turing.Syntax
                                 bHasConsumedNodes = true;
                             }
                         }
-
-                    }
-                    // TERMINATE
-                    else
-                    {
+                        break;
+                    case CanConsumeResult.Skip:
+                        //xoList.PopToken(); // Skip the next node
+                        break;
+                    case CanConsumeResult.Complete:
                         return bHasConsumedNodes;
-                    }
-                }
-          
+                }                    
+                
             }
 
             // Default to true
@@ -158,54 +146,6 @@ namespace Turing.Syntax
 
         #endregion
 
-        #region Consume, Preprocess, Construct and Postprocess
-        
-        /// <summary>
-        /// Returns true if the next node is something this node can interpret
-        /// and returns false if it cannot do anything with the next node
-        /// </summary>
-        /// <param name="xoList"></param>
-        /// <returns></returns>
-        public Boolean CanConsumeNextNode(SyntaxTokenList xoList)
-        {
-            return oStrategy.ConsumptionFn(this, xoList);
-        }
-
-        /// <summary>
-        /// Used when you can simply process a node but not construct anything from it
-        /// if it succeeds then it has successfully processed the node
-        /// </summary>
-        /// <param name="xoList"></param>
-        /// <returns></returns>
-        public virtual Boolean CanProcessNextNode(SyntaxTokenList xoList)
-        {
-            return oStrategy.PreProcessFn(this, xoList);
-        }
-
-        /// <summary>
-        /// Allows this node to determine the order and type of nodes it creates
-        /// </summary>
-        /// <param name="xoToken"></param>
-        /// <param name="xoList"></param>
-        /// <returns></returns>
-        public virtual SyntaxNode ConvertTokenIntoNode(SyntaxTokenList xoList)
-        {
-            return oStrategy.ConvertTokenFn(this, xoList);
-        }
-
-        /// <summary>
-        /// Postprocessing method that can be overriden if some activity needs to be
-        /// done immediately after a node is constructed
-        /// </summary>
-        /// <param name="xoNode"></param>
-        /// <param name="xoList"></param>
-        /// <returns></returns>
-        public virtual Boolean PostprocessNodeAndAddAsChild(SyntaxNode xoNode, SyntaxTokenList xoList)
-        {
-            return oStrategy.PostProcessFn(this, xoNode, xoList);
-        }
-
-        #endregion
 
         #region Consume Prev Sibling
 
@@ -226,7 +166,7 @@ namespace Turing.Syntax
         public virtual Boolean TryConsumePreviousSibling()
         {
             // Check if we can even consume the previous sibling
-            if (Parent.Children.Count >= 0)
+            if (Parent != null && Parent.Children.Count >= 0)
             {
                 // Work backwards until we find a suitable candidate
                 for (int iIndex = Parent.Children.Count - 1; iIndex >= 0; iIndex--)

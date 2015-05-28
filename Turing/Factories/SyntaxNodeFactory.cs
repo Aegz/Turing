@@ -29,8 +29,10 @@ namespace Turing.Factories
                 // COUNT (*)
                 return FactoryCreateColumnExpr(xoList);
             }
+            
             else if (xoList.PeekToken().ExpectedType == SyntaxKind.IdentifierToken)
             {
+
                 // Purely an identifier
                 return FactoryCreateColumn(xoList);
             }

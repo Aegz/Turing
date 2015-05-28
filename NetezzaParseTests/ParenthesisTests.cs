@@ -63,7 +63,7 @@ namespace NetezzaParseTests
             Assert.AreNotEqual(oSelect, null);
 
             SyntaxNode oColList = oSelect.Children[0];
-            Assert.AreEqual(oColList.Children.Count, 3);
+            Assert.AreEqual(3, oColList.Children.Count);
 
             foreach (SyntaxNode oChild in oColList.Children)
             {

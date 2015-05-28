@@ -20,13 +20,19 @@ namespace Turing.Syntax.Constructs.Symbols
         {
             get
             {
+                // If this alias is blank
                 if (String.IsNullOrWhiteSpace(sAlias))
                 {
-                    return String.Join("",
-                        Children.Select(
-                            (oNode) => 
-                            ((Symbol)oNode).Alias)
-                        );
+                    // Check the children for any alias
+                    String sReturn = String.Empty;
+                    foreach (SyntaxNode oChild in Children)
+                    {
+                        if (typeof(Symbol).IsAssignableFrom(oChild.GetType()))
+                        {
+                            sReturn += ((Symbol)oChild).Alias;
+                        }
+                    }
+                    return sReturn;
                 }
 
                 return sAlias;

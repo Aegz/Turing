@@ -37,6 +37,7 @@ namespace Turing
 
             SyntaxNode oSelect  = oTemp.FindFirst(SyntaxKind.SelectKeyword);
             SyntaxNode oFrom    = oTemp.FindFirst(SyntaxKind.FromKeyword);
+            SyntaxNode oInnerJoin  = oTemp.FindFirst(SyntaxKind.InnerJoinKeyword);
             SyntaxNode oWhere   = oTemp.FindFirst(SyntaxKind.WhereKeyword);
 
             // Temp to see some text out
