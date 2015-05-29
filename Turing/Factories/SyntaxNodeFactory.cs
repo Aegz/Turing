@@ -14,6 +14,8 @@ namespace Turing.Factories
 {
     class SyntaxNodeFactory
     {
+ 
+    
         /// <summary>
         /// Context sensitive conversion which will scan ahead to determine the best candidate
         /// for this node
@@ -29,10 +31,9 @@ namespace Turing.Factories
                 // COUNT (*)
                 return FactoryCreateColumnExpr(xoList);
             }
-            
+            // If we know we have an identifier
             else if (xoList.PeekToken().ExpectedType == SyntaxKind.IdentifierToken)
             {
-
                 // Purely an identifier
                 return FactoryCreateColumn(xoList);
             }
@@ -44,6 +45,30 @@ namespace Turing.Factories
                 case SyntaxKind.FromKeyword:
                 case SyntaxKind.WhereKeyword:
                 case SyntaxKind.OnKeyword:
+
+                #region Conditional Expressions
+
+                case SyntaxKind.EqualsToken:
+                case SyntaxKind.GreaterThanOrEqualToken:
+                case SyntaxKind.GreaterThanToken:
+                case SyntaxKind.LessThanOrEqualToToken:
+                case SyntaxKind.LessThanToken:
+                case SyntaxKind.DiamondToken:
+                case SyntaxKind.AndKeyword:
+                case SyntaxKind.OrKeyword:
+
+                #endregion
+
+                #region Arithmatic Operators
+
+                case SyntaxKind.PlusToken:
+                case SyntaxKind.MinusToken:
+                case SyntaxKind.SlashToken:
+                case SyntaxKind.StarToken:
+
+                #endregion
+                    // Return a boolean expression (which will consume the previous node and the next one)
+                    //return new BinaryExpression(xoList.PopToken());
                     return new SyntaxNode(xoList.PeekToken(), NodeStrategyFactory.FactoryCreateStrategy(xoList.PopToken().ExpectedType));
 
                 #region JOIN
@@ -61,19 +86,6 @@ namespace Turing.Factories
                     return FactoryCreateCompoundJoin(xoList);
                 #endregion
 
-                #region Conditional Expressions
-                case SyntaxKind.EqualsToken:
-                case SyntaxKind.GreaterThanOrEqualToken:
-                case SyntaxKind.GreaterThanToken:
-                case SyntaxKind.LessThanOrEqualToToken:
-                case SyntaxKind.LessThanToken:
-                case SyntaxKind.DiamondToken:
-                case SyntaxKind.AndKeyword:
-                case SyntaxKind.OrKeyword:
-                    // Return a boolean expression (which will consume the previous node and the next one)
-                    return new BinaryExpression(xoList.PopToken());
-
-                #endregion
 
                 // The type of the expression will be determined by the Token's
                 // Type and we will use this to compare compatibility

@@ -9,22 +9,11 @@ namespace Turing
     {
         static SlidingTextWindow oText = new SlidingTextWindow(
                 @"   
-                        /* TEST */      
+                       /* TEST */      
                         SELECT  
-                            col1, col2
+                        svc_mkt_prod as mktprod, COALESCE(svc_idnty, 1, 10)
                         FROM
-                            APMART_FPVIEWS..FPC_SERVICE svc  
-                        INNER JOIN
-                            (
-                                SELECT * FROM APSHARE_FP..WR02052_OMR_BASE 
-                            ) omrbase
-                        ON svc.SVC_IDNTY = omrbase.SVC_IDNTY 
-                        LEFT JOIN
-                            (
-                                SELECT * FROM APSHARE_FP..WR02052_OMR 
-                            ) omr
-                        ON svc.SVC_IDNTY = omr.SVC_IDNTY AND
-                           svc.MKT_PROD_CD = 'MOB PT'      
+                        APSHARE_FPVIEWS..FPC_SERVICE svc           
                 ");
 
         static void Main(string[] args)

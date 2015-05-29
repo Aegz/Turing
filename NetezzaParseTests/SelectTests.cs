@@ -156,7 +156,7 @@ namespace NetezzaParseTests
             Assert.IsTrue(oAND != null);
 
             // Test that the AND was generated properly (exactly 2 children)
-            Assert.AreEqual(oAND.Children.Count, 2);
+            Assert.AreEqual(2, oAND.Children.Count);
         }
 
         [TestMethod]
@@ -194,7 +194,7 @@ namespace NetezzaParseTests
             Assert.AreEqual(oAND.RawSQLText, "AND");
 
             // Test that the AND was generated properly (exactly 2 children)
-            Assert.AreEqual(oAND.Children.Count, 2);
+            Assert.AreEqual(2, oAND.Children.Count);
 
             SyntaxNode oLeftEquals = oAND.Children[0];
             Assert.AreEqual(oLeftEquals.ExpectedType, SyntaxKind.EqualsToken);
@@ -344,6 +344,8 @@ namespace NetezzaParseTests
             Assert.AreEqual(SyntaxKind.OpenParenthesisToken, oInnerJoin.Children[1].ExpectedType);
             Assert.AreEqual("omrbase", ((Symbol)oInnerJoin.Children[1]).Alias);
         }
+
+
 
     }
 }

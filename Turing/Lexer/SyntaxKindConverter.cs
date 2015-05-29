@@ -166,6 +166,8 @@ namespace Turing.Lexer
                     return SyntaxKind.MaxKeyword;
                 case "SUM":
                     return SyntaxKind.SumKeyword;
+                
+
 
                 case "COALESCE":
                     return SyntaxKind.CoalesceKeyword;

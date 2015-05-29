@@ -105,7 +105,23 @@ namespace Turing.Syntax.Strategies
                     case SyntaxKind.CrossJoinKeyword:
                         oReturnNode.EligibilityFn = JoinCanConsumeNext;
                         oReturnNode.TryConsumeNextFn = TableSymbolConvertToken;
-                        oReturnNode.PostProcessFn = JoinPostProcess;
+                        break;
+
+                    case SyntaxKind.EqualsToken:
+                    case SyntaxKind.GreaterThanOrEqualToken:
+                    case SyntaxKind.GreaterThanToken:
+                    case SyntaxKind.LessThanOrEqualToToken:
+                    case SyntaxKind.LessThanToken:
+                    case SyntaxKind.DiamondToken:
+
+                    case SyntaxKind.PlusToken:
+                    case SyntaxKind.MinusToken:
+                    case SyntaxKind.StarToken:
+                    case SyntaxKind.SlashToken:
+
+                    case SyntaxKind.AndKeyword:
+                    case SyntaxKind.OrKeyword:
+                        oReturnNode.EligibilityFn = BinaryExpressionCanConsumeNext;
                         break;
                 }
 
@@ -172,6 +188,7 @@ namespace Turing.Syntax.Strategies
                 SyntaxKindFacts.IsAdjunctConditionalOperator(eKind) || // AND OR
                 SyntaxKindFacts.IsConditionalOperator(eKind) || // = >= IN
                 SyntaxKindFacts.IsUnaryOperator(eKind) || // NOT
+                SyntaxKindFacts.IsFunction(eKind) ||
                 SyntaxKindFacts.IsArithmaticOperator(eKind))
             {
                 return CanConsumeResult.Consume;
@@ -191,6 +208,7 @@ namespace Turing.Syntax.Strategies
 
             // If we need to perform a context sensitive conversion
             if (SyntaxKindFacts.IsIdentifier(oCurrentToken.ExpectedType) ||
+                SyntaxKindFacts.IsFunction(oCurrentToken.ExpectedType) ||
                 oCurrentToken.ExpectedType == SyntaxKind.StarToken) // * in Column is allowed
             {
                 // Initialise a list
@@ -242,9 +260,29 @@ namespace Turing.Syntax.Strategies
 
         public static CanConsumeResult JoinCanConsumeNext(SyntaxNode xoCurrentNode, SyntaxTokenList xoList)
         {
-            SyntaxKind oKind = xoList.PeekToken().ExpectedType;
-            if (SyntaxKindFacts.IsIdentifier(oKind) ||
-                oKind == SyntaxKind.OnKeyword)
+            // If we need to preconsume
+            if (xoCurrentNode.Children.Count == 0)
+            {
+                // Consume the last sibling that fits the criteria
+                if (xoCurrentNode.TryConsumePreviousSibling(
+                (oKind) =>
+                    SyntaxKindFacts.IsIdentifier(oKind) || // Identifier/(Table)
+                    SyntaxKindFacts.IsJoinKeyword(oKind))
+                )
+                {
+                    // Consumed child successfully
+                }
+                else
+                {
+                    // Error
+                    // Insert dummy Child
+                    xoCurrentNode.AddChild(new SyntaxNode(new SyntaxToken(SyntaxKind.IdentifierToken, "MISSING IDN"), NULL_STRATEGY));
+                }
+            }
+
+            SyntaxKind eKind = xoList.PeekToken().ExpectedType;
+            if (SyntaxKindFacts.IsIdentifier(eKind) ||
+                eKind == SyntaxKind.OnKeyword)
             {
                 return CanConsumeResult.Consume;
             }
@@ -254,21 +292,6 @@ namespace Turing.Syntax.Strategies
 
         public static Boolean JoinPostProcess(SyntaxNode xoCurrentNode, SyntaxNode xoNewNode, SyntaxTokenList xoList)
         {
-            // Consume the last sibling that fits the criteria
-            if (xoCurrentNode.TryConsumePreviousSibling(
-                (oKind) => 
-                    SyntaxKindFacts.IsIdentifier(oKind) || // Identifier/(Table)
-                    SyntaxKindFacts.IsJoinKeyword(oKind))
-                )
-            {
-                // Consumed child successfully
-            }
-            else
-            {
-                // Error
-                // Insert dummy Child
-                xoCurrentNode.AddChild(new SyntaxNode(new SyntaxToken(SyntaxKind.IdentifierToken, "MISSING IDN"), NULL_STRATEGY));
-            }
 
             // Return true here
             return DefaultAddChild(xoCurrentNode, xoNewNode, xoList);
@@ -334,7 +357,29 @@ namespace Turing.Syntax.Strategies
         #region Expressions
 
         public static CanConsumeResult BinaryExpressionCanConsumeNext(SyntaxNode xoCurrentNode, SyntaxTokenList xoList)
-        {
+        { 
+            // If we need to preconsume
+            if (xoCurrentNode.Children.Count == 0)
+            {
+                // Consume the last sibling that fits the criteria
+                if (xoCurrentNode.TryConsumePreviousSibling(
+                (oKind) =>
+                    SyntaxKindFacts.IsConditionalOperator(oKind) ||         // conditional operators ==, >=
+                    SyntaxKindFacts.IsAdjunctConditionalOperator(oKind) ||  // and/or 
+                    SyntaxKindFacts.IsIdentifierOrExpression(oKind)         // Expressions
+                ))
+                {
+                    // Consumed child successfully
+                    //return CanConsumeResult.Skip;
+                }
+                else
+                {
+                    // Error
+                    // Insert dummy Child
+                    xoCurrentNode.AddChild(new SyntaxNode(new SyntaxToken(SyntaxKind.IdentifierToken, "MISSING IDN/Literal/Expression"), NULL_STRATEGY));
+                }
+            }
+
             SyntaxKind eKind = xoList.PeekToken().ExpectedType;
 
             // If we have a Open parenthesis starting node
@@ -356,6 +401,35 @@ namespace Turing.Syntax.Strategies
             }
 
             return DefaultCanConsumeNext(xoCurrentNode, xoList);
+        }
+
+
+        public static Boolean BinaryExpressionPostProcess(SyntaxNode xoCurrentNode, SyntaxNode xoNewNode, SyntaxTokenList xoList)
+        {
+            //// If we need to preconsume
+            //if (xoCurrentNode.Children.Count == 0)
+            //{
+            //    // Consume the last sibling that fits the criteria
+            //    if (xoCurrentNode.TryConsumePreviousSibling(
+            //    (oKind) =>
+            //        SyntaxKindFacts.IsConditionalOperator(oKind) ||         // conditional operators ==, >=
+            //        SyntaxKindFacts.IsAdjunctConditionalOperator(oKind) ||  // and/or
+            //                                                                //SyntaxKindFacts.IsLiteral(oKind) ||                   // Literals
+            //        SyntaxKindFacts.IsIdentifierOrExpression(oKind)         // Expressions
+            //    ))
+            //    {
+            //        // Consumed child successfully
+            //    }
+            //    else
+            //    {
+            //        // Error
+            //        // Insert dummy Child
+            //        xoCurrentNode.AddChild(new SyntaxNode(new SyntaxToken(SyntaxKind.IdentifierToken, "MISSING IDN/Literal/Expression"), NULL_STRATEGY));
+            //    }
+            //}
+
+            // Return true here
+            return DefaultAddChild(xoCurrentNode, xoNewNode, xoList);
         }
 
 
@@ -428,8 +502,11 @@ namespace Turing.Syntax.Strategies
                 xoList.PopToken();
                 return CanConsumeResult.Skip;
             }
-            else if (SyntaxKindFacts.IsIdentifierOrExpression(oKind) ||
-                oKind == SyntaxKind.StarToken)
+            else if (
+                SyntaxKindFacts.IsIdentifierOrExpression(oKind) ||
+                SyntaxKindFacts.IsFunction(oKind) ||
+                oKind == SyntaxKind.StarToken ||
+                SyntaxKindFacts.IsArithmaticOperator(oKind))
             {
                 return CanConsumeResult.Consume;
             }

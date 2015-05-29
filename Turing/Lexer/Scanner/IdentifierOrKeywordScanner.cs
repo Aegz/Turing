@@ -117,7 +117,6 @@ namespace Turing.Lexer.Scanner
                             // Is true if we had a valid token (string)
                             return sCharactersScannedSoFar.Length > 0;
                         }
-
                         // Keep going
                         break;
 

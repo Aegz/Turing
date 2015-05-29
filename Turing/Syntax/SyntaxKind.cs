@@ -93,6 +93,7 @@ namespace Turing.Syntax
         PositionKeyword     = 20050,
         RankKeyword         = 20060,
         RowNumberKeyword    = 20070,
+        ConcatKeyword       = 20080,
 
         // Date Expressions
         ExtractKeyword      = 20100, // EXTRACT(day from current_date)
@@ -161,6 +162,9 @@ namespace Turing.Syntax
         StarToken               = 13020, // This could be an all column style identifier
         SlashToken              = 13030,
 
+        // Concatinate
+        BarBarToken             = 13040, // ||
+
         // Conditional Keywords/Operators
         EqualsToken             = 14000,
         DiamondToken            = 14010, // <>
@@ -193,6 +197,15 @@ namespace Turing.Syntax
         MultiLineCommentTrivia  = 16050,
 
         #endregion
+
+        // //////////////////////////////////////////////////////////////////////////////////
+        // Constructs
+        // //////////////////////////////////////////////////////////////////////////////////
+
+        // Column List
+        ColumnListNode = 88000, // Necessary to know what it is
+        
+        // 
 
         // Custom Nodes
         UnknownNode             = 90000, // Represents an unknown      

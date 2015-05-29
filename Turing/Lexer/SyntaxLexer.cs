@@ -106,6 +106,11 @@ namespace Turing.Lexer
                 // Handle Comments
                 else if (xcNextChar == '-')
                 {
+                    // Do not touch a single -, only play with --
+                    if (TextWindow.PeekCharacter(1) != '-')
+                    {
+                        return aoReturnList;
+                    }
                     // Only pick up inlines if they are directly trailing an item
                     // Do not steal another nodes leading comments
                     if (bNewLineCharFound && bIsTrailing)
@@ -118,6 +123,12 @@ namespace Turing.Lexer
                 }
                 else if (xcNextChar == '/')
                 {
+                    // Do not touch a single /, only play with /*
+                    if (TextWindow.PeekCharacter(1) != '*')
+                    {
+                        return aoReturnList;
+                    }
+
                     // Do not steal trailing comments if a newline has been found
                     if (bNewLineCharFound && bIsTrailing)
                     {
@@ -304,6 +315,31 @@ namespace Turing.Lexer
                     return new SyntaxToken(
                         SyntaxKind.StarToken,
                         Convert.ToString(TextWindow.PopCharacter()));
+
+                case '-':
+                    return new SyntaxToken(SyntaxKind.MinusToken, Convert.ToString(TextWindow.PopCharacter()));
+                case '+':
+                    return new SyntaxToken(SyntaxKind.PlusToken, Convert.ToString(TextWindow.PopCharacter()));
+                case '/':
+                    return new SyntaxToken(SyntaxKind.SlashToken, Convert.ToString(TextWindow.PopCharacter()));
+
+                case '|':
+                    // || (Concatinate)
+                    if (TextWindow.PeekCharacter(1) == '|')
+                    {
+                        // This could be an issue
+                        return new SyntaxToken(
+                            SyntaxKind.BarBarToken,
+                            TextWindow.PopCharacter(2));
+                    }
+                    else
+                    {
+                        // Convert into a double bar
+                        // Standalone | symbol
+                        return new SyntaxToken(
+                            SyntaxKind.BarBarToken,
+                            Convert.ToString(TextWindow.PopCharacter(1)) + "|");
+                    }
 
                 // Ampersand is allowed too (For SAS Intable)
                 case '&':
