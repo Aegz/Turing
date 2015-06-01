@@ -18,6 +18,8 @@ namespace Turing
 
         static void Main(string[] args)
         {
+            SyntaxKind xeKind = SyntaxKindUtilities.GetKindFromString("");
+            String xsKind = SyntaxKindUtilities.GetStringFromKind(SyntaxKind.BooleanToken);
             // Initialises the Parser
             Parser.SyntaxParser oParser = new Parser.SyntaxParser(oText);
 

@@ -55,6 +55,7 @@
     <Compile Include="Lexer\SlidingTextWindow.cs" />
     <Compile Include="Lexer\SyntaxKindConverter.cs" />
     <Compile Include="Factories\SyntaxNodeFactory.cs" />
+    <Compile Include="Parser\ResolutionGenerator.cs" />
     <Compile Include="Parser\SyntaxParser.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -75,6 +76,7 @@
     <Compile Include="Syntax\Strategies\NodeStrategy.cs" />
     <Compile Include="Syntax\Strategies\NodeStrategyFactory.cs" />
     <Compile Include="Syntax\SyntaxKindFacts.cs" />
+    <Compile Include="Syntax\SyntaxKindUtilities.cs" />
     <Compile Include="Syntax\SyntaxLeaf.cs" />
     <Compile Include="Syntax\SyntaxNodeWithOneChild.cs" />
     <Compile Include="Syntax\Constructs\Symbols\Symbol.cs" />

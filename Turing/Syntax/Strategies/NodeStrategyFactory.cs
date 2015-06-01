@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Turing.Diagnostics;
 using Turing.Factories;
+using Turing.Parser;
 using Turing.Syntax.Collections;
 using Turing.Syntax.Constructs.Expressions;
 using Turing.Syntax.Constructs.Symbols;
@@ -143,7 +144,6 @@ namespace Turing.Syntax.Strategies
 
         #region COMMON
 
-
         /// <summary>
         /// Generic Table Symbol Creation from an Identifier
         /// </summary>
@@ -237,9 +237,9 @@ namespace Turing.Syntax.Strategies
 
         public static CanConsumeResult FromCanConsumeNext(SyntaxNode xoCurrentNode, SyntaxTokenList xoList)
         {
-            SyntaxKind oKind = xoList.PeekToken().ExpectedType;
-            if (SyntaxKindFacts.IsIdentifier(oKind) ||
-                SyntaxKindFacts.IsJoinKeyword(oKind))
+            SyntaxKind eKind = xoList.PeekToken().ExpectedType;
+            if (SyntaxKindFacts.IsIdentifier(eKind) ||
+                SyntaxKindFacts.IsJoinKeyword(eKind))
             {
                 return CanConsumeResult.Consume;
             }
@@ -257,23 +257,19 @@ namespace Turing.Syntax.Strategies
             if (xoCurrentNode.Children.Count == 0)
             {
                 // Consume the last sibling that fits the criteria
-                if (xoCurrentNode.TryConsumePreviousSibling(
-                (oKind) =>
-                    SyntaxKindFacts.IsIdentifier(oKind) || // Identifier/(Table)
-                    SyntaxKindFacts.IsJoinKeyword(oKind))
+                if (!xoCurrentNode.TryConsumePreviousSibling(
+                    (oKind) =>
+                        SyntaxKindFacts.IsIdentifier(oKind) || // Identifier/(Table)
+                        SyntaxKindFacts.IsJoinKeyword(oKind))
                 )
                 {
-                    // Consumed child successfully
-                }
-                else
-                {
-                    // Error
-                    // Insert dummy Child
-                    xoCurrentNode.AddChild(new SyntaxNode(new SyntaxToken(SyntaxKind.IdentifierToken, "MISSING IDN"), NULL_STRATEGY));
+                    // ERROR
+                    ResolutionGenerator.Join(xoCurrentNode);
                 }
             }
 
             SyntaxKind eKind = xoList.PeekToken().ExpectedType;
+
             if (SyntaxKindFacts.IsIdentifier(eKind) ||
                 eKind == SyntaxKind.OnKeyword)
             {
@@ -296,6 +292,7 @@ namespace Turing.Syntax.Strategies
                 oKind == SyntaxKind.CloseParenthesisToken)
             {
                 xoList.PopToken();
+
                 // Just add an Alias
                 ((Symbol)xoCurrentNode).Alias = SyntaxNodeFactory.ScanAheadForAlias(xoList);
 
@@ -322,15 +319,16 @@ namespace Turing.Syntax.Strategies
         /// <returns></returns>
         public static CanConsumeResult FunctionCanConsumeNext(SyntaxNode xoCurrentNode, SyntaxTokenList xoList)
         {
-            SyntaxKind oKind = xoList.PeekToken().ExpectedType;
-            // If we get a comma, just drop it
-            if (oKind == SyntaxKind.CloseParenthesisToken)
+            SyntaxKind eKind = xoList.PeekToken().ExpectedType;
+            // If we get a closing parenthesis in a function
+            if (eKind == SyntaxKind.CloseParenthesisToken)
             {
+                // Drop it and complete the Function
                 xoList.PopToken();
                 return CanConsumeResult.Complete;
             }
-            else if (SyntaxKindFacts.IsIdentifierOrExpression(oKind) ||
-                oKind == SyntaxKind.StarToken)
+            else if (SyntaxKindFacts.IsIdentifierOrExpression(eKind) ||
+                eKind == SyntaxKind.StarToken)
             {
                 return CanConsumeResult.Consume;
             }
@@ -348,35 +346,23 @@ namespace Turing.Syntax.Strategies
             if (xoCurrentNode.Children.Count == 0)
             {
                 // Consume the last sibling that fits the criteria
-                if (xoCurrentNode.TryConsumePreviousSibling(
+                if (!xoCurrentNode.TryConsumePreviousSibling(
                 (oKind) =>
                     SyntaxKindFacts.IsConditionalOperator(oKind) ||         // conditional operators ==, >=
                     SyntaxKindFacts.IsAdjunctConditionalOperator(oKind) ||  // and/or 
                     SyntaxKindFacts.IsIdentifierOrExpression(oKind)         // Expressions
                 ))
                 {
-                    // Consumed child successfully
-                    //return CanConsumeResult.Skip;
-                }
-                else
-                {
                     // Error
-                    // Insert dummy Child
-                    xoCurrentNode.AddChild(new SyntaxNode(new SyntaxToken(SyntaxKind.IdentifierToken, "MISSING IDN/Literal/Expression"), NULL_STRATEGY));
+                    ResolutionGenerator.BinaryExpression(xoCurrentNode);
                 }
             }
 
+            // Intermediate var
             SyntaxKind eKind = xoList.PeekToken().ExpectedType;
 
-            // If we have a Open parenthesis starting node
-            // And we just found a closing Token
-            if (xoCurrentNode.ExpectedType == SyntaxKind.OpenParenthesisToken &&
-                eKind == SyntaxKind.CloseParenthesisToken)
-            {
-                xoList.PopToken();
-                return CanConsumeResult.Complete;
-            }
-            else if (
+            // If we have something we are actually allowed to consume
+            if (
                 SyntaxKindFacts.IsIdentifierOrExpression(eKind) || // Identifiers and Expressions are allowed here
                 //SyntaxKindFacts.IsAdjunctConditionalOperator(eKind) || // AND OR
                 SyntaxKindFacts.IsConditionalOperator(eKind) || // = >= IN
@@ -389,31 +375,7 @@ namespace Turing.Syntax.Strategies
             return DefaultCanConsumeNext(xoCurrentNode, xoList);
         }
 
-        public static CanConsumeResult UnaryExpressionCanConsumeNext(SyntaxNode xoCurrentNode, SyntaxTokenList xoList)
-        {
-            SyntaxKind eKind = xoList.PeekToken().ExpectedType;
-
-            // If we have a Open parenthesis starting node
-            // And we just found a closing Token
-            if (xoCurrentNode.ExpectedType == SyntaxKind.OpenParenthesisToken &&
-                eKind == SyntaxKind.CloseParenthesisToken)
-            {
-                xoList.PopToken();
-                return CanConsumeResult.Complete;
-            }
-            else if (
-                SyntaxKindFacts.IsIdentifierOrExpression(eKind) || // Identifiers and Expressions are allowed here
-                SyntaxKindFacts.IsAdjunctConditionalOperator(eKind) || // AND OR
-                SyntaxKindFacts.IsConditionalOperator(eKind) || // = >= IN
-                SyntaxKindFacts.IsUnaryOperator(eKind) || // NOT
-                SyntaxKindFacts.IsArithmaticOperator(eKind))
-            {
-                return CanConsumeResult.Consume;
-            }
-
-            return DefaultCanConsumeNext(xoCurrentNode, xoList);
-        }
-
+    
         public static SyntaxNode ExpressionConvertToken(SyntaxNode xoCurrentNode, SyntaxTokenList xoList)
         {
             if (xoList.PeekToken().ExpectedType == SyntaxKind.OpenParenthesisToken)
@@ -437,16 +399,8 @@ namespace Turing.Syntax.Strategies
             // Intermediate var
             SyntaxKind oKind = xoList.PeekToken().ExpectedType;
 
-            // If we have a Open parenthesis starting node
-            // And we just found a closing Token
-            if (xoCurrentNode.ExpectedType == SyntaxKind.OpenParenthesisToken &&
-                oKind == SyntaxKind.CloseParenthesisToken)
-            {
-                xoList.PopToken();
-                return CanConsumeResult.Complete;
-            }
             // If we get a comma, just drop it
-            else if (oKind == SyntaxKind.CommaToken)
+            if (oKind == SyntaxKind.CommaToken)
             {
                 xoList.PopToken();
                 return CanConsumeResult.Skip;
@@ -491,6 +445,10 @@ namespace Turing.Syntax.Strategies
                 xoList.PeekToken().ExpectedType == SyntaxKind.CloseParenthesisToken)
             {
                 xoList.PopToken();
+
+                // If there is an issue, handle it appropriately
+                ResolutionGenerator.Parenthesis(xoCurrentNode);
+
                 return CanConsumeResult.Complete;
             }
             // Terminate if we find an eof of any sort
@@ -500,6 +458,7 @@ namespace Turing.Syntax.Strategies
             }
             else
             {
+                // Unknown, Missing?
                 return CanConsumeResult.Complete;
             }
         }

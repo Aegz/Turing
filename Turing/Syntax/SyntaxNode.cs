@@ -25,9 +25,6 @@ namespace Turing.Syntax
         public SyntaxNode Parent { get; set; }  // Parent Node
         public List<StatusItem> Comments;       // Comments/Errors specific to this node
 
-        protected List<SyntaxKind> ConsumableTypes;
-        protected List<SyntaxKind> ClosingTypes; // used to represent the types that close this node off
-
         protected SyntaxToken Token { get; set; }
 
         protected NodeStrategy oStrategy;
@@ -78,8 +75,6 @@ namespace Turing.Syntax
         public SyntaxNode(SyntaxToken xoToken, NodeStrategy xoStrategy)
         {
             Token = xoToken;
-            ConsumableTypes = new List<SyntaxKind>(); // Always initialise the list
-            ClosingTypes = new List<SyntaxKind>();
             Comments = new List<StatusItem>();
 
             oStrategy = xoStrategy;

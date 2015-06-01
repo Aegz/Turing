@@ -104,7 +104,7 @@ namespace Turing.Factories
             }
         }
 
-        #region Factory Methods
+        #region Core Factory Methods
 
         /// <summary>
         /// A factory method for interpreting what kind of Open Parenthesis construct
@@ -272,7 +272,7 @@ namespace Turing.Factories
                 // Type Check
                 xoList.PeekToken(iSchemaLocation).ExpectedType == SyntaxKind.IdentifierToken ?
                     new SchemaSymbol(xoList.PeekToken(iSchemaLocation)) :
-                    FactoryCreateExceptionNodeWithExpectingError(
+                    FactoryCreateExpectingButFoundNode(
                         "SchemaIdn", xoList.PeekToken(iSchemaLocation).RawSQLText)
                 :
                 new SchemaSymbol(new SyntaxToken(SyntaxKind.IdentifierToken, String.Empty));
@@ -282,7 +282,7 @@ namespace Turing.Factories
                 // Type check
                 oTableToken.ExpectedType == SyntaxKind.IdentifierToken ?
                     new TableSymbol(oTableToken) :
-                    FactoryCreateExceptionNodeWithExpectingError("TableIdn", oTableToken.RawSQLText) :
+                    FactoryCreateExpectingButFoundNode("TableIdn", oTableToken.RawSQLText) :
                 new TableSymbol(new SyntaxToken(SyntaxKind.IdentifierToken, String.Empty));
 
             // create the decorator obj
@@ -383,17 +383,28 @@ namespace Turing.Factories
         }
 
 
-        public static SyntaxNode FactoryCreateExceptionNodeWithExpectingError(String xsExpected, String xsRawSQL)
+
+        #endregion
+
+        #region Exception Specific Nodes
+
+        public static SyntaxNode FactoryCreateExpectingButFoundNode(String xsExpected, String xsRawSQL)
         {
             // Error
-            SyntaxNode oError = new ExceptionSyntaxNode();
+            SyntaxNode oError = new ExceptionSyntaxNode(xsRawSQL);
             oError.Comments.Add(ErrorMessageLibrary.GetErrorMessage(8000, xsExpected, xsRawSQL));
             return oError;
         }
 
 
+        public static SyntaxNode FactoryCreateMissingNode(String xsRawSQL)
+        {
+            // Error
+            SyntaxNode oError = new ExceptionSyntaxNode(xsRawSQL);
+            oError.Comments.Add(ErrorMessageLibrary.GetErrorMessage(8003, xsRawSQL));
+            return oError;
+        }
         #endregion
-
 
         #region Common Functions
 

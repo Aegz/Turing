@@ -12,8 +12,11 @@ namespace Turing.Syntax.Constructs
     /// </summary>
     class ExceptionSyntaxNode : SyntaxNode
     {
+        public ExceptionSyntaxNode(String xsRawText) : base(new SyntaxToken(SyntaxKind.MissingNode, xsRawText))
+        {
+        }
 
-        public ExceptionSyntaxNode() : base (new SyntaxToken(SyntaxKind.UnknownNode, ""))
+        public ExceptionSyntaxNode() : this("")
         {
         }
     }

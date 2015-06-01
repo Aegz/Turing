@@ -208,10 +208,12 @@ namespace Turing.Syntax
         
         // 
 
+
         // Custom Nodes
         UnknownNode             = 90000, // Represents an unknown      
-        NullNode                = 90010, // This represents a dead token (not a null keyword)
-        EOFNode                 = 90020, // Makes life easier to have this as a Kind
+        MissingNode             = 90010, // A node that is missing
+        NullNode                = 90020, // This represents a dead token (not a null keyword)
+        EOFNode                 = 90030, // Makes life easier to have this as a Kind
     }
 
     
