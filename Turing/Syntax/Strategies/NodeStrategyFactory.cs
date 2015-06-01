@@ -73,8 +73,8 @@ namespace Turing.Syntax.Strategies
                 // Set everything to default
                 NodeStrategy oReturnNode = new NodeStrategy(
                     DefaultCanConsumeNext,
-                    NodeStrategyFactory.DefaultTryConsumeNext,
-                    NodeStrategyFactory.DefaultAddChild); // Default
+                    DefaultTryConsumeNext,
+                    DefaultAddChild); // Default
 
                 // Create the strategy
                 switch (xeKind)
@@ -90,13 +90,11 @@ namespace Turing.Syntax.Strategies
                     case SyntaxKind.WhereKeyword:
                     case SyntaxKind.OnKeyword:
                         oReturnNode.EligibilityFn = ExpressionCanConsumeNext;
-                        //oReturnNode.ConvertTokenFn = ColumnSymbolConvertToken;
                         break;
                     case SyntaxKind.IdentifierToken:
                         oReturnNode.EligibilityFn = IdentifierCanConsumeNext;
                         break;
-
-                    // JOIN
+                    #region JOIN
                     case SyntaxKind.JoinKeyword:
                     case SyntaxKind.InnerJoinKeyword:
                     case SyntaxKind.OuterKeyword:
@@ -106,18 +104,24 @@ namespace Turing.Syntax.Strategies
                         oReturnNode.EligibilityFn = JoinCanConsumeNext;
                         oReturnNode.TryConsumeNextFn = TableSymbolConvertToken;
                         break;
-
+                    #endregion
+                    #region Conditional Operators
                     case SyntaxKind.EqualsToken:
                     case SyntaxKind.GreaterThanOrEqualToken:
                     case SyntaxKind.GreaterThanToken:
                     case SyntaxKind.LessThanOrEqualToToken:
                     case SyntaxKind.LessThanToken:
                     case SyntaxKind.DiamondToken:
-
+                    #endregion
+                    #region Arithmatic Operators
                     case SyntaxKind.PlusToken:
                     case SyntaxKind.MinusToken:
                     case SyntaxKind.StarToken:
                     case SyntaxKind.SlashToken:
+                    #endregion
+                    #region Functions
+                    
+                    #endregion
 
                     case SyntaxKind.AndKeyword:
                     case SyntaxKind.OrKeyword:
@@ -139,17 +143,6 @@ namespace Turing.Syntax.Strategies
 
         #region COMMON
 
-        /// <summary>
-        /// Generic Column Symbol Creation from an Identifier
-        /// </summary>
-        /// <param name="xoCurrentNode"></param>
-        /// <param name="xoList"></param>
-        /// <returns></returns>
-        public static SyntaxNode ColumnSymbolConvertToken(SyntaxNode xoCurrentNode, SyntaxTokenList xoList)
-        {
-            // Default to using the original conversion
-            return DefaultTryConsumeNext(xoCurrentNode, xoList);
-        }
 
         /// <summary>
         /// Generic Table Symbol Creation from an Identifier
@@ -193,6 +186,7 @@ namespace Turing.Syntax.Strategies
             {
                 return CanConsumeResult.Consume;
             }
+
             return DefaultCanConsumeNext(xoCurrentNode, xoList);
         }
 
@@ -200,9 +194,24 @@ namespace Turing.Syntax.Strategies
 
         #region Select
 
+        public static CanConsumeResult SelectCanConsumeNext(SyntaxNode xoCurrentNode, SyntaxTokenList xoList)
+        {
+            SyntaxKind oKind = xoList.PeekToken().ExpectedType;
+
+            if (
+                SyntaxKindFacts.IsIdentifierOrExpression(oKind) ||
+                oKind == SyntaxKind.StarToken ||
+                ((int)oKind >= (int)SyntaxKind.FromKeyword &&
+                (int)oKind <= (int)SyntaxKind.HavingKeyword))
+            {
+                return CanConsumeResult.Consume;
+            }
+
+            return DefaultCanConsumeNext(xoCurrentNode, xoList);
+        }
+
         public static SyntaxNode SelectConsumeNext(SyntaxNode xoCurrentNode, SyntaxTokenList xoList)
         {
-
             // Build a Symbol Composite
             SyntaxToken oCurrentToken = xoList.PeekToken();
 
@@ -220,22 +229,6 @@ namespace Turing.Syntax.Strategies
 
             // Default to using the original conversion
             return DefaultTryConsumeNext(xoCurrentNode, xoList);
-        }
-
-        public static CanConsumeResult SelectCanConsumeNext(SyntaxNode xoCurrentNode, SyntaxTokenList xoList)
-        {
-            SyntaxKind oKind = xoList.PeekToken().ExpectedType;
-
-            if (
-                SyntaxKindFacts.IsIdentifierOrExpression(oKind) ||
-                oKind == SyntaxKind.StarToken ||
-                ((int)oKind >= (int)SyntaxKind.FromKeyword &&
-                (int)oKind <= (int)SyntaxKind.HavingKeyword))
-            {
-                return CanConsumeResult.Consume;
-            }
-
-            return DefaultCanConsumeNext(xoCurrentNode, xoList);
         }
 
         #endregion
@@ -288,13 +281,6 @@ namespace Turing.Syntax.Strategies
             }
 
             return DefaultCanConsumeNext(xoCurrentNode, xoList);
-        }
-
-        public static Boolean JoinPostProcess(SyntaxNode xoCurrentNode, SyntaxNode xoNewNode, SyntaxTokenList xoList)
-        {
-
-            // Return true here
-            return DefaultAddChild(xoCurrentNode, xoNewNode, xoList);
         }
 
         #endregion
@@ -403,36 +389,6 @@ namespace Turing.Syntax.Strategies
             return DefaultCanConsumeNext(xoCurrentNode, xoList);
         }
 
-
-        public static Boolean BinaryExpressionPostProcess(SyntaxNode xoCurrentNode, SyntaxNode xoNewNode, SyntaxTokenList xoList)
-        {
-            //// If we need to preconsume
-            //if (xoCurrentNode.Children.Count == 0)
-            //{
-            //    // Consume the last sibling that fits the criteria
-            //    if (xoCurrentNode.TryConsumePreviousSibling(
-            //    (oKind) =>
-            //        SyntaxKindFacts.IsConditionalOperator(oKind) ||         // conditional operators ==, >=
-            //        SyntaxKindFacts.IsAdjunctConditionalOperator(oKind) ||  // and/or
-            //                                                                //SyntaxKindFacts.IsLiteral(oKind) ||                   // Literals
-            //        SyntaxKindFacts.IsIdentifierOrExpression(oKind)         // Expressions
-            //    ))
-            //    {
-            //        // Consumed child successfully
-            //    }
-            //    else
-            //    {
-            //        // Error
-            //        // Insert dummy Child
-            //        xoCurrentNode.AddChild(new SyntaxNode(new SyntaxToken(SyntaxKind.IdentifierToken, "MISSING IDN/Literal/Expression"), NULL_STRATEGY));
-            //    }
-            //}
-
-            // Return true here
-            return DefaultAddChild(xoCurrentNode, xoNewNode, xoList);
-        }
-
-
         public static CanConsumeResult UnaryExpressionCanConsumeNext(SyntaxNode xoCurrentNode, SyntaxTokenList xoList)
         {
             SyntaxKind eKind = xoList.PeekToken().ExpectedType;
@@ -458,16 +414,9 @@ namespace Turing.Syntax.Strategies
             return DefaultCanConsumeNext(xoCurrentNode, xoList);
         }
 
-
         public static SyntaxNode ExpressionConvertToken(SyntaxNode xoCurrentNode, SyntaxTokenList xoList)
         {
-            // If we have an identifier on its own
-            if (SyntaxKindFacts.IsIdentifier(xoList.PeekToken().ExpectedType))
-            {
-                // only build columns
-                return ColumnSymbolConvertToken(xoCurrentNode, xoList);
-            }
-            else if (xoList.PeekToken().ExpectedType == SyntaxKind.OpenParenthesisToken)
+            if (xoList.PeekToken().ExpectedType == SyntaxKind.OpenParenthesisToken)
             {
                 // Create a unary expression
                 return new UnaryExpression(xoList.PopToken());

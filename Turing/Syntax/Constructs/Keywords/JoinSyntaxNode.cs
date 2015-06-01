@@ -18,37 +18,6 @@ namespace Turing.Syntax.Constructs.Keywords
         {
         }
 
-        /// <summary>
-        /// Determines which nodes are consumeable
-        /// </summary>
-        /// <param name="xoNode"></param>
-        /// <returns></returns>
-        protected override Boolean PreviousChildIsEligible(SyntaxNode xoNode)
-        {
-            return
-                    SyntaxKindFacts.IsIdentifier(SyntaxKind.IdentifierToken) || // Identifier/(Table)
-                    SyntaxKindFacts.IsJoinKeyword(xoNode.ExpectedType); // Join type keyword
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="xoWindow"></param>
-        /// <returns></returns>
-        public override bool TryConsumeList(SyntaxTokenList xoWindow)
-        {
-            // Consume the previous sibling before consuming anything else
-            if (!TryConsumePreviousSibling((oKind) =>
-                    SyntaxKindFacts.IsIdentifier(oKind) || // Identifier/(Table)
-                    SyntaxKindFacts.IsJoinKeyword(oKind)))
-            {
-                String FoundType = Parent.Children.Count > 0 ? Parent.Children.LastOrDefault(PreviousChildIsEligible).RawSQLText : "NONE";
-
-            }
-
-            return base.TryConsumeList(xoWindow);
-        }
-
 
         public override string ToString()
         {

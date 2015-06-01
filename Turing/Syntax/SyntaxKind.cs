@@ -130,6 +130,7 @@ namespace Turing.Syntax
         NumericToken        = 23010,
         LiteralToken        = 23020,
         BooleanToken        = 23030,
+        DateToken           = 23040,
 
         #endregion
 

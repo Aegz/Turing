@@ -14,8 +14,6 @@ namespace Turing.Factories
 {
     class SyntaxNodeFactory
     {
- 
-    
         /// <summary>
         /// Context sensitive conversion which will scan ahead to determine the best candidate
         /// for this node
@@ -67,14 +65,12 @@ namespace Turing.Factories
                 case SyntaxKind.StarToken:
 
                 #endregion
-                    // Return a boolean expression (which will consume the previous node and the next one)
-                    //return new BinaryExpression(xoList.PopToken());
+                    // Return an expression (which will consume the previous node and the next one)
                     return new SyntaxNode(xoList.PeekToken(), NodeStrategyFactory.FactoryCreateStrategy(xoList.PopToken().ExpectedType));
 
                 #region JOIN
                 case SyntaxKind.JoinKeyword:
                     // All Join nodes on their own become Inner joins
-                    //SyntaxNode oJoinNode = new JoinSyntaxNode(xoList.PopToken());
                     SyntaxNode oJoinNode = new SyntaxNode(xoList.PeekToken(), NodeStrategyFactory.FactoryCreateStrategy(xoList.PopToken().ExpectedType));
                     oJoinNode.ExpectedType = SyntaxKind.InnerJoinKeyword;
                     return oJoinNode;
@@ -86,17 +82,18 @@ namespace Turing.Factories
                     return FactoryCreateCompoundJoin(xoList);
                 #endregion
 
-
                 // The type of the expression will be determined by the Token's
                 // Type and we will use this to compare compatibility
-                case SyntaxKind.LiteralToken:
-                case SyntaxKind.BooleanToken: // true and false and NOT
-                case SyntaxKind.NumericToken:
+                case SyntaxKind.LiteralToken: // String
+                case SyntaxKind.BooleanToken: // true and false
+                case SyntaxKind.NumericToken: // Integer
+                case SyntaxKind.DateToken:    // Date objects
                     return new SyntaxLeaf(xoList.PopToken());
 
                 case SyntaxKind.OpenParenthesisToken:
                     // Given a (, Try and guess what type of () this is
                     return FactoryInterpretOpenParenthesisToken(xoCurrentNode, xoList);
+
                 case SyntaxKind.NotKeyword:
                     return new UnaryExpression(xoList.PopToken());
 

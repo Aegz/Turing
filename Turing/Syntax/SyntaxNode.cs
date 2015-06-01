@@ -145,15 +145,6 @@ namespace Turing.Syntax
 
         #region Consume Prev Sibling
 
-        // Delegate function responsible for determining if a sibling
-        // is eligible for consumption
-        //public delegate Boolean IsPreviousNodeEligible(SyntaxNode xoNode);
-
-        protected virtual Boolean PreviousChildIsEligible(SyntaxNode xoNode)
-        {
-            return false;
-        }
-
         /// <summary>
         /// Primarily used for compound styled nodes which need to consume the
         /// previous sibling for left associativity

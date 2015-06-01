@@ -129,6 +129,8 @@ namespace NetezzaParseTests
             Assert.AreEqual(SyntaxKind.CountKeyword, oFunc2.ExpectedType);
         }
 
+
+
         [TestMethod]
         public void SingleFunctionInOn()
         {
