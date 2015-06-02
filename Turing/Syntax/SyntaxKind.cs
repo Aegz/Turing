@@ -205,9 +205,13 @@ namespace Turing.Syntax
 
         // Column List
         ColumnListNode = 88000, // Necessary to know what it is
-        
-        // 
 
+        // More specific identifiers
+        IdentifierDatabaseSymbol    = 89000,
+        IdentifierSchemaSymbol      = 89005,
+        IdentifierTableSymbol       = 89010,
+        IdentifierSubQuerySymbol    = 89011,
+        IdentifierColumnSymbol      = 89015,
 
         // Custom Nodes
         UnknownNode             = 90000, // Represents an unknown      

@@ -7,7 +7,6 @@ using Turing.Lexer;
 using Turing.Syntax.Constructs;
 using Turing.Syntax.Constructs.Symbols.Collections;
 using Turing.Syntax.Constructs.Symbols;
-using Turing.Syntax.Constructs.Symbols.SingleChild;
 
 namespace NetezzaParseTests
 {
@@ -37,7 +36,7 @@ namespace NetezzaParseTests
             SyntaxNode oFrom = oSelect.FindFirst(SyntaxKind.FromKeyword);
             Assert.IsTrue(oFrom != null);
 
-            SyntaxNode oTableIdn = oFrom.FindFirst(SyntaxKind.IdentifierToken);
+            SyntaxNode oTableIdn = oFrom.FindFirst(SyntaxKind.IdentifierTableSymbol);
             Assert.IsTrue(oTableIdn != null);
         }
 
@@ -66,8 +65,8 @@ namespace NetezzaParseTests
             Assert.AreEqual(SyntaxKind.ColumnListNode, oColumnList.ExpectedType);
 
             SyntaxNode oLiteralColumn = oColumnList.Children[0];
-            Assert.AreEqual(SyntaxKind.IdentifierToken, oLiteralColumn.ExpectedType);
-            Assert.AreEqual(typeof(TableSymbol), oLiteralColumn.GetType()); // Table is the top level then col
+            Assert.AreEqual(SyntaxKind.IdentifierTableSymbol, oLiteralColumn.ExpectedType);
+            Assert.AreEqual(typeof(Symbol), oLiteralColumn.GetType()); // Table is the top level then col
             Assert.AreEqual("c2", ((Symbol)oLiteralColumn).Alias);
         }
 
@@ -124,7 +123,7 @@ namespace NetezzaParseTests
             Assert.AreEqual(SyntaxKind.ColumnListNode, oColumnList.ExpectedType);
 
             SyntaxNode oLiteralColumn = oColumnList.Children[0];
-            Assert.AreEqual(typeof(ColumnSymbol), oLiteralColumn.GetType());
+            Assert.AreEqual(typeof(Symbol), oLiteralColumn.GetType());
             Assert.AreEqual("var1", ((Symbol)oLiteralColumn).Alias);
         }
 
@@ -178,15 +177,15 @@ namespace NetezzaParseTests
 
             // Test that a subquery type node was built
             SyntaxNode oSubQuery = oTemp.FindFirst(SyntaxKind.OpenParenthesisToken);
-            Assert.IsTrue(oSubQuery != null);
+            Assert.AreNotEqual(oSubQuery, null);
 
             // Test that there is a select keyword in that subquery
             SyntaxNode oSelect = oSubQuery.FindFirst(SyntaxKind.SelectKeyword);
-            Assert.IsTrue(oSelect != null);
+            Assert.AreNotEqual(oSelect, null);
 
             // Test that the identifier was generated properly
-            SyntaxNode oTableIdn = oSelect.FindFirst(SyntaxKind.IdentifierToken);
-            Assert.IsTrue(oTableIdn != null);
+            SyntaxNode oTableIdn = oSelect.FindFirst(SyntaxKind.IdentifierTableSymbol);
+            Assert.AreNotEqual(oTableIdn, null);
 
 
         }
@@ -220,8 +219,8 @@ namespace NetezzaParseTests
             Assert.AreEqual(SyntaxKind.InnerJoinKeyword, oInnerJoin.ExpectedType);
 
             // test children are correct
-            Assert.AreEqual(oInnerJoin.Children[0].ExpectedType, SyntaxKind.IdentifierToken);
-            Assert.AreEqual(oInnerJoin.Children[1].ExpectedType, SyntaxKind.IdentifierToken);
+            Assert.AreEqual(oInnerJoin.Children[0].ExpectedType, SyntaxKind.IdentifierDatabaseSymbol);
+            Assert.AreEqual(oInnerJoin.Children[1].ExpectedType, SyntaxKind.IdentifierDatabaseSymbol);
         }
 
         [TestMethod]

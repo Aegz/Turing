@@ -40,7 +40,7 @@ namespace NetezzaParseTests
 
             // Test that the AND was generated properly (exactly 2 children)
             Assert.AreEqual(2, oEqual.Children.Count);
-            Assert.AreEqual(SyntaxKind.IdentifierToken, oEqual.Children[0].ExpectedType);
+            Assert.AreEqual(SyntaxKind.IdentifierTableSymbol, oEqual.Children[0].ExpectedType);
             Assert.AreEqual(SyntaxKind.LiteralToken, oEqual.Children[1].ExpectedType);
         }
 
@@ -216,7 +216,7 @@ namespace NetezzaParseTests
             Assert.AreEqual(oLeftEquals.ExpectedType, SyntaxKind.EqualsToken);
 
             SyntaxNode oLeftEqualsL = oLeftEquals.Children[0];
-            Assert.AreEqual(oLeftEqualsL.ExpectedType, SyntaxKind.IdentifierToken);
+            Assert.AreEqual(oLeftEqualsL.ExpectedType, SyntaxKind.IdentifierTableSymbol);
             SyntaxNode oLeftEqualsR = oLeftEquals.Children[1];
             Assert.AreEqual(oLeftEqualsR.ExpectedType, SyntaxKind.LiteralToken);
 
@@ -224,9 +224,9 @@ namespace NetezzaParseTests
             SyntaxNode oRightEquals = oAND.Children[1];
             Assert.AreEqual(oLeftEquals.ExpectedType, SyntaxKind.EqualsToken);
             SyntaxNode oRightEqualsL = oRightEquals.Children[0];
-            Assert.AreEqual(oRightEqualsL.ExpectedType, SyntaxKind.IdentifierToken);
+            Assert.AreEqual(oRightEqualsL.ExpectedType, SyntaxKind.IdentifierTableSymbol);
             SyntaxNode oRightEqualsR = oRightEquals.Children[1];
-            Assert.AreEqual(oRightEqualsR.ExpectedType, SyntaxKind.IdentifierToken);
+            Assert.AreEqual(oRightEqualsR.ExpectedType, SyntaxKind.IdentifierTableSymbol);
         }
 
 

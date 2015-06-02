@@ -75,7 +75,12 @@ namespace Turing.Syntax
             return
                 xeKind == SyntaxKind.CaseKeyword || // CASE can substitute Identifier
                 xeKind == SyntaxKind.OpenParenthesisToken || // Could always be a (Idn)
-                xeKind == SyntaxKind.IdentifierToken;
+                xeKind == SyntaxKind.IdentifierToken ||
+                // More specific Identifiers
+                xeKind == SyntaxKind.IdentifierDatabaseSymbol ||
+                xeKind == SyntaxKind.IdentifierSchemaSymbol ||
+                xeKind == SyntaxKind.IdentifierTableSymbol ||
+                xeKind == SyntaxKind.IdentifierColumnSymbol;
         }
 
         public static Boolean IsExpression(SyntaxKind xeKind)

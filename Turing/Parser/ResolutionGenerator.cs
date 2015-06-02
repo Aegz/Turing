@@ -75,6 +75,7 @@ namespace Turing.Parser
                     eNextTokenKind = xoCurrentNode.Children[0].ExpectedType;
                 }
             }
+            // Boolean
             else if (
                 SyntaxKindFacts.IsAdjunctConditionalOperator(xoCurrentNode.ExpectedType) || // Conjunctive or Adjunct must have bool
                 xoCurrentNode.ExpectedType == SyntaxKind.WhereKeyword || // Where must be bool
@@ -83,6 +84,14 @@ namespace Turing.Parser
             {
                 // MUST BE BOOLEAN
                 eNextTokenKind = SyntaxKind.BooleanToken;
+            }
+            // Identifier
+            else if (
+                xoCurrentNode.ExpectedType == SyntaxKind.FromKeyword    // Table Missing
+                )
+            {
+                // MUST BE Identifier
+                eNextTokenKind = SyntaxKind.IdentifierToken;
             }
 
             // Default to unknown

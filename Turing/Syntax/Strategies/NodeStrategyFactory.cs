@@ -7,7 +7,6 @@ using Turing.Syntax.Collections;
 using Turing.Syntax.Constructs.Expressions;
 using Turing.Syntax.Constructs.Symbols;
 using Turing.Syntax.Constructs.Symbols.Collections;
-using Turing.Syntax.Constructs.Symbols.SingleChild;
 
 namespace Turing.Syntax.Strategies
 {
@@ -95,6 +94,11 @@ namespace Turing.Syntax.Strategies
                         oReturnNode.EligibilityFn = ExpressionCanConsumeNext;
                         break;
                     case SyntaxKind.IdentifierToken:
+                    case SyntaxKind.IdentifierColumnSymbol:
+                    case SyntaxKind.IdentifierTableSymbol:
+                    //case SyntaxKind.IdentifierSubQuerySymbol:
+                    case SyntaxKind.IdentifierSchemaSymbol:
+                    case SyntaxKind.IdentifierDatabaseSymbol:
                         oReturnNode.EligibilityFn = IdentifierCanConsumeNext;
                         break;
                     #region JOIN

@@ -37,7 +37,8 @@ namespace NetezzaParseTests
             SyntaxNode oLeft = oStarExpression.Children[0];
             SyntaxNode oRight = oStarExpression.Children[1];
 
-            Assert.AreEqual(oLeft.ExpectedType, SyntaxKind.IdentifierToken);
+            Assert.AreEqual(oLeft.ExpectedType, SyntaxKind.IdentifierTableSymbol);
+            Assert.AreEqual(oLeft.Children[0].ExpectedType, SyntaxKind.IdentifierColumnSymbol);
             Assert.AreEqual(oRight.ExpectedType,SyntaxKind.NumericToken);
         }
 
@@ -69,7 +70,8 @@ namespace NetezzaParseTests
             SyntaxNode oLeft = oStarExpression.Children[0];
             SyntaxNode oRight = oStarExpression.Children[1];
 
-            Assert.AreEqual(oLeft.ExpectedType, SyntaxKind.IdentifierToken);
+            Assert.AreEqual(oLeft.ExpectedType, SyntaxKind.IdentifierTableSymbol);
+            Assert.AreEqual(oLeft.Children[0].ExpectedType, SyntaxKind.IdentifierColumnSymbol);
             Assert.AreEqual(oRight.ExpectedType, SyntaxKind.NumericToken);
         }
    
@@ -101,7 +103,7 @@ namespace NetezzaParseTests
             SyntaxNode oLeft = oStarExpression.Children[0];
             SyntaxNode oRight = oStarExpression.Children[1];
 
-            Assert.AreEqual(oLeft.ExpectedType, SyntaxKind.IdentifierToken);
+            Assert.AreEqual(oLeft.ExpectedType, SyntaxKind.IdentifierTableSymbol);
             Assert.AreEqual(oRight.ExpectedType, SyntaxKind.NumericToken);
         }
 
@@ -133,7 +135,7 @@ namespace NetezzaParseTests
             SyntaxNode oLeft = oStarExpression.Children[0];
             SyntaxNode oRight = oStarExpression.Children[1];
 
-            Assert.AreEqual(oLeft.ExpectedType, SyntaxKind.IdentifierToken);
+            Assert.AreEqual(oLeft.ExpectedType, SyntaxKind.IdentifierTableSymbol);
             Assert.AreEqual(oRight.ExpectedType, SyntaxKind.NumericToken);
         }
 

@@ -32,7 +32,7 @@ namespace NetezzaParseTests
             Assert.AreEqual(2, oColumnList.Children.Count); // Should be 2
 
             SyntaxNode oColIdn = oColumnList.Children[0];
-            Assert.AreEqual(SyntaxKind.IdentifierToken, oColIdn.ExpectedType);
+            Assert.AreEqual(SyntaxKind.IdentifierTableSymbol, oColIdn.ExpectedType);
 
             SyntaxNode oFunction = oColumnList.Children[1];
             Assert.AreEqual(SyntaxKind.CoalesceKeyword, oFunction.ExpectedType);

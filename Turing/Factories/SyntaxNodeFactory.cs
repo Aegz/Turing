@@ -4,10 +4,8 @@ using Turing.Syntax;
 using Turing.Syntax.Collections;
 using Turing.Syntax.Constructs;
 using Turing.Syntax.Constructs.Expressions;
-using Turing.Syntax.Constructs.Keywords;
 using Turing.Syntax.Constructs.Symbols;
 using Turing.Syntax.Constructs.Symbols.Collections;
-using Turing.Syntax.Constructs.Symbols.SingleChild;
 using Turing.Syntax.Strategies;
 
 namespace Turing.Factories
@@ -23,6 +21,7 @@ namespace Turing.Factories
         /// <returns></returns>
         public static SyntaxNode ContextSensitiveConvertTokenToNode(SyntaxNode xoCurrentNode, SyntaxTokenList xoList)
         {
+            SyntaxKind eNextTokenKind = xoList.PeekToken().ExpectedType;
             // Is any identifier or Expression (function/literal)
             if (SyntaxKindFacts.IsFunction(xoList.PeekToken().ExpectedType))
             {
@@ -30,14 +29,23 @@ namespace Turing.Factories
                 return FactoryCreateColumnExpr(xoList);
             }
             // If we know we have an identifier
-            else if (xoList.PeekToken().ExpectedType == SyntaxKind.IdentifierToken)
+            else if (
+                eNextTokenKind == SyntaxKind.IdentifierToken ||
+                eNextTokenKind == SyntaxKind.IdentifierDatabaseSymbol ||
+                eNextTokenKind == SyntaxKind.IdentifierSchemaSymbol ||
+                eNextTokenKind == SyntaxKind.IdentifierTableSymbol ||
+                eNextTokenKind == SyntaxKind.IdentifierColumnSymbol)
             {
+                // Open Parenthesis
+                if (xoCurrentNode.RawSQLText.Equals("("))
+                {
+                    return FactoryInterpretOpenParenthesisToken(xoCurrentNode, xoList);
+                }
                 // Purely an identifier
                 return FactoryCreateColumn(xoList);
             }
 
-            //return new SyntaxNode(xoCurrentToken, NodeStrategyFactory.FactoryCreateStrategy(xoCurrentToken.ExpectedType));
-            switch (xoList.PeekToken().ExpectedType)
+            switch (eNextTokenKind)
             {
                 case SyntaxKind.SelectKeyword:
                     return new SyntaxNode(
@@ -263,7 +271,8 @@ namespace Turing.Factories
             {
                 // Subquery start
                 // Create a table symbol
-                TableSymbol oSubquery = new SubquerySymbol(xoList.PopToken());
+                Symbol oSubquery = new Symbol(xoList.PopToken());
+                oSubquery.ExpectedType = SyntaxKind.IdentifierSubQuerySymbol; // give it a better type
                 return oSubquery;
             }
 
@@ -295,26 +304,25 @@ namespace Turing.Factories
 
             oDatabase =
                 iTableLocation != 0 ? // Theres no database decl or schema decl
-                new DatabaseSymbol(xoCurrentToken) :
-                new DatabaseSymbol(new SyntaxToken(SyntaxKind.IdentifierToken, String.Empty));
+                new Symbol(new SyntaxToken(SyntaxKind.IdentifierDatabaseSymbol, xoCurrentToken.RawSQLText)) :
+                new Symbol(new SyntaxToken(SyntaxKind.IdentifierDatabaseSymbol, String.Empty));
 
             // Generate the Schema Node
             oSchema = iSchemaLocation != -1 ?
                 // Type Check
                 xoList.PeekToken(iSchemaLocation).ExpectedType == SyntaxKind.IdentifierToken ?
-                    new SchemaSymbol(xoList.PeekToken(iSchemaLocation)) :
+                    new Symbol(new SyntaxToken(SyntaxKind.IdentifierSchemaSymbol, xoList.PeekToken(iSchemaLocation).RawSQLText)) :
                     FactoryCreateExpectingButFoundNode(
                         "SchemaIdn", xoList.PeekToken(iSchemaLocation).RawSQLText)
                 :
-                new SchemaSymbol(new SyntaxToken(SyntaxKind.IdentifierToken, String.Empty));
+                new Symbol(new SyntaxToken(SyntaxKind.IdentifierSchemaSymbol, String.Empty));
 
             SyntaxToken oTableToken = xoList.PeekToken(iTableLocation);
-            oTable = iTableLocation != -1 ?
+            oTable = 
                 // Type check
                 oTableToken.ExpectedType == SyntaxKind.IdentifierToken ?
-                    new TableSymbol(oTableToken) :
-                    FactoryCreateExpectingButFoundNode("TableIdn", oTableToken.RawSQLText) :
-                new TableSymbol(new SyntaxToken(SyntaxKind.IdentifierToken, String.Empty));
+                    new Symbol(new SyntaxToken(SyntaxKind.IdentifierTableSymbol, oTableToken.RawSQLText)) :
+                    FactoryCreateExpectingButFoundNode("TableIdn", oTableToken.RawSQLText);
 
             // create the decorator obj
             oSchema.AddChild(oTable);
@@ -346,7 +354,7 @@ namespace Turing.Factories
             // If this is a literal Column
             if (SyntaxKindFacts.IsLiteral(xoCurrentToken.ExpectedType))
             {
-                oColumn = new ColumnSymbol(xoList.PopToken());
+                oColumn = new Symbol(xoList.PopToken());
 
                 // Assign the alias
                 oColumn.Alias = SyntaxNodeFactory.ScanAheadForAlias(xoList);
@@ -357,16 +365,16 @@ namespace Turing.Factories
             // Trailing item is . (table.column)
             if (xoList.PeekToken(1).ExpectedType == SyntaxKind.DotToken)
             {
-                oTable = new TableSymbol(xoCurrentToken);
-                oColumn = new ColumnSymbol(xoList.PeekToken(2)); // Grab the Column
+                oTable = new Symbol(xoCurrentToken);
+                oColumn = new Symbol(xoList.PeekToken(2)); // Grab the Column
                 oTable.AddChild(oColumn);
                 xoList.PopTokens(3); // Skip over the next 2
             }
             // Standalone Column
             else
             {
-                oTable = new TableSymbol(new SyntaxToken(SyntaxKind.IdentifierToken, String.Empty));
-                oColumn = new ColumnSymbol(xoCurrentToken); // Grab the Column
+                oTable = new Symbol(new SyntaxToken(SyntaxKind.IdentifierTableSymbol, String.Empty));
+                oColumn = new Symbol(xoCurrentToken); // Grab the Column
                 oTable.AddChild(oColumn);
                 xoList.PopToken(); // Skip over the next 1
             }
@@ -374,6 +382,9 @@ namespace Turing.Factories
 
             // Assign the alias
             oColumn.Alias = SyntaxNodeFactory.ScanAheadForAlias(xoList);
+
+            oColumn.ExpectedType = SyntaxKind.IdentifierColumnSymbol;
+            oTable.ExpectedType = SyntaxKind.IdentifierTableSymbol;
 
             // Return the top level node
             return oTable;
@@ -383,8 +394,8 @@ namespace Turing.Factories
         public static SyntaxNode FactoryCreateColumnExpr(SyntaxTokenList xoList)
         {
             // generate the item
-            Symbol oColumnExp = new ColumnSymbol(xoList.PopToken(), NodeStrategyFactory.FUNCTION_STRATEGY);
-
+            Symbol oColumnExp = new Symbol(xoList.PopToken(), NodeStrategyFactory.FUNCTION_STRATEGY);
+            
             // Consume Ahead
             oColumnExp.TryConsumeList(xoList);
 

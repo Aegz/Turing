@@ -38,7 +38,7 @@ namespace NetezzaParseTests
                 SyntaxNode oColInner = oChild.Children[0];
                 Assert.IsTrue(
                     oColInner.ExpectedType == SyntaxKind.StarToken || 
-                    oColInner.ExpectedType == SyntaxKind.IdentifierToken);
+                    oColInner.ExpectedType == SyntaxKind.IdentifierTableSymbol);
             }
         }
 
@@ -71,7 +71,8 @@ namespace NetezzaParseTests
                 SyntaxNode oColInner = oChild.Children[0];
                 Assert.IsTrue(
                     oColInner.ExpectedType == SyntaxKind.StarToken ||
-                    oColInner.ExpectedType == SyntaxKind.IdentifierToken);
+                    oColInner.ExpectedType == SyntaxKind.IdentifierColumnSymbol ||
+                    oColInner.ExpectedType == SyntaxKind.IdentifierTableSymbol);
             }
         }
 
