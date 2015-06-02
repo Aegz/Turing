@@ -36,6 +36,12 @@ namespace Turing.Parser
                 // Add any tokens found into our list
                 TokenList.Add(oLexer.LexNextToken());
             }
+
+            // make sure we have an EOF at the end
+            if (TokenList[TokenList.Count - 1].ExpectedType != SyntaxKind.EOFNode)
+            {
+                TokenList.Add(new SyntaxToken(SyntaxKind.EOFNode, ""));
+            }
         }
 
         /// <summary>

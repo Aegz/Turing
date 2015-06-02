@@ -7,7 +7,7 @@ using Turing.Syntax.Strategies;
 
 namespace Turing.Syntax.Constructs.Symbols.SingleChild
 {
-    class ColumnSymbol : Symbol
+    public class ColumnSymbol : Symbol
     {
         public ColumnSymbol(SyntaxToken xoToken, NodeStrategy xoStrategy) : base (xoToken, xoStrategy)
         {

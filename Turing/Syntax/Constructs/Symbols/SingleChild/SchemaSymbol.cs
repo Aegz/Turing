@@ -9,7 +9,7 @@ using Turing.Syntax.Collections;
 
 namespace Turing.Syntax.Constructs.Symbols.SingleChild
 {
-    class SchemaSymbol : Symbol
+    public class SchemaSymbol : Symbol
     {
         public SchemaSymbol(SyntaxToken xoToken) : base (xoToken)
         {
@@ -20,7 +20,9 @@ namespace Turing.Syntax.Constructs.Symbols.SingleChild
         {
             return RawSQLText +
                 (Children.Count > 0 ?
-                    "." + base.GetChildString() :
+                    (String.IsNullOrEmpty(RawSQLText) ?
+                        String.Empty :
+                        ".") + base.GetChildString() :
                     String.Empty);
         }
     }

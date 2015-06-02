@@ -89,5 +89,18 @@ namespace Turing.Syntax.Collections
 
             return aoReturn;
         }
+
+        public SyntaxToken FirstOrNull(Func<SyntaxKind, Boolean> xfCriteria)
+        {
+            for (int iIndex = 0; iIndex + Position < Count; iIndex++)
+            {
+                if (xfCriteria(this[iIndex + Position].ExpectedType))
+                {
+                    return this[iIndex + Position];
+                }
+            }
+
+            return null;
+        }
     }
 }

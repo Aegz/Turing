@@ -9,7 +9,7 @@ using Turing.Syntax.Strategies;
 
 namespace Turing.Syntax.Constructs.Symbols.SingleChild
 {
-    class SubquerySymbol : TableSymbol
+    public class SubquerySymbol : TableSymbol
     {
         public SubquerySymbol(SyntaxToken xoToken) : base (xoToken, NodeStrategyFactory.SUBQUERY_STRATEGY)
         {

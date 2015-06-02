@@ -158,6 +158,8 @@ namespace Turing.Syntax
             // Trivia
             { SyntaxKind.EOFNode, "End of File" },
 
+            { SyntaxKind.UnknownNode, "Unknown" },
+            { SyntaxKind.MissingNode, "Missing" },
         };
 
         #endregion

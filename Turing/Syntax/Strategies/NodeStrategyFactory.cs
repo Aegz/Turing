@@ -7,6 +7,7 @@ using Turing.Syntax.Collections;
 using Turing.Syntax.Constructs.Expressions;
 using Turing.Syntax.Constructs.Symbols;
 using Turing.Syntax.Constructs.Symbols.Collections;
+using Turing.Syntax.Constructs.Symbols.SingleChild;
 
 namespace Turing.Syntax.Strategies
 {
@@ -27,7 +28,7 @@ namespace Turing.Syntax.Strategies
 
         public static readonly NodeStrategy SYMBOL_LIST_STRATEGY = new NodeStrategy(
             NodeStrategyFactory.SymbolListCanConsumeNext,
-            NodeStrategyFactory.DefaultTryConsumeNext,
+            NodeStrategyFactory.SymbolListConsumeNext,
             NodeStrategyFactory.DefaultAddChild); // Default
 
         public static readonly NodeStrategy BINARY_EXPRESSION_STRATEGY = new NodeStrategy(
@@ -90,6 +91,7 @@ namespace Turing.Syntax.Strategies
                         break;
                     case SyntaxKind.WhereKeyword:
                     case SyntaxKind.OnKeyword:
+                    case SyntaxKind.NotKeyword:
                         oReturnNode.EligibilityFn = ExpressionCanConsumeNext;
                         break;
                     case SyntaxKind.IdentifierToken:
@@ -187,7 +189,16 @@ namespace Turing.Syntax.Strategies
                 return CanConsumeResult.Consume;
             }
 
-            return DefaultCanConsumeNext(xoCurrentNode, xoList);
+
+            CanConsumeResult eResult = DefaultCanConsumeNext(xoCurrentNode, xoList);
+
+            // Post execution check
+            if (eResult == CanConsumeResult.Complete && xoCurrentNode.Children.Count != 1)
+            {
+                ResolutionGenerator.HandleIncompleteNode(xoCurrentNode, xoList);
+            }
+
+            return eResult;
         }
 
         #endregion
@@ -217,6 +228,7 @@ namespace Turing.Syntax.Strategies
 
             // If we need to perform a context sensitive conversion
             if (SyntaxKindFacts.IsIdentifier(oCurrentToken.ExpectedType) ||
+                SyntaxKindFacts.IsLiteral(oCurrentToken.ExpectedType) ||
                 SyntaxKindFacts.IsFunction(oCurrentToken.ExpectedType) ||
                 oCurrentToken.ExpectedType == SyntaxKind.StarToken) // * in Column is allowed
             {
@@ -264,7 +276,7 @@ namespace Turing.Syntax.Strategies
                 )
                 {
                     // ERROR
-                    ResolutionGenerator.Join(xoCurrentNode);
+                    ResolutionGenerator.HandlePreconsumptionError(xoCurrentNode, xoList);
                 }
             }
 
@@ -276,7 +288,15 @@ namespace Turing.Syntax.Strategies
                 return CanConsumeResult.Consume;
             }
 
-            return DefaultCanConsumeNext(xoCurrentNode, xoList);
+            CanConsumeResult eResult = DefaultCanConsumeNext(xoCurrentNode, xoList);
+
+            // Post execution check
+            if (eResult == CanConsumeResult.Complete && xoCurrentNode.Children.Count != 2)
+            {
+                ResolutionGenerator.HandleIncompleteNode(xoCurrentNode, xoList);
+            }
+
+            return eResult;
         }
 
         #endregion
@@ -354,7 +374,7 @@ namespace Turing.Syntax.Strategies
                 ))
                 {
                     // Error
-                    ResolutionGenerator.BinaryExpression(xoCurrentNode);
+                    ResolutionGenerator.HandlePreconsumptionError(xoCurrentNode, xoList);
                 }
             }
 
@@ -372,7 +392,15 @@ namespace Turing.Syntax.Strategies
                 return CanConsumeResult.Consume;
             }
 
-            return DefaultCanConsumeNext(xoCurrentNode, xoList);
+            CanConsumeResult eResult = DefaultCanConsumeNext(xoCurrentNode, xoList);
+
+            // Post execution check
+            if (eResult == CanConsumeResult.Complete && xoCurrentNode.Children.Count != 2)
+            {
+                ResolutionGenerator.HandleIncompleteNode(xoCurrentNode, xoList);
+            }
+
+            return eResult;
         }
 
     
@@ -418,6 +446,21 @@ namespace Turing.Syntax.Strategies
             return DefaultCanConsumeNext(xoCurrentNode, xoList);
         }
 
+
+        public static SyntaxNode SymbolListConsumeNext(SyntaxNode xoCurrentNode, SyntaxTokenList xoList)
+        {
+            if (SyntaxKindFacts.IsLiteral(xoList.PeekToken().ExpectedType))
+            {
+                return SyntaxNodeFactory.FactoryCreateColumn(xoList);
+            }
+            else
+            {
+                // Let the base conversion figure out what it is
+                return DefaultTryConsumeNext(xoCurrentNode, xoList);
+            }
+        }
+
+
         #endregion
 
         #region Identifier
@@ -447,7 +490,7 @@ namespace Turing.Syntax.Strategies
                 xoList.PopToken();
 
                 // If there is an issue, handle it appropriately
-                ResolutionGenerator.Parenthesis(xoCurrentNode);
+                //ResolutionGenerator.Parenthesis(xoCurrentNode);
 
                 return CanConsumeResult.Complete;
             }

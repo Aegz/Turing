@@ -40,9 +40,19 @@ namespace Turing.Factories
             switch (xoList.PeekToken().ExpectedType)
             {
                 case SyntaxKind.SelectKeyword:
+                    return new SyntaxNode(
+                        xoList.PeekToken(), 
+                        NodeStrategyFactory.FactoryCreateStrategy(xoList.PopToken().ExpectedType),
+                        -1); // Can have multiple children
+                        
                 case SyntaxKind.FromKeyword:
                 case SyntaxKind.WhereKeyword:
                 case SyntaxKind.OnKeyword:
+                    return new SyntaxNode(
+                        xoList.PeekToken(), 
+                        NodeStrategyFactory.FactoryCreateStrategy(xoList.PopToken().ExpectedType), 
+                        1); // Can only have 1 child
+
 
                 #region Conditional Expressions
 
@@ -56,22 +66,41 @@ namespace Turing.Factories
                 case SyntaxKind.OrKeyword:
 
                 #endregion
-
                 #region Arithmatic Operators
 
                 case SyntaxKind.PlusToken:
                 case SyntaxKind.MinusToken:
                 case SyntaxKind.SlashToken:
+                    return new SyntaxNode(
+                        xoList.PeekToken(),
+                        NodeStrategyFactory.FactoryCreateStrategy(xoList.PopToken().ExpectedType),
+                        2); // 2 Children only as they are binary
                 case SyntaxKind.StarToken:
+                    // No items in the list to consume (Solitary *)
+                    if (xoCurrentNode.Children.Count == 0)
+                    {
+                        // 
+                        return FactoryCreateColumn(xoList);
+                    }
+                    else
+                    {
+                        return new SyntaxNode(
+                            xoList.PeekToken(),
+                            NodeStrategyFactory.FactoryCreateStrategy(xoList.PopToken().ExpectedType),
+                            2); // 2 Children only as they are binary
+                    }
+
 
                 #endregion
-                    // Return an expression (which will consume the previous node and the next one)
-                    return new SyntaxNode(xoList.PeekToken(), NodeStrategyFactory.FactoryCreateStrategy(xoList.PopToken().ExpectedType));
+
 
                 #region JOIN
                 case SyntaxKind.JoinKeyword:
                     // All Join nodes on their own become Inner joins
-                    SyntaxNode oJoinNode = new SyntaxNode(xoList.PeekToken(), NodeStrategyFactory.FactoryCreateStrategy(xoList.PopToken().ExpectedType));
+                    SyntaxNode oJoinNode = new SyntaxNode(
+                        xoList.PeekToken(), 
+                        NodeStrategyFactory.FactoryCreateStrategy(xoList.PopToken().ExpectedType), 
+                        2);
                     oJoinNode.ExpectedType = SyntaxKind.InnerJoinKeyword;
                     return oJoinNode;
                 case SyntaxKind.InnerJoinKeyword:
@@ -82,21 +111,23 @@ namespace Turing.Factories
                     return FactoryCreateCompoundJoin(xoList);
                 #endregion
 
+                case SyntaxKind.OpenParenthesisToken:
+                    // Given a (, Try and guess what type of () this is
+                    return FactoryInterpretOpenParenthesisToken(xoCurrentNode, xoList);
+
+                case SyntaxKind.NotKeyword:
+                    return new SyntaxNode(
+                        xoList.PeekToken(),
+                        NodeStrategyFactory.FactoryCreateStrategy(xoList.PopToken().ExpectedType),
+                        1);
+
                 // The type of the expression will be determined by the Token's
                 // Type and we will use this to compare compatibility
                 case SyntaxKind.LiteralToken: // String
                 case SyntaxKind.BooleanToken: // true and false
                 case SyntaxKind.NumericToken: // Integer
                 case SyntaxKind.DateToken:    // Date objects
-                    return new SyntaxLeaf(xoList.PopToken());
-
-                case SyntaxKind.OpenParenthesisToken:
-                    // Given a (, Try and guess what type of () this is
-                    return FactoryInterpretOpenParenthesisToken(xoCurrentNode, xoList);
-
-                case SyntaxKind.NotKeyword:
-                    return new UnaryExpression(xoList.PopToken());
-
+                    //return new SyntaxLeaf(xoList.PopToken());
                 default:
                     // Default to the original token since it doesn't need to be converted
                     // any more
@@ -312,6 +343,17 @@ namespace Turing.Factories
             Symbol oTable;
             Symbol oColumn;
 
+            // If this is a literal Column
+            if (SyntaxKindFacts.IsLiteral(xoCurrentToken.ExpectedType))
+            {
+                oColumn = new ColumnSymbol(xoList.PopToken());
+
+                // Assign the alias
+                oColumn.Alias = SyntaxNodeFactory.ScanAheadForAlias(xoList);
+
+                return oColumn;
+            }
+
             // Trailing item is . (table.column)
             if (xoList.PeekToken(1).ExpectedType == SyntaxKind.DotToken)
             {
@@ -396,14 +438,14 @@ namespace Turing.Factories
             return oError;
         }
 
-
         public static SyntaxNode FactoryCreateMissingNode(String xsRawSQL)
         {
             // Error
-            SyntaxNode oError = new ExceptionSyntaxNode(xsRawSQL);
+            SyntaxNode oError = new ExceptionSyntaxNode(SyntaxKind.MissingNode, xsRawSQL);
             oError.Comments.Add(ErrorMessageLibrary.GetErrorMessage(8003, xsRawSQL));
             return oError;
         }
+   
         #endregion
 
         #region Common Functions

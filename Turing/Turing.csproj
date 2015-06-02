@@ -78,7 +78,6 @@
     <Compile Include="Syntax\SyntaxKindFacts.cs" />
     <Compile Include="Syntax\SyntaxKindUtilities.cs" />
     <Compile Include="Syntax\SyntaxLeaf.cs" />
-    <Compile Include="Syntax\SyntaxNodeWithOneChild.cs" />
     <Compile Include="Syntax\Constructs\Symbols\Symbol.cs" />
     <Compile Include="Syntax\Constructs\Symbols\SingleChild\TableSymbol.cs" />
     <Compile Include="Utilities\SyntaxUtilities.cs" />

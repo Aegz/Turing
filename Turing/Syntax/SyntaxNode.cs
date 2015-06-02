@@ -31,7 +31,7 @@ namespace Turing.Syntax
 
         //
         protected Boolean bHasConsumedNodes = false; // Tells you when it has actually built anything
-        public Boolean IsComplete = false;
+        protected int iMaxChildCount = -1;
 
         #endregion
 
@@ -54,7 +54,18 @@ namespace Turing.Syntax
 
         public virtual Boolean AddChild(SyntaxNode xoGiven)
         {
-            // Just add it
+            // If there is a restriction
+            if (iMaxChildCount != -1)
+            {
+                // Check how many children we have
+                if (Children.Count >= iMaxChildCount)
+                {
+                    // Do not add it
+                    return false;
+                }
+            }
+
+            // Add it
             Children.Add(xoGiven);
 
             // Set the parent
@@ -68,11 +79,11 @@ namespace Turing.Syntax
 
         #region Construction
 
-        public SyntaxNode (SyntaxToken xoToken) : this (xoToken, NodeStrategyFactory.DEFAULT_STRATEGY)
+        public SyntaxNode (SyntaxToken xoToken, int xiMaxChildCount = -1) : this (xoToken, NodeStrategyFactory.DEFAULT_STRATEGY, xiMaxChildCount)
         {
         }
 
-        public SyntaxNode(SyntaxToken xoToken, NodeStrategy xoStrategy)
+        public SyntaxNode(SyntaxToken xoToken, NodeStrategy xoStrategy, int xiMaxChildCount = -1)
         {
             Token = xoToken;
             Comments = new List<StatusItem>();
@@ -92,18 +103,8 @@ namespace Turing.Syntax
         /// <returns></returns>
         public virtual Boolean TryConsumeList(SyntaxTokenList xoList)
         {
-            // Pre work - Consume Sibling
-
-            // Only do work if we have anything left to process
-            if (!xoList.HasTokensLeftToProcess() ||   // We have stuff to process
-                SyntaxKindFacts.IsTerminatingNode(xoList.PeekToken().ExpectedType)) // We have not reached a terminator
-            {
-                // Nothing left to process
-                return false;
-            }
-
-            // While we have nodes to process
-            while (xoList.HasTokensLeftToProcess())
+            // Until we break
+            while (true)
             {
                 // Call the Consumption fn
                 CanConsumeResult oResult = oStrategy.EligibilityFn(this, xoList);

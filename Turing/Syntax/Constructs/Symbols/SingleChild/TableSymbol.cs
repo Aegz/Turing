@@ -7,7 +7,7 @@ using Turing.Syntax.Strategies;
 
 namespace Turing.Syntax.Constructs.Symbols.SingleChild
 {
-    class TableSymbol : Symbol
+    public class TableSymbol : Symbol
     {
         public TableSymbol(SyntaxToken xoToken, NodeStrategy xoStrategy) : base (xoToken, xoStrategy)
         {

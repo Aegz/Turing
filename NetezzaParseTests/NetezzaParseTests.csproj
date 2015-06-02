@@ -55,6 +55,7 @@
     <Compile Include="ParenthesisTests.cs" />
     <Compile Include="ArithmaticTests.cs" />
     <Compile Include="FunctionTests.cs" />
+    <Compile Include="WhereOnTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Turing\Turing.csproj">

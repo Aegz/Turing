@@ -5,52 +5,91 @@ using System.Text;
 using System.Threading.Tasks;
 using Turing.Factories;
 using Turing.Syntax;
+using Turing.Syntax.Collections;
+using Turing.Syntax.Constructs;
 
 namespace Turing.Parser
 {
     /// <summary>
-    /// This class attempts to resolve possible issues
-    /// using business rules that are defined below
+    /// This class attempts to encapsulate all of the posssible resolutions to simple
+    /// issues we come across during parsing. The reason why this is done during parsing
+    /// is to try and facilitate continuous parsing (even when there are obvious errors).
+    /// 
+    /// If we do it post-parsing we may have a completely different tree
     /// </summary>
     class ResolutionGenerator
     {
-        public static void BinaryExpression(SyntaxNode xoCurrentNode)
+        /// <summary>
+        /// This only really happens with conjunctive operators (ie. +, -, AND, OR..)
+        /// </summary>
+        /// <param name="xoCurrentNode"></param>
+        /// <param name="xoList"></param>
+        public static void HandlePreconsumptionError (SyntaxNode xoCurrentNode, SyntaxTokenList xoList)
         {
-            // If nothing was added
-            if (xoCurrentNode.Children.Count == 0)
+            // Its good to know whats next
+            SyntaxKind eNextTokenKind = SyntaxKind.UnknownNode;
+
+            // If we have an arithmatic operator, we know we need the types to match
+            if (SyntaxKindFacts.IsArithmaticOperator(xoCurrentNode.ExpectedType) ||
+                SyntaxKindFacts.IsConditionalOperator(xoCurrentNode.ExpectedType))
             {
-                // Just add an identifier saying that we are missing the item
-                xoCurrentNode.AddChild(
-                    SyntaxNodeFactory.FactoryCreateMissingNode(
-                        SyntaxKindUtilities.GetStringFromKind(SyntaxKind.IdentifierToken)));
-                //xoCurrentNode.AddChild(new SyntaxNode(new SyntaxToken(SyntaxKind.IdentifierToken, "MISSING IDN/Literal/Expression"), NULL_STRATEGY));
-                xoCurrentNode.Comments.Add(new Diagnostics.StatusItem("No LEFT operator found"));
+                // 
+                if (SyntaxKindFacts.IsLiteral(xoList.PeekToken().ExpectedType))
+                {
+                    // Set the return kind
+                    eNextTokenKind = xoList.PeekToken().ExpectedType;
+                }
             }
+            // Conjunctive or Adjunct will not matter what types we have
+            else if (SyntaxKindFacts.IsAdjunctConditionalOperator(xoCurrentNode.ExpectedType))
+            {
+                // MUST BE BOOLEAN
+                eNextTokenKind = SyntaxKind.BooleanToken;
+            }
+
+            // Default to unknown
+            xoCurrentNode.AddChild(
+                new ExceptionSyntaxNode(
+                    eNextTokenKind,
+                    "Missing (" + SyntaxKindUtilities.GetStringFromKind(eNextTokenKind) + ")"));
         }
 
-        public static void Join(SyntaxNode xoCurrentNode)
+        /// <summary>
+        /// This only really happens with conjunctive operators (ie. +, -, AND, OR..)
+        /// </summary>
+        /// <param name="xoCurrentNode"></param>
+        /// <param name="xoList"></param>
+        public static void HandleIncompleteNode(SyntaxNode xoCurrentNode, SyntaxTokenList xoList)
         {
-            // If nothing was added
-            if (xoCurrentNode.Children.Count == 0)
+            // Its good to know whats next
+            SyntaxKind eNextTokenKind = SyntaxKind.UnknownNode;
+
+            // If we have an arithmatic operator, we know we need the types to match
+            if (SyntaxKindFacts.IsArithmaticOperator(xoCurrentNode.ExpectedType) ||
+                SyntaxKindFacts.IsConditionalOperator(xoCurrentNode.ExpectedType))
             {
-                // Just add an identifier saying that we are missing the item
-                xoCurrentNode.AddChild(
-                    SyntaxNodeFactory.FactoryCreateMissingNode(
-                        SyntaxKindUtilities.GetStringFromKind(SyntaxKind.IdentifierToken)));
-
-                //xoCurrentNode.AddChild(new SyntaxNode(new SyntaxToken(SyntaxKind.IdentifierToken, "MISSING IDN/Literal/Expression"), NULL_STRATEGY));
-                xoCurrentNode.Comments.Add(new Diagnostics.StatusItem("No LEFT table found"));
+                // Only when we have children
+                if (xoCurrentNode.Children.Count > 0)
+                {
+                    // Set the return kind
+                    eNextTokenKind = xoCurrentNode.Children[0].ExpectedType;
+                }
             }
-        }
-
-
-        public static void Parenthesis(SyntaxNode xoCurrentNode)
-        {
-            // If nothing was added
-            if (xoCurrentNode.Children.Count == 0)
+            else if (
+                SyntaxKindFacts.IsAdjunctConditionalOperator(xoCurrentNode.ExpectedType) || // Conjunctive or Adjunct must have bool
+                xoCurrentNode.ExpectedType == SyntaxKind.WhereKeyword || // Where must be bool
+                xoCurrentNode.ExpectedType == SyntaxKind.OnKeyword  // On must be bool
+                )
             {
-                xoCurrentNode.AddChild(SyntaxNodeFactory.FactoryCreateMissingNode(SyntaxKindUtilities.GetStringFromKind(SyntaxKind.IdentifierToken)));
+                // MUST BE BOOLEAN
+                eNextTokenKind = SyntaxKind.BooleanToken;
             }
+
+            // Default to unknown
+            xoCurrentNode.AddChild(
+                new ExceptionSyntaxNode(
+                    eNextTokenKind,
+                    "Missing (" + SyntaxKindUtilities.GetStringFromKind(eNextTokenKind) + ")"));
         }
 
     }

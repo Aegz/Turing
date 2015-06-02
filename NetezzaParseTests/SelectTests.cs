@@ -7,6 +7,7 @@ using Turing.Lexer;
 using Turing.Syntax.Constructs;
 using Turing.Syntax.Constructs.Symbols.Collections;
 using Turing.Syntax.Constructs.Symbols;
+using Turing.Syntax.Constructs.Symbols.SingleChild;
 
 namespace NetezzaParseTests
 {
@@ -60,8 +61,71 @@ namespace NetezzaParseTests
             SyntaxNode oSelect = oTemp.FindFirst(SyntaxKind.SelectKeyword);
             Assert.IsTrue(oSelect != null);
 
-            SyntaxNode oTableIdn = oSelect.Children[0];
-            Assert.AreEqual(1, oTableIdn.Children.Count); // Should be 1 column
+            SyntaxNode oColumnList = oSelect.Children[0];
+            Assert.AreEqual(1, oColumnList.Children.Count); // Should be 1 column
+            Assert.AreEqual(SyntaxKind.ColumnListNode, oColumnList.ExpectedType);
+
+            SyntaxNode oLiteralColumn = oColumnList.Children[0];
+            Assert.AreEqual(SyntaxKind.IdentifierToken, oLiteralColumn.ExpectedType);
+            Assert.AreEqual(typeof(TableSymbol), oLiteralColumn.GetType()); // Table is the top level then col
+            Assert.AreEqual("c2", ((Symbol)oLiteralColumn).Alias);
+        }
+
+        [TestMethod]
+        public void TestStringLiteralColumn()
+        {
+            SlidingTextWindow oText = new SlidingTextWindow(
+                @"   
+                        /* TEST */      
+                        SELECT  
+                        'TEST'
+                        FROM
+                        APSHARE_FPVIEWS..FPC_SERVICE svc          
+                ");
+
+            // Initialises the Parser
+            SyntaxParser oParser = new SyntaxParser(oText);
+            // Try and generate a tree
+            SyntaxNode oTemp = oParser.ParseTree();
+
+            SyntaxNode oSelect = oTemp.FindFirst(SyntaxKind.SelectKeyword);
+            Assert.AreNotEqual(null, oSelect);
+
+            SyntaxNode oColumnList = oSelect.Children[0];
+            Assert.AreEqual(1, oColumnList.Children.Count); // Should be 1 column
+            Assert.AreEqual(SyntaxKind.ColumnListNode, oColumnList.ExpectedType); 
+
+            SyntaxNode oLiteralColumn = oColumnList.Children[0];
+            Assert.AreEqual(SyntaxKind.LiteralToken, oLiteralColumn.ExpectedType);
+        }
+
+        [TestMethod]
+        public void TestStringLiteralColumnWithAlias()
+        {
+            SlidingTextWindow oText = new SlidingTextWindow(
+                @"   
+                        /* TEST */      
+                        SELECT  
+                        'TEST' as var1
+                        FROM
+                        APSHARE_FPVIEWS..FPC_SERVICE svc          
+                ");
+
+            // Initialises the Parser
+            SyntaxParser oParser = new SyntaxParser(oText);
+            // Try and generate a tree
+            SyntaxNode oTemp = oParser.ParseTree();
+
+            SyntaxNode oSelect = oTemp.FindFirst(SyntaxKind.SelectKeyword);
+            Assert.AreNotEqual(null, oSelect);
+
+            SyntaxNode oColumnList = oSelect.Children[0];
+            Assert.AreEqual(1, oColumnList.Children.Count); // Should be 1 column
+            Assert.AreEqual(SyntaxKind.ColumnListNode, oColumnList.ExpectedType);
+
+            SyntaxNode oLiteralColumn = oColumnList.Children[0];
+            Assert.AreEqual(typeof(ColumnSymbol), oLiteralColumn.GetType());
+            Assert.AreEqual("var1", ((Symbol)oLiteralColumn).Alias);
         }
 
         [TestMethod]
@@ -87,6 +151,7 @@ namespace NetezzaParseTests
             SyntaxNode oTableIdn = oSelect.Children[0];
             Assert.AreEqual(2, oTableIdn.Children.Count); // Should be 2 columns
         }
+
 
         [TestMethod]
         public void TestSubqueryTree()
@@ -124,93 +189,6 @@ namespace NetezzaParseTests
             Assert.IsTrue(oTableIdn != null);
 
 
-        }
-
-        [TestMethod]
-        public void TestWhereAnd()
-        {
-            SlidingTextWindow oText = new SlidingTextWindow(
-                @"   
-                        /* TEST */      
-                        SELECT  
-                            col1, col2
-                        FROM
-                        (
-                            SELECT * FROM FPC_SERVICE
-                        ) svc
-                        WHERE svc.MKT_PROD_CD = 'MOB PT' AND svc.SVC_STAT_CD <> 'C'      
-                ");
-
-            // Initialises the Parser
-            SyntaxParser oParser = new SyntaxParser(oText);
-
-            // Try and generate a tree
-            SyntaxNode oTemp = oParser.ParseTree();
-
-            // Test that a subquery type node was built
-            SyntaxNode oWhere = oTemp.FindFirst(SyntaxKind.WhereKeyword);
-            Assert.IsTrue(oWhere != null);
-
-            // Test that there is a select keyword in that subquery
-            SyntaxNode oAND = oWhere.FindFirst(SyntaxKind.AndKeyword);
-            Assert.IsTrue(oAND != null);
-
-            // Test that the AND was generated properly (exactly 2 children)
-            Assert.AreEqual(2, oAND.Children.Count);
-        }
-
-        [TestMethod]
-        public void TestOnAnd()
-        {
-            SlidingTextWindow oText = new SlidingTextWindow(
-                @"   
-                        /* TEST */      
-                        SELECT  
-                            col1, col2
-                        FROM
-                        (
-                            SELECT * FROM FPC_SERVICE
-                        ) svc
-                        INNER JOIN 
-                            APSHARE_FP..FWR02052_OMR_BASE omr
-                            ON 
-                                svc.MKT_PROD_CD = 'MOB PT' AND 
-                                svc.SVC_IDNTY = omr.SERVICE_NO  
-                ");
-
-            // Initialises the Parser
-            SyntaxParser oParser = new SyntaxParser(oText);
-
-            // Try and generate a tree
-            SyntaxNode oTemp = oParser.ParseTree();
-
-            // Test that a subquery type node was built
-            SyntaxNode oON = oTemp.FindFirst(SyntaxKind.OnKeyword);
-            Assert.AreNotEqual(oON, null);
-
-            // Test that there is a select keyword in that subquery
-            SyntaxNode oAND = oON.FindFirst(SyntaxKind.AndKeyword);
-            Assert.AreNotEqual(oAND, null);
-            Assert.AreEqual(oAND.RawSQLText, "AND");
-
-            // Test that the AND was generated properly (exactly 2 children)
-            Assert.AreEqual(2, oAND.Children.Count);
-
-            SyntaxNode oLeftEquals = oAND.Children[0];
-            Assert.AreEqual(oLeftEquals.ExpectedType, SyntaxKind.EqualsToken);
-
-            SyntaxNode oLeftEqualsL = oLeftEquals.Children[0];
-            Assert.AreEqual(oLeftEqualsL.ExpectedType, SyntaxKind.IdentifierToken);
-            SyntaxNode oLeftEqualsR = oLeftEquals.Children[1];
-            Assert.AreEqual(oLeftEqualsR.ExpectedType, SyntaxKind.LiteralToken);
-
-
-            SyntaxNode oRightEquals = oAND.Children[1];
-            Assert.AreEqual(oLeftEquals.ExpectedType, SyntaxKind.EqualsToken);
-            SyntaxNode oRightEqualsL = oRightEquals.Children[0];
-            Assert.AreEqual(oRightEqualsL.ExpectedType, SyntaxKind.IdentifierToken);
-            SyntaxNode oRightEqualsR = oRightEquals.Children[1];
-            Assert.AreEqual(oRightEqualsR.ExpectedType, SyntaxKind.IdentifierToken);
         }
 
         [TestMethod]
@@ -344,8 +322,6 @@ namespace NetezzaParseTests
             Assert.AreEqual(SyntaxKind.OpenParenthesisToken, oInnerJoin.Children[1].ExpectedType);
             Assert.AreEqual("omrbase", ((Symbol)oInnerJoin.Children[1]).Alias);
         }
-
-
 
     }
 }

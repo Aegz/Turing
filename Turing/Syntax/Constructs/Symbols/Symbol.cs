@@ -12,9 +12,10 @@ namespace Turing.Syntax.Constructs.Symbols
     /// Symbol is a node that can only have 1 child. Will often represent
     /// a leaf
     /// </summary>
-    public class Symbol : SyntaxNodeWithOneChild
+    public class Symbol : SyntaxNode
     {
         private String sAlias;
+
         // The Alias can be buried so we need to go and get one
         public String Alias
         {
@@ -43,7 +44,12 @@ namespace Turing.Syntax.Constructs.Symbols
             }
         }
 
-        public Symbol(SyntaxToken xoToken, NodeStrategy xoStrategy) : base(xoToken, xoStrategy)
+        /// <summary>
+        ///  This can only have 1 child
+        /// </summary>
+        /// <param name="xoToken"></param>
+        /// <param name="xoStrategy"></param>
+        public Symbol(SyntaxToken xoToken, NodeStrategy xoStrategy) : base(xoToken, xoStrategy, 1)
         {
         }
 

@@ -8,7 +8,7 @@ using Turing.Syntax.Collections;
 
 namespace Turing.Syntax.Constructs.Symbols.SingleChild
 {
-    class DatabaseSymbol : Symbol
+    public class DatabaseSymbol : Symbol
     {
         public DatabaseSymbol(SyntaxToken xoToken) : base(xoToken)
         {

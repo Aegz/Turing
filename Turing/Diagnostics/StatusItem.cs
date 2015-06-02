@@ -6,14 +6,17 @@ using System.Threading.Tasks;
 
 namespace Turing.Diagnostics
 {
+    public enum StatusCategory
+    {
+        Severe, // Missing, Exception etc.
+        Medium, // Idn incorrect, table wrong etc.
+        Minor, // Cosmetic
+    }
+
     public class StatusItem
     {
-        // TYPE?
-
-        // ?? TODO: Extend this if necessary
 
         public String Message { get; set; }
-
 
         public StatusItem(String xsMessage)
         {
