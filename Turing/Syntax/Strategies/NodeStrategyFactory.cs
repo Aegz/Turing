@@ -4,7 +4,6 @@ using Turing.Diagnostics;
 using Turing.Factories;
 using Turing.Parser;
 using Turing.Syntax.Collections;
-using Turing.Syntax.Constructs.Expressions;
 using Turing.Syntax.Constructs.Symbols;
 using Turing.Syntax.Constructs.Symbols.Collections;
 
@@ -43,11 +42,6 @@ namespace Turing.Syntax.Strategies
         public static readonly NodeStrategy JOIN_STRATEGY = new NodeStrategy(
             NodeStrategyFactory.JoinCanConsumeNext,
             NodeStrategyFactory.TableSymbolConvertToken,
-            NodeStrategyFactory.DefaultAddChild); // Default
-
-        public static readonly NodeStrategy SUBQUERY_STRATEGY = new NodeStrategy(
-            NodeStrategyFactory.SubQueryCanConsumeNext,
-            NodeStrategyFactory.DefaultTryConsumeNext,
             NodeStrategyFactory.DefaultAddChild); // Default
 
         public static readonly NodeStrategy FUNCTION_STRATEGY = new NodeStrategy(
@@ -95,11 +89,13 @@ namespace Turing.Syntax.Strategies
                         break;
                     case SyntaxKind.IdentifierToken:
                     case SyntaxKind.IdentifierColumnSymbol:
-                    case SyntaxKind.IdentifierTableSymbol:
-                    //case SyntaxKind.IdentifierSubQuerySymbol:
+                    case SyntaxKind.IdentifierTableSymbol:  
                     case SyntaxKind.IdentifierSchemaSymbol:
                     case SyntaxKind.IdentifierDatabaseSymbol:
                         oReturnNode.EligibilityFn = IdentifierCanConsumeNext;
+                        break;
+                    case SyntaxKind.IdentifierSubQuerySymbol:
+                        oReturnNode.EligibilityFn = SubQueryCanConsumeNext;
                         break;
                     #region JOIN
                     case SyntaxKind.JoinKeyword:
@@ -312,7 +308,7 @@ namespace Turing.Syntax.Strategies
             SyntaxKind oKind = xoList.PeekToken().ExpectedType;
 
             // If we get a closing parenthesis
-            if (xoCurrentNode.ExpectedType == SyntaxKind.OpenParenthesisToken &&
+            if (xoCurrentNode.ExpectedType == SyntaxKind.IdentifierSubQuerySymbol &&
                 oKind == SyntaxKind.CloseParenthesisToken)
             {
                 xoList.PopToken();
@@ -413,7 +409,7 @@ namespace Turing.Syntax.Strategies
             if (xoList.PeekToken().ExpectedType == SyntaxKind.OpenParenthesisToken)
             {
                 // Create a unary expression
-                return new UnaryExpression(xoList.PopToken());
+                return new SyntaxNode(xoList.PopToken(), NodeStrategyFactory.UNARY_EXPRESSION_STRATEGY); // UnaryExpression;);
             }
             else
             {

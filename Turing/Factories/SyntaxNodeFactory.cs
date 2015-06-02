@@ -3,7 +3,6 @@ using Turing.Diagnostics;
 using Turing.Syntax;
 using Turing.Syntax.Collections;
 using Turing.Syntax.Constructs;
-using Turing.Syntax.Constructs.Expressions;
 using Turing.Syntax.Constructs.Symbols;
 using Turing.Syntax.Constructs.Symbols.Collections;
 using Turing.Syntax.Strategies;
@@ -36,11 +35,6 @@ namespace Turing.Factories
                 eNextTokenKind == SyntaxKind.IdentifierTableSymbol ||
                 eNextTokenKind == SyntaxKind.IdentifierColumnSymbol)
             {
-                // Open Parenthesis
-                if (xoCurrentNode.RawSQLText.Equals("("))
-                {
-                    return FactoryInterpretOpenParenthesisToken(xoCurrentNode, xoList);
-                }
                 // Purely an identifier
                 return FactoryCreateColumn(xoList);
             }
@@ -178,7 +172,6 @@ namespace Turing.Factories
             else
             {
                 Boolean bCommaFound = false; // If you find any commas before the closing bracket
-                Boolean bOperatorFound = false; // If you find any operators before the closing bracket
                 Boolean bAllIdentifiersOrDots = true;
 
                 for (int iIndex = 0; iIndex < xoList.Count; iIndex++)
@@ -187,8 +180,8 @@ namespace Turing.Factories
                     // Scan until we find something that helps us determine what this parenthesis is
                     // Or a close parenthesis
                     if (oLoopingNode.ExpectedType == SyntaxKind.CloseParenthesisToken ||
-                        bCommaFound ||
-                        bOperatorFound)
+                        bCommaFound
+                        )
                     {
                         break;
                     }
@@ -204,7 +197,6 @@ namespace Turing.Factories
                         SyntaxKindFacts.IsConditionalOperator(oLoopingNode.ExpectedType) ||        // <> >= =
                         SyntaxKindFacts.IsArithmaticOperator(oLoopingNode.ExpectedType))           // +
                     {
-                        bOperatorFound = true;
                         bAllIdentifiersOrDots = false;
                     }
                     // Found something to say this is not a single column
@@ -218,14 +210,8 @@ namespace Turing.Factories
                     }
                 }
 
-                // EXPRESSION
-                if (bOperatorFound)
-                {
-                    // Most likely an expression list
-                    oReturn = new UnaryExpression(xoCurrentToken);
-                }
                 // Symbol List
-                else if (bCommaFound)
+                if (bCommaFound)
                 {
                     //
                     oReturn = new SymbolList(xoCurrentToken);
@@ -242,10 +228,11 @@ namespace Turing.Factories
                         xoList.PopToken();
                     }
                 }
-                else // Both empty
+                // Default to expression
+                else 
                 {
                     // Probably an expression type
-                    return new UnaryExpression(xoCurrentToken);
+                    return new SyntaxNode(xoCurrentToken, NodeStrategyFactory.UNARY_EXPRESSION_STRATEGY); // UnaryExpression;
                 }
             }
 
@@ -270,9 +257,10 @@ namespace Turing.Factories
             if (xoCurrentToken.ExpectedType == SyntaxKind.OpenParenthesisToken)
             {
                 // Subquery start
+                SyntaxToken oNextToken = xoList.PopToken();
+                oNextToken.ExpectedType = SyntaxKind.IdentifierSubQuerySymbol; // give it a better type
                 // Create a table symbol
-                Symbol oSubquery = new Symbol(xoList.PopToken());
-                oSubquery.ExpectedType = SyntaxKind.IdentifierSubQuerySymbol; // give it a better type
+                Symbol oSubquery = new Symbol(oNextToken);
                 return oSubquery;
             }
 

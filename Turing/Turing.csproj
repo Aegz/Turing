@@ -61,10 +61,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Syntax\Collections\SyntaxTokenList.cs" />
     <Compile Include="Syntax\Constructs\ExceptionSyntaxNode.cs" />
-    <Compile Include="Syntax\Constructs\Expressions\BinaryExpression.cs" />
-    <Compile Include="Syntax\Constructs\Expressions\ExpressionSyntaxNode.cs" />
-    <Compile Include="Syntax\Constructs\Expressions\UnaryExpression.cs" />
-    <Compile Include="Syntax\Constructs\Keywords\JoinSyntaxNode.cs" />
     <Compile Include="Syntax\Constructs\StatementSyntaxNode.cs" />
     <Compile Include="Syntax\Constructs\QuerySyntaxNode.cs" />
     <Compile Include="Syntax\Constructs\Symbols\Collections\SymbolList.cs" />

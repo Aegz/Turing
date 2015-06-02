@@ -176,7 +176,7 @@ namespace NetezzaParseTests
             Assert.AreEqual(oTemp.GetType(), typeof(QuerySyntaxNode));
 
             // Test that a subquery type node was built
-            SyntaxNode oSubQuery = oTemp.FindFirst(SyntaxKind.OpenParenthesisToken);
+            SyntaxNode oSubQuery = oTemp.FindFirst(SyntaxKind.IdentifierSubQuerySymbol);
             Assert.AreNotEqual(oSubQuery, null);
 
             // Test that there is a select keyword in that subquery
@@ -260,15 +260,15 @@ namespace NetezzaParseTests
 
             SyntaxNode oLeftJoin = oFrom.Children[0];
             Assert.AreEqual(oLeftJoin.ExpectedType, SyntaxKind.LeftJoinKeyword);
-            Assert.AreEqual(oLeftJoin.Children[1].ExpectedType, SyntaxKind.IdentifierToken);
+            Assert.AreEqual(oLeftJoin.Children[1].ExpectedType, SyntaxKind.IdentifierDatabaseSymbol);
 
             SyntaxNode oInnerJoin = oLeftJoin.Children[0];
             Assert.AreEqual(oInnerJoin.ExpectedType, SyntaxKind.InnerJoinKeyword);
             
 
             // test children are correct
-            Assert.AreEqual(oInnerJoin.Children[0].ExpectedType, SyntaxKind.IdentifierToken);
-            Assert.AreEqual(oInnerJoin.Children[1].ExpectedType, SyntaxKind.OpenParenthesisToken);
+            Assert.AreEqual(oInnerJoin.Children[0].ExpectedType, SyntaxKind.IdentifierDatabaseSymbol);
+            Assert.AreEqual(oInnerJoin.Children[1].ExpectedType, SyntaxKind.IdentifierSubQuerySymbol);
         }
 
         [TestMethod]
@@ -315,10 +315,10 @@ namespace NetezzaParseTests
             Assert.AreEqual(SyntaxKind.InnerJoinKeyword, oInnerJoin.ExpectedType);
             
             // test children are correct
-            Assert.AreEqual(SyntaxKind.IdentifierToken, oInnerJoin.Children[0].ExpectedType);
+            Assert.AreEqual(SyntaxKind.IdentifierDatabaseSymbol, oInnerJoin.Children[0].ExpectedType);
             Assert.AreEqual("svc", ((Symbol)oInnerJoin.Children[0]).Alias);
 
-            Assert.AreEqual(SyntaxKind.OpenParenthesisToken, oInnerJoin.Children[1].ExpectedType);
+            Assert.AreEqual(SyntaxKind.IdentifierSubQuerySymbol, oInnerJoin.Children[1].ExpectedType);
             Assert.AreEqual("omrbase", ((Symbol)oInnerJoin.Children[1]).Alias);
         }
 

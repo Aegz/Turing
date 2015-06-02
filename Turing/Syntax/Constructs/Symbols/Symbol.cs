@@ -61,6 +61,18 @@ namespace Turing.Syntax.Constructs.Symbols
         {
         }
 
+        public override string ToString()
+        {
+            if (SyntaxKindFacts.IsIdentifier(Parent.ExpectedType))
+            {
+                return base.ToString();
+            }
+            else
+            {
+                return base.ToString() + Alias;
+            }
+        }
+
         public String GetAlias()
         {
             return String.IsNullOrWhiteSpace(Alias) ? 
