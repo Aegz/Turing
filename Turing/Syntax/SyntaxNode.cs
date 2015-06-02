@@ -28,7 +28,7 @@ namespace Turing.Syntax
 
         protected SyntaxToken Token { get; set; }
 
-        public NodeStrategy oStrategy; // ?? TODO Change this to protected
+        protected NodeStrategy oStrategy; 
 
         //
         protected Boolean bHasConsumedNodes = false; // Tells you when it has actually built anything
@@ -91,6 +91,11 @@ namespace Turing.Syntax
 
         #region Core Consumption
 
+        public virtual CanConsumeResult CanConsumeNode(ParsingContext xoContext, Boolean xbIsPreconsumption = false)
+        {
+            return oStrategy.EligibilityFn(xoContext, xbIsPreconsumption);
+        }
+
         /// <summary>
         /// Allows this node to consume tokens from the given window
         /// </summary>
@@ -102,17 +107,17 @@ namespace Turing.Syntax
             while (true)
             {
                 // Generate a new context every time
-                ParsingContext oContext = new ParsingContext(this, xoList);
+                ParsingContext oContext = new ParsingContext(this, null, xoList);
 
                 // Call the Consumption fn
-                CanConsumeResult oResult = oStrategy.EligibilityFn(oContext);
+                CanConsumeResult oResult = oStrategy.EligibilityFn(oContext, false);
 
                 // Switch based on the result of the attempt
                 switch (oResult)
                 {
                     case CanConsumeResult.Consume:
-                        oContext.NewNode = oStrategy.TryConsumeNextFn(oContext);
-                        if (oStrategy.PostProcessFn(oContext))
+                        oContext.NewNode = oStrategy.TryConsumeNextFn(oContext, false);
+                        if (oStrategy.PostProcessFn(oContext, false))
                         {
                             // Set the variable once
                             if (!bHasConsumedNodes)

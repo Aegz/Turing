@@ -26,18 +26,18 @@ namespace Turing.Syntax.Strategies
         // To String (Just have the transformation stage handle this)
         // TryConsume Previous
 
-        public Func<ParsingContext, CanConsumeResult> EligibilityFn;
-        public Func<ParsingContext, SyntaxNode> TryConsumeNextFn;     // Consume Next Sibling
-        public Func<ParsingContext, Boolean> PostProcessFn;    // Add Etc
+        public Func<ParsingContext, Boolean, CanConsumeResult> EligibilityFn;
+        public Func<ParsingContext, Boolean, SyntaxNode> TryConsumeNextFn;     // Consume Next Sibling
+        public Func<ParsingContext, Boolean, Boolean> PostProcessFn;    // Add Etc
 
         public NodeStrategy()
         {
         }
 
         public NodeStrategy(
-                Func<ParsingContext, CanConsumeResult> xoEligibilityFn,
-                Func<ParsingContext, SyntaxNode> xoConsumeNext,
-                Func<ParsingContext, Boolean> xoPostProcessFn
+                Func<ParsingContext, Boolean, CanConsumeResult> xoEligibilityFn,
+                Func<ParsingContext, Boolean, SyntaxNode> xoConsumeNext,
+                Func<ParsingContext, Boolean, Boolean> xoPostProcessFn
             )
         {
             TryConsumeNextFn = xoConsumeNext;

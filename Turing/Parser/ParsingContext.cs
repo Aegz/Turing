@@ -14,10 +14,23 @@ namespace Turing.Parser
         public SyntaxNode NewNode;
         public SyntaxTokenList List;
 
-        public ParsingContext(SyntaxNode xoCurrentNode, SyntaxTokenList xoList)
+        public ParsingContext(SyntaxNode xoCurrentNode, SyntaxNode xoNewNode, SyntaxTokenList xoList)
         {
             CurrentNode = xoCurrentNode;
+            NewNode = xoNewNode;
             List = xoList;
+        }
+
+        public SyntaxKind NextItemKind()
+        {
+            if (NewNode != null)
+            {
+                return NewNode.ExpectedType;
+            }
+            else
+            {
+                return List.PeekToken().ExpectedType;
+            }
         }
     }
 }

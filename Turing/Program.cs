@@ -13,10 +13,16 @@ namespace Turing
                         SELECT  
                             col1, col2
                         FROM
-                        (
-                            SELECT * FROM FPC_SERVICE
-                        ) svc
-                        WHERE AND svc.SVC_STAT_CD <> 'C'   
+                            APMART_FPVIEWS..FPC_SERVICE svc  
+                        INNER JOIN
+                            (
+                                SELECT * FROM APSHARE_FP..WR02052_OMR_BASE 
+                            ) omrbase
+                        ON svc.SVC_IDNTY = omrbase.SVC_IDNTY 
+                        LEFT JOIN
+                            APSHARE_FP..WR02052_OM_REWARDS omr
+                        ON svc.SVC_IDNTY = omr.SVC_IDNTY AND
+                           svc.MKT_PROD_CD = 'MOB PT'   
                 ");
 
         static void Main(string[] args)
