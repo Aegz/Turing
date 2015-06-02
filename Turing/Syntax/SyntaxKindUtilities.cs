@@ -149,7 +149,13 @@ namespace Turing.Syntax
         private static Dictionary<SyntaxKind, String> SupplementaryConversions = new Dictionary<SyntaxKind, String>()
         {
             // Token Specific
-            { SyntaxKind.IdentifierToken, "Identifier Token"},
+            { SyntaxKind.IdentifierToken            , "Identifier Token"},
+            { SyntaxKind.IdentifierColumnSymbol     , "Column Identifier"},
+            { SyntaxKind.IdentifierTableSymbol      , "Table Identifier"},
+            { SyntaxKind.IdentifierSubQuerySymbol   , "SubQuery Identifier"},
+            { SyntaxKind.IdentifierSchemaSymbol     , "Schema Identifier"},
+            { SyntaxKind.IdentifierDatabaseSymbol   , "Database Identifier"},
+            
             { SyntaxKind.BooleanToken, "Boolean Token"},
             { SyntaxKind.NumericToken, "Numeric Token"},
             { SyntaxKind.LiteralToken, "Literal Token" },

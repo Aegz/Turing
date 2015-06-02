@@ -22,33 +22,33 @@ namespace Turing.Parser
         /// <summary>
         /// This only really happens with conjunctive operators (ie. +, -, AND, OR..)
         /// </summary>
-        /// <param name="xoCurrentNode"></param>
-        /// <param name="xoList"></param>
-        public static void HandlePreconsumptionError (SyntaxNode xoCurrentNode, SyntaxTokenList xoList)
+        /// <param name="xoContext.CurrentNode"></param>
+        /// <param name="xoContext.List"></param>
+        public static void HandlePreconsumptionError(ParsingContext xoContext)
         {
             // Its good to know whats next
             SyntaxKind eNextTokenKind = SyntaxKind.UnknownNode;
 
             // If we have an arithmatic operator, we know we need the types to match
-            if (SyntaxKindFacts.IsArithmaticOperator(xoCurrentNode.ExpectedType) ||
-                SyntaxKindFacts.IsConditionalOperator(xoCurrentNode.ExpectedType))
+            if (SyntaxKindFacts.IsArithmaticOperator(xoContext.CurrentNode.ExpectedType) ||
+                SyntaxKindFacts.IsConditionalOperator(xoContext.CurrentNode.ExpectedType))
             {
                 // 
-                if (SyntaxKindFacts.IsLiteral(xoList.PeekToken().ExpectedType))
+                if (SyntaxKindFacts.IsLiteral(xoContext.List.PeekToken().ExpectedType))
                 {
                     // Set the return kind
-                    eNextTokenKind = xoList.PeekToken().ExpectedType;
+                    eNextTokenKind = xoContext.List.PeekToken().ExpectedType;
                 }
             }
             // Conjunctive or Adjunct will not matter what types we have
-            else if (SyntaxKindFacts.IsAdjunctConditionalOperator(xoCurrentNode.ExpectedType))
+            else if (SyntaxKindFacts.IsAdjunctConditionalOperator(xoContext.CurrentNode.ExpectedType))
             {
                 // MUST BE BOOLEAN
                 eNextTokenKind = SyntaxKind.BooleanToken;
             }
 
             // Default to unknown
-            xoCurrentNode.AddChild(
+            xoContext.CurrentNode.AddChild(
                 new ExceptionSyntaxNode(
                     eNextTokenKind,
                     "Missing (" + SyntaxKindUtilities.GetStringFromKind(eNextTokenKind) + ")"));
@@ -57,29 +57,29 @@ namespace Turing.Parser
         /// <summary>
         /// This only really happens with conjunctive operators (ie. +, -, AND, OR..)
         /// </summary>
-        /// <param name="xoCurrentNode"></param>
-        /// <param name="xoList"></param>
-        public static void HandleIncompleteNode(SyntaxNode xoCurrentNode, SyntaxTokenList xoList)
+        /// <param name="xoContext.CurrentNode"></param>
+        /// <param name="xoContext.List"></param>
+        public static void HandleIncompleteNode(ParsingContext xoContext)
         {
             // Its good to know whats next
             SyntaxKind eNextTokenKind = SyntaxKind.UnknownNode;
 
             // If we have an arithmatic operator, we know we need the types to match
-            if (SyntaxKindFacts.IsArithmaticOperator(xoCurrentNode.ExpectedType) ||
-                SyntaxKindFacts.IsConditionalOperator(xoCurrentNode.ExpectedType))
+            if (SyntaxKindFacts.IsArithmaticOperator(xoContext.CurrentNode.ExpectedType) ||
+                SyntaxKindFacts.IsConditionalOperator(xoContext.CurrentNode.ExpectedType))
             {
                 // Only when we have children
-                if (xoCurrentNode.Children.Count > 0)
+                if (xoContext.CurrentNode.Children.Count > 0)
                 {
                     // Set the return kind
-                    eNextTokenKind = xoCurrentNode.Children[0].ExpectedType;
+                    eNextTokenKind = xoContext.CurrentNode.Children[0].ExpectedType;
                 }
             }
             // Boolean
             else if (
-                SyntaxKindFacts.IsAdjunctConditionalOperator(xoCurrentNode.ExpectedType) || // Conjunctive or Adjunct must have bool
-                xoCurrentNode.ExpectedType == SyntaxKind.WhereKeyword || // Where must be bool
-                xoCurrentNode.ExpectedType == SyntaxKind.OnKeyword  // On must be bool
+                SyntaxKindFacts.IsAdjunctConditionalOperator(xoContext.CurrentNode.ExpectedType) || // Conjunctive or Adjunct must have bool
+                xoContext.CurrentNode.ExpectedType == SyntaxKind.WhereKeyword || // Where must be bool
+                xoContext.CurrentNode.ExpectedType == SyntaxKind.OnKeyword  // On must be bool
                 )
             {
                 // MUST BE BOOLEAN
@@ -87,7 +87,7 @@ namespace Turing.Parser
             }
             // Identifier
             else if (
-                xoCurrentNode.ExpectedType == SyntaxKind.FromKeyword    // Table Missing
+                xoContext.CurrentNode.ExpectedType == SyntaxKind.FromKeyword    // Table Missing
                 )
             {
                 // MUST BE Identifier
@@ -95,7 +95,7 @@ namespace Turing.Parser
             }
 
             // Default to unknown
-            xoCurrentNode.AddChild(
+            xoContext.CurrentNode.AddChild(
                 new ExceptionSyntaxNode(
                     eNextTokenKind,
                     "Missing (" + SyntaxKindUtilities.GetStringFromKind(eNextTokenKind) + ")"));

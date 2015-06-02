@@ -21,22 +21,22 @@ namespace Turing.Syntax.Strategies
         public static readonly NodeStrategy NULL_STRATEGY = new NodeStrategy(
             NodeStrategyFactory.NullTwoArgument,
             NodeStrategyFactory.DefaultTryConsumeNext,
-            NodeStrategyFactory.NullThreeArgument); 
+            NodeStrategyFactory.NullThreeArgument);
 
         public static readonly NodeStrategy SYMBOL_LIST_STRATEGY = new NodeStrategy(
             NodeStrategyFactory.SymbolListCanConsumeNext,
             NodeStrategyFactory.SymbolListConsumeNext,
-            NodeStrategyFactory.DefaultAddChild); 
+            NodeStrategyFactory.DefaultAddChild);
 
         public static readonly NodeStrategy UNARY_EXPRESSION_STRATEGY = new NodeStrategy(
             NodeStrategyFactory.ExpressionCanConsumeNext,
             NodeStrategyFactory.DefaultTryConsumeNext,
-            NodeStrategyFactory.DefaultAddChild); 
+            NodeStrategyFactory.DefaultAddChild);
 
         public static readonly NodeStrategy FUNCTION_STRATEGY = new NodeStrategy(
             NodeStrategyFactory.FunctionCanConsumeNext,
             NodeStrategyFactory.DefaultTryConsumeNext,
-            NodeStrategyFactory.DefaultAddChild); 
+            NodeStrategyFactory.DefaultAddChild);
 
         #endregion
 
@@ -46,7 +46,7 @@ namespace Turing.Syntax.Strategies
         {
         };
 
-        public static NodeStrategy FactoryCreateStrategy (SyntaxKind xeKind)
+        public static NodeStrategy FactoryCreateStrategy(SyntaxKind xeKind)
         {
             if (dsStrategyCache.ContainsKey(xeKind))
             {
@@ -79,7 +79,7 @@ namespace Turing.Syntax.Strategies
 
                     case SyntaxKind.IdentifierToken:
                     case SyntaxKind.IdentifierColumnSymbol:
-                    case SyntaxKind.IdentifierTableSymbol:  
+                    case SyntaxKind.IdentifierTableSymbol:
                     case SyntaxKind.IdentifierSchemaSymbol:
                     case SyntaxKind.IdentifierDatabaseSymbol:
                         oReturnNode.EligibilityFn = IdentifierCanConsumeNext;
@@ -114,7 +114,7 @@ namespace Turing.Syntax.Strategies
                     case SyntaxKind.SlashToken:
                     #endregion
                     #region Functions
-                    
+
                     #endregion
 
                     case SyntaxKind.AndKeyword:
@@ -140,36 +140,36 @@ namespace Turing.Syntax.Strategies
         /// <summary>
         /// Generic Table Symbol Creation from an Identifier
         /// </summary>
-        /// <param name="xoCurrentNode"></param>
-        /// <param name="xoList"></param>
+        /// <param name="xoContext.CurrentNode"></param>
+        /// <param name="xoContext.List"></param>
         /// <returns></returns>
-        public static SyntaxNode TableSymbolConvertToken(SyntaxNode xoCurrentNode, SyntaxTokenList xoList)
+        public static SyntaxNode TableSymbolConvertToken(ParsingContext xoContext)
         {
-            SyntaxToken xoCurrentToken = xoList.PeekToken();
+            SyntaxToken xoCurrentToken = xoContext.List.PeekToken();
 
             // If we need to perform a context sensitive conversion
-            if (SyntaxKindFacts.IsIdentifier(xoCurrentToken.ExpectedType)) 
+            if (SyntaxKindFacts.IsIdentifier(xoCurrentToken.ExpectedType))
             {
-                return SyntaxNodeFactory.FactoryCreateTable(xoList);
+                return SyntaxNodeFactory.FactoryCreateTable(xoContext.List);
             }
             else
             {
                 // Everything else
-                return DefaultTryConsumeNext(xoCurrentNode, xoList);
+                return DefaultTryConsumeNext(xoContext);
             }
         }
 
         /// <summary>
         /// Used by WHERE and ON
         /// </summary>
-        /// <param name="xoCurrentNode"></param>
-        /// <param name="xoList"></param>
+        /// <param name="xoContext.CurrentNode"></param>
+        /// <param name="xoContext.List"></param>
         /// <returns></returns>
-        public static CanConsumeResult ExpressionCanConsumeNext(SyntaxNode xoCurrentNode, SyntaxTokenList xoList)
+        public static CanConsumeResult ExpressionCanConsumeNext(ParsingContext xoContext)
         {
-            SyntaxKind eKind = xoList.PeekToken().ExpectedType;
+            SyntaxKind eKind = xoContext.List.PeekToken().ExpectedType;
 
-            if(
+            if (
                 SyntaxKindFacts.IsIdentifierOrExpression(eKind) || // Identifiers and Expressions are allowed here
                 SyntaxKindFacts.IsAdjunctConditionalOperator(eKind) || // AND OR
                 SyntaxKindFacts.IsConditionalOperator(eKind) || // = >= IN
@@ -177,16 +177,16 @@ namespace Turing.Syntax.Strategies
                 SyntaxKindFacts.IsFunction(eKind) ||
                 SyntaxKindFacts.IsArithmaticOperator(eKind))
             {
-                return CanConsumeResult.Consume;
+                return CheckIfConsumptionIsAllowed(xoContext);
             }
 
 
-            CanConsumeResult eResult = DefaultCanConsumeNext(xoCurrentNode, xoList);
+            CanConsumeResult eResult = DefaultCanConsumeNext(xoContext);
 
             // Post execution check
-            if (eResult == CanConsumeResult.Complete && xoCurrentNode.Children.Count != 1)
+            if (eResult == CanConsumeResult.Complete && xoContext.CurrentNode.Children.Count != 1)
             {
-                ResolutionGenerator.HandleIncompleteNode(xoCurrentNode, xoList);
+                ResolutionGenerator.HandleIncompleteNode(xoContext);
             }
 
             return eResult;
@@ -196,9 +196,9 @@ namespace Turing.Syntax.Strategies
 
         #region Select
 
-        public static CanConsumeResult SelectCanConsumeNext(SyntaxNode xoCurrentNode, SyntaxTokenList xoList)
+        public static CanConsumeResult SelectCanConsumeNext(ParsingContext xoContext)
         {
-            SyntaxKind oKind = xoList.PeekToken().ExpectedType;
+            SyntaxKind oKind = xoContext.List.PeekToken().ExpectedType;
 
             if (
                 SyntaxKindFacts.IsIdentifierOrExpression(oKind) ||
@@ -206,16 +206,16 @@ namespace Turing.Syntax.Strategies
                 ((int)oKind >= (int)SyntaxKind.FromKeyword &&
                 (int)oKind <= (int)SyntaxKind.HavingKeyword))
             {
-                return CanConsumeResult.Consume;
+                return CheckIfConsumptionIsAllowed(xoContext);
             }
 
-            return DefaultCanConsumeNext(xoCurrentNode, xoList);
+            return DefaultCanConsumeNext(xoContext);
         }
 
-        public static SyntaxNode SelectConsumeNext(SyntaxNode xoCurrentNode, SyntaxTokenList xoList)
+        public static SyntaxNode SelectConsumeNext(ParsingContext xoContext)
         {
             // Build a Symbol Composite
-            SyntaxToken oCurrentToken = xoList.PeekToken();
+            SyntaxToken oCurrentToken = xoContext.List.PeekToken();
 
             // If we need to perform a context sensitive conversion
             if (SyntaxKindFacts.IsIdentifier(oCurrentToken.ExpectedType) ||
@@ -231,60 +231,45 @@ namespace Turing.Syntax.Strategies
             }
 
             // Default to using the original conversion
-            return DefaultTryConsumeNext(xoCurrentNode, xoList);
+            return DefaultTryConsumeNext(xoContext);
         }
 
         #endregion
 
         #region FROM
 
-        public static CanConsumeResult FromCanConsumeNext(SyntaxNode xoCurrentNode, SyntaxTokenList xoList)
+        public static CanConsumeResult FromCanConsumeNext(ParsingContext xoContext)
         {
-            SyntaxKind eKind = xoList.PeekToken().ExpectedType;
+            SyntaxKind eKind = xoContext.List.PeekToken().ExpectedType;
             if (SyntaxKindFacts.IsIdentifier(eKind) ||
                 SyntaxKindFacts.IsJoinKeyword(eKind))
             {
-                return CanConsumeResult.Consume;
+                return CheckIfConsumptionIsAllowed(xoContext);
             }
 
-            return DefaultCanConsumeNext(xoCurrentNode, xoList);                
+            return DefaultCanConsumeNext(xoContext);
         }
 
         #endregion
 
         #region JOIN/ON
 
-        public static CanConsumeResult JoinCanConsumeNext(SyntaxNode xoCurrentNode, SyntaxTokenList xoList)
+        public static CanConsumeResult JoinCanConsumeNext(ParsingContext xoContext)
         {
-            // If we need to preconsume
-            if (xoCurrentNode.Children.Count == 0)
-            {
-                // Consume the last sibling that fits the criteria
-                if (!xoCurrentNode.TryConsumePreviousSibling(
-                    (oKind) =>
-                        SyntaxKindFacts.IsIdentifier(oKind) || // Identifier/(Table)
-                        SyntaxKindFacts.IsJoinKeyword(oKind))
-                )
-                {
-                    // ERROR
-                    ResolutionGenerator.HandlePreconsumptionError(xoCurrentNode, xoList);
-                }
-            }
-
-            SyntaxKind eKind = xoList.PeekToken().ExpectedType;
+            SyntaxKind eKind = xoContext.List.PeekToken().ExpectedType;
 
             if (SyntaxKindFacts.IsIdentifier(eKind) ||
                 eKind == SyntaxKind.OnKeyword)
             {
-                return CanConsumeResult.Consume;
+                return CheckIfConsumptionIsAllowed(xoContext);
             }
 
-            CanConsumeResult eResult = DefaultCanConsumeNext(xoCurrentNode, xoList);
+            CanConsumeResult eResult = DefaultCanConsumeNext(xoContext);
 
             // Post execution check
-            if (eResult == CanConsumeResult.Complete && xoCurrentNode.Children.Count != 2)
+            if (eResult == CanConsumeResult.Complete && xoContext.CurrentNode.Children.Count != 2)
             {
-                ResolutionGenerator.HandleIncompleteNode(xoCurrentNode, xoList);
+                ResolutionGenerator.HandleIncompleteNode(xoContext);
             }
 
             return eResult;
@@ -294,28 +279,28 @@ namespace Turing.Syntax.Strategies
 
         #region SubQuery
 
-        public static CanConsumeResult SubQueryCanConsumeNext(SyntaxNode xoCurrentNode, SyntaxTokenList xoList)
+        public static CanConsumeResult SubQueryCanConsumeNext(ParsingContext xoContext)
         {
-            SyntaxKind oKind = xoList.PeekToken().ExpectedType;
+            SyntaxKind oKind = xoContext.List.PeekToken().ExpectedType;
 
             // If we get a closing parenthesis
-            if (xoCurrentNode.ExpectedType == SyntaxKind.IdentifierSubQuerySymbol &&
+            if (xoContext.CurrentNode.ExpectedType == SyntaxKind.IdentifierSubQuerySymbol &&
                 oKind == SyntaxKind.CloseParenthesisToken)
             {
-                xoList.PopToken();
+                xoContext.List.PopToken();
 
                 // Just add an Alias
-                ((Symbol)xoCurrentNode).Alias = SyntaxNodeFactory.ScanAheadForAlias(xoList);
+                ((Symbol)xoContext.CurrentNode).Alias = SyntaxNodeFactory.ScanAheadForAlias(xoContext.List);
 
                 return CanConsumeResult.Complete;
             }
             else if (oKind == SyntaxKind.SelectKeyword)
             {
-                return CanConsumeResult.Consume;
+                return CheckIfConsumptionIsAllowed(xoContext);
             }
             else
             {
-                return DefaultCanConsumeNext(xoCurrentNode, xoList);
+                return DefaultCanConsumeNext(xoContext);
             }
         }
 
@@ -326,86 +311,71 @@ namespace Turing.Syntax.Strategies
         /// <summary>
         /// Finish up as soon as we come across a Close Parenthesis
         /// </summary>
-        /// <param name="xoList"></param>
+        /// <param name="xoContext.List"></param>
         /// <returns></returns>
-        public static CanConsumeResult FunctionCanConsumeNext(SyntaxNode xoCurrentNode, SyntaxTokenList xoList)
+        public static CanConsumeResult FunctionCanConsumeNext(ParsingContext xoContext)
         {
-            SyntaxKind eKind = xoList.PeekToken().ExpectedType;
+            SyntaxKind eKind = xoContext.List.PeekToken().ExpectedType;
+
             // If we get a closing parenthesis in a function
             if (eKind == SyntaxKind.CloseParenthesisToken)
             {
                 // Drop it and complete the Function
-                xoList.PopToken();
+                xoContext.List.PopToken();
                 return CanConsumeResult.Complete;
             }
             else if (SyntaxKindFacts.IsIdentifierOrExpression(eKind) ||
                 eKind == SyntaxKind.StarToken)
             {
-                return CanConsumeResult.Consume;
+                return CheckIfConsumptionIsAllowed(xoContext);
             }
 
-            return DefaultCanConsumeNext(xoCurrentNode, xoList);
+            return DefaultCanConsumeNext(xoContext);
         }
 
         #endregion
 
         #region Expressions
 
-        public static CanConsumeResult BinaryExpressionCanConsumeNext(SyntaxNode xoCurrentNode, SyntaxTokenList xoList)
-        { 
-            // If we need to preconsume
-            if (xoCurrentNode.Children.Count == 0)
-            {
-                // Consume the last sibling that fits the criteria
-                if (!xoCurrentNode.TryConsumePreviousSibling(
-                (oKind) =>
-                    SyntaxKindFacts.IsConditionalOperator(oKind) ||         // conditional operators ==, >=
-                    SyntaxKindFacts.IsAdjunctConditionalOperator(oKind) ||  // and/or 
-                    SyntaxKindFacts.IsIdentifierOrExpression(oKind)         // Expressions
-                ))
-                {
-                    // Error
-                    ResolutionGenerator.HandlePreconsumptionError(xoCurrentNode, xoList);
-                }
-            }
-
+        public static CanConsumeResult BinaryExpressionCanConsumeNext(ParsingContext xoContext)
+        {
             // Intermediate var
-            SyntaxKind eKind = xoList.PeekToken().ExpectedType;
+            SyntaxKind eKind = xoContext.List.PeekToken().ExpectedType;
 
             // If we have something we are actually allowed to consume
             if (
                 SyntaxKindFacts.IsIdentifierOrExpression(eKind) || // Identifiers and Expressions are allowed here
-                //SyntaxKindFacts.IsAdjunctConditionalOperator(eKind) || // AND OR
+                                                                   //SyntaxKindFacts.IsAdjunctConditionalOperator(eKind) || // AND OR
                 SyntaxKindFacts.IsConditionalOperator(eKind) || // = >= IN
                 SyntaxKindFacts.IsUnaryOperator(eKind) || // NOT
                 SyntaxKindFacts.IsArithmaticOperator(eKind))
             {
-                return CanConsumeResult.Consume;
+                return CheckIfConsumptionIsAllowed(xoContext);
             }
 
-            CanConsumeResult eResult = DefaultCanConsumeNext(xoCurrentNode, xoList);
+            CanConsumeResult eResult = DefaultCanConsumeNext(xoContext);
 
             // Post execution check
-            if (eResult == CanConsumeResult.Complete && xoCurrentNode.Children.Count != 2)
+            if (eResult == CanConsumeResult.Complete && xoContext.CurrentNode.Children.Count != 2)
             {
-                ResolutionGenerator.HandleIncompleteNode(xoCurrentNode, xoList);
+                ResolutionGenerator.HandleIncompleteNode(xoContext);
             }
 
             return eResult;
         }
 
-    
-        public static SyntaxNode ExpressionConvertToken(SyntaxNode xoCurrentNode, SyntaxTokenList xoList)
+
+        public static SyntaxNode ExpressionConvertToken(ParsingContext xoContext)
         {
-            if (xoList.PeekToken().ExpectedType == SyntaxKind.OpenParenthesisToken)
+            if (xoContext.List.PeekToken().ExpectedType == SyntaxKind.OpenParenthesisToken)
             {
                 // Create a unary expression
-                return new SyntaxNode(xoList.PopToken(), NodeStrategyFactory.UNARY_EXPRESSION_STRATEGY); // UnaryExpression;);
+                return new SyntaxNode(xoContext.List.PopToken(), NodeStrategyFactory.UNARY_EXPRESSION_STRATEGY); // UnaryExpression;);
             }
             else
             {
                 // Let the base conversion figure out what it is
-                return DefaultTryConsumeNext(xoCurrentNode, xoList);
+                return DefaultTryConsumeNext(xoContext);
             }
         }
 
@@ -413,15 +383,15 @@ namespace Turing.Syntax.Strategies
 
         #region SymbolList
 
-        public static CanConsumeResult SymbolListCanConsumeNext(SyntaxNode xoCurrentNode, SyntaxTokenList xoList)
+        public static CanConsumeResult SymbolListCanConsumeNext(ParsingContext xoContext)
         {
             // Intermediate var
-            SyntaxKind oKind = xoList.PeekToken().ExpectedType;
+            SyntaxKind oKind = xoContext.List.PeekToken().ExpectedType;
 
             // If we get a comma, just drop it
             if (oKind == SyntaxKind.CommaToken)
             {
-                xoList.PopToken();
+                xoContext.List.PopToken();
                 return CanConsumeResult.Skip;
             }
             else if (
@@ -430,24 +400,24 @@ namespace Turing.Syntax.Strategies
                 oKind == SyntaxKind.StarToken ||
                 SyntaxKindFacts.IsArithmaticOperator(oKind))
             {
-                return CanConsumeResult.Consume;
+                return CheckIfConsumptionIsAllowed(xoContext);
             }
 
             // Try convert
-            return DefaultCanConsumeNext(xoCurrentNode, xoList);
+            return DefaultCanConsumeNext(xoContext);
         }
 
 
-        public static SyntaxNode SymbolListConsumeNext(SyntaxNode xoCurrentNode, SyntaxTokenList xoList)
+        public static SyntaxNode SymbolListConsumeNext(ParsingContext xoContext)
         {
-            if (SyntaxKindFacts.IsLiteral(xoList.PeekToken().ExpectedType))
+            if (SyntaxKindFacts.IsLiteral(xoContext.List.PeekToken().ExpectedType))
             {
-                return SyntaxNodeFactory.FactoryCreateColumn(xoList);
+                return SyntaxNodeFactory.FactoryCreateColumn(xoContext.List);
             }
             else
             {
                 // Let the base conversion figure out what it is
-                return DefaultTryConsumeNext(xoCurrentNode, xoList);
+                return DefaultTryConsumeNext(xoContext);
             }
         }
 
@@ -456,7 +426,7 @@ namespace Turing.Syntax.Strategies
 
         #region Identifier
 
-        public static CanConsumeResult IdentifierCanConsumeNext(SyntaxNode xoCurrentNode, SyntaxTokenList xoList)
+        public static CanConsumeResult IdentifierCanConsumeNext(ParsingContext xoContext)
         {
             return CanConsumeResult.Complete;
         }
@@ -469,24 +439,26 @@ namespace Turing.Syntax.Strategies
         /// Returns true if the next node is something this node can interpret
         /// and returns false if it cannot do anything with the next node
         /// </summary>
-        /// <param name="xoList"></param>
+        /// <param name="xoContext.List"></param>
         /// <returns></returns>
-        public static CanConsumeResult DefaultCanConsumeNext(SyntaxNode xoCurrentNode, SyntaxTokenList xoList)
+        public static CanConsumeResult DefaultCanConsumeNext(ParsingContext xoContext)
         {
             // If we have a Open parenthesis starting node
             // And we just found a closing Token
-            if (xoCurrentNode.ExpectedType == SyntaxKind.OpenParenthesisToken &&
-                xoList.PeekToken().ExpectedType == SyntaxKind.CloseParenthesisToken)
+            if (xoContext.CurrentNode.ExpectedType == SyntaxKind.OpenParenthesisToken &&
+                xoContext.List.PeekToken().ExpectedType == SyntaxKind.CloseParenthesisToken)
             {
-                xoList.PopToken();
+                xoContext.List.PopToken();
 
                 // If there is an issue, handle it appropriately
-                //ResolutionGenerator.Parenthesis(xoCurrentNode);
+                //ResolutionGenerator.Parenthesis(xoContext.CurrentNode);
 
                 return CanConsumeResult.Complete;
             }
-            // Terminate if we find an eof of any sort
-            else if (SyntaxKindFacts.IsTerminatingNode(xoList.PeekToken().ExpectedType))
+            // Terminate if we find an eof of any sort or we are full
+            else if (
+                SyntaxKindFacts.IsTerminatingNode(xoContext.List.PeekToken().ExpectedType)
+                )
             {
                 return CanConsumeResult.Complete;
             }
@@ -497,16 +469,32 @@ namespace Turing.Syntax.Strategies
             }
         }
 
-   
+        /// <summary>
+        /// Before returning a Consume result, we should do a few more checks
+        /// </summary>
+        /// <param name="xoContext.CurrentNode"></param>
+        /// <param name="xoContext.List"></param>
+        /// <returns></returns>
+        public static CanConsumeResult CheckIfConsumptionIsAllowed(ParsingContext xoContext)
+        {
+            //if (xoContext.CurrentNode.IsFull() && // if the node is full, we just cant consume
+            //    !SyntaxKindFacts.IsBinaryConstruct(xoContext.List.PeekToken().ExpectedType)) // If it isn't a binary construct
+            //{
+            //    return CanConsumeResult.Complete;
+            //}
+
+            return CanConsumeResult.Consume;
+        }
+
         /// <summary>
         /// Provides context sensitive generation of a new Node
         /// </summary>
-        /// <param name="xoCurrentNode"></param>
-        /// <param name="xoList"></param>
+        /// <param name="xoContext.CurrentNode"></param>
+        /// <param name="xoContext.List"></param>
         /// <returns></returns>
-        public static SyntaxNode DefaultTryConsumeNext(SyntaxNode xoCurrentNode, SyntaxTokenList xoList)
+        public static SyntaxNode DefaultTryConsumeNext(ParsingContext xoContext)
         {
-            return SyntaxNodeFactory.ContextSensitiveConvertTokenToNode(xoCurrentNode, xoList);
+            return SyntaxNodeFactory.ContextSensitiveConvertTokenToNode(xoContext.CurrentNode, xoContext.List);
         }
 
         /// <summary>
@@ -514,32 +502,65 @@ namespace Turing.Syntax.Strategies
         /// done immediately after a node is constructed
         /// </summary>
         /// <param name="xoNode"></param>
-        /// <param name="xoList"></param>
+        /// <param name="xoContext.List"></param>
         /// <returns></returns>
-        public static Boolean DefaultAddChild(SyntaxNode xoCurrentNode, SyntaxNode xoNode, SyntaxTokenList xoList)
+        public static Boolean DefaultAddChild(ParsingContext xoContext)
         {
-            // Consume Sibling here
+            SyntaxNode oNewNode = xoContext.NewNode;
 
-            // Add the child to this nodes children
-            if (xoCurrentNode.AddChild(xoNode))
+            // Do preconsumption here
+            if (SyntaxKindFacts.IsBinaryConstruct(oNewNode.ExpectedType))
             {
+                // If there is nothing to preconsume
+                if (xoContext.CurrentNode.Children.Count == 0)
+                {
+                    // Else we have an error to fix
+                    ResolutionGenerator.HandlePreconsumptionError(new ParsingContext(oNewNode, xoContext.List));
+                }
+                // If there is something to preconsume
+                else
+                {
+                    int iSiblingPosition = xoContext.CurrentNode.Children.Count - 1;
+                    SyntaxNode oPrevSibling = xoContext.CurrentNode.Children[iSiblingPosition];
+                    
+                    // Check the eligibility of the previous node
+                    CanConsumeResult eEligibility = oNewNode.oStrategy.EligibilityFn(
+                        new ParsingContext(oPrevSibling, xoContext.List));
+
+                    if (eEligibility == CanConsumeResult.Consume)
+                    {
+                        // Assign the parent 
+                        oNewNode.Parent = xoContext.CurrentNode;
+
+                        // Pull off the last node from the parent
+                        oNewNode.AddChild(oPrevSibling);
+
+                        // Remove it too
+                        xoContext.CurrentNode.Children.RemoveAt(iSiblingPosition);
+                    }
+                    else
+                    {
+                        // Else we have an error to fix
+                        ResolutionGenerator.HandlePreconsumptionError(new ParsingContext(oNewNode, xoContext.List));
+                    }
+                }
+            }
+
+            // If it is full
+            if (xoContext.CurrentNode.IsFull())
+            {
+                return false;
+            }
+            else
+            {
+                // Add the child
+                xoContext.CurrentNode.AddChild(oNewNode);
                 // 2. Depth first traversal from the child
-                if (xoNode.TryConsumeList(xoList))
+                if (oNewNode.TryConsumeList(xoContext.List))
                 {
                     // If it successfully consumed something
                 }
                 return true;
-            }
-            else
-            {
-                // Could not add node, add a message
-                xoCurrentNode.Comments.Add(ErrorMessageLibrary.GetErrorMessage(
-                    8010, 
-                    ReasonMessageLibrary.GetReasonMessage(8010),
-                    xoCurrentNode.RawSQLText,
-                    xoNode.RawSQLText));
-
-                return false;
             }
         }
 
@@ -547,18 +568,18 @@ namespace Turing.Syntax.Strategies
 
         #region Null Methods
 
-        public static CanConsumeResult NullTwoArgument(SyntaxNode xoCurrentNode, SyntaxTokenList xoList)
+        public static CanConsumeResult NullTwoArgument(ParsingContext xoContext)
         {
             return CanConsumeResult.Complete;
         }
-    
-        public static Boolean NullThreeArgument(SyntaxNode xoCurrentNode, SyntaxNode xoNewNode, SyntaxTokenList xoList)
+
+        public static Boolean NullThreeArgument(ParsingContext xoContext)
         {
             return false;
         }
 
         #endregion
-        
+
         #endregion Node Methods
     }
 }

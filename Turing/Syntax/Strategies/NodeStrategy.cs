@@ -1,6 +1,7 @@
 ﻿using System;
 using Turing.Diagnostics;
 using Turing.Factories;
+using Turing.Parser;
 using Turing.Syntax.Collections;
 
 
@@ -25,18 +26,18 @@ namespace Turing.Syntax.Strategies
         // To String (Just have the transformation stage handle this)
         // TryConsume Previous
 
-        public Func<SyntaxNode, SyntaxTokenList, CanConsumeResult> EligibilityFn;
-        public Func<SyntaxNode, SyntaxTokenList, SyntaxNode> TryConsumeNextFn;     // Consume Next Sibling
-        public Func<SyntaxNode, SyntaxNode, SyntaxTokenList, Boolean> PostProcessFn;    // Add Etc
+        public Func<ParsingContext, CanConsumeResult> EligibilityFn;
+        public Func<ParsingContext, SyntaxNode> TryConsumeNextFn;     // Consume Next Sibling
+        public Func<ParsingContext, Boolean> PostProcessFn;    // Add Etc
 
         public NodeStrategy()
         {
         }
 
         public NodeStrategy(
-                Func<SyntaxNode, SyntaxTokenList, CanConsumeResult> xoEligibilityFn,
-                Func<SyntaxNode, SyntaxTokenList, SyntaxNode> xoConsumeNext,
-                Func<SyntaxNode, SyntaxNode, SyntaxTokenList, Boolean> xoPostProcessFn
+                Func<ParsingContext, CanConsumeResult> xoEligibilityFn,
+                Func<ParsingContext, SyntaxNode> xoConsumeNext,
+                Func<ParsingContext, Boolean> xoPostProcessFn
             )
         {
             TryConsumeNextFn = xoConsumeNext;

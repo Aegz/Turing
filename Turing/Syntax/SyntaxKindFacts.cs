@@ -68,6 +68,14 @@ namespace Turing.Syntax
                 xeKind == SyntaxKind.SlashToken;
         }
 
+        public static Boolean IsBinaryConstruct(SyntaxKind xeKind)
+        {
+            return
+                IsArithmaticOperator(xeKind) ||
+                IsConditionalOperator(xeKind) ||
+                IsJoinKeyword(xeKind) ||
+                IsAdjunctConditionalOperator(xeKind);
+        }
 
 
         public static Boolean IsIdentifier(SyntaxKind xeKind)

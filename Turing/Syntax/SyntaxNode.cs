@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Turing.Diagnostics;
+using Turing.Parser;
 using Turing.Syntax.Collections;
 using Turing.Syntax.Strategies;
 
@@ -27,7 +28,7 @@ namespace Turing.Syntax
 
         protected SyntaxToken Token { get; set; }
 
-        protected NodeStrategy oStrategy;
+        public NodeStrategy oStrategy; // ?? TODO Change this to protected
 
         //
         protected Boolean bHasConsumedNodes = false; // Tells you when it has actually built anything
@@ -54,17 +55,6 @@ namespace Turing.Syntax
 
         public virtual Boolean AddChild(SyntaxNode xoGiven)
         {
-            // If there is a restriction
-            if (iMaxChildCount != -1)
-            {
-                // Check how many children we have
-                if (Children.Count >= iMaxChildCount)
-                {
-                    // Do not add it
-                    return false;
-                }
-            }
-
             // Add it
             Children.Add(xoGiven);
 
@@ -73,6 +63,11 @@ namespace Turing.Syntax
 
             // Default to true
             return true;
+        }
+
+        public virtual Boolean IsFull()
+        {
+            return Children.Count == iMaxChildCount;
         }
 
         #endregion
@@ -85,9 +80,9 @@ namespace Turing.Syntax
 
         public SyntaxNode(SyntaxToken xoToken, NodeStrategy xoStrategy, int xiMaxChildCount = -1)
         {
+            iMaxChildCount = xiMaxChildCount;
             Token = xoToken;
             Comments = new List<StatusItem>();
-
             oStrategy = xoStrategy;
         }
 
@@ -106,15 +101,18 @@ namespace Turing.Syntax
             // Until we break
             while (true)
             {
+                // Generate a new context every time
+                ParsingContext oContext = new ParsingContext(this, xoList);
+
                 // Call the Consumption fn
-                CanConsumeResult oResult = oStrategy.EligibilityFn(this, xoList);
+                CanConsumeResult oResult = oStrategy.EligibilityFn(oContext);
 
                 // Switch based on the result of the attempt
                 switch (oResult)
                 {
                     case CanConsumeResult.Consume:
-                        SyntaxNode oNewNode = oStrategy.TryConsumeNextFn(this, xoList);
-                        if (oStrategy.PostProcessFn(this, oNewNode, xoList))
+                        oContext.NewNode = oStrategy.TryConsumeNextFn(oContext);
+                        if (oStrategy.PostProcessFn(oContext))
                         {
                             // Set the variable once
                             if (!bHasConsumedNodes)

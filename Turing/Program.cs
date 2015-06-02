@@ -16,7 +16,7 @@ namespace Turing
                         (
                             SELECT * FROM FPC_SERVICE
                         ) svc
-                        WHERE
+                        WHERE AND svc.SVC_STAT_CD <> 'C'   
                 ");
 
         static void Main(string[] args)
