@@ -128,12 +128,8 @@ namespace Turing.Syntax
                         break;
                     case CanConsumeResult.Complete:
                         return bHasConsumedNodes;
-                }                    
-                
+                }                           
             }
-
-            // Default to true
-            return bHasConsumedNodes;
         }
 
         #endregion

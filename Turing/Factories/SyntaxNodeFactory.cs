@@ -4,7 +4,6 @@ using Turing.Syntax;
 using Turing.Syntax.Collections;
 using Turing.Syntax.Constructs;
 using Turing.Syntax.Constructs.Symbols;
-using Turing.Syntax.Constructs.Symbols.Collections;
 using Turing.Syntax.Strategies;
 
 namespace Turing.Factories
@@ -21,22 +20,12 @@ namespace Turing.Factories
         public static SyntaxNode ContextSensitiveConvertTokenToNode(SyntaxNode xoCurrentNode, SyntaxTokenList xoList)
         {
             SyntaxKind eNextTokenKind = xoList.PeekToken().ExpectedType;
+
             // Is any identifier or Expression (function/literal)
-            if (SyntaxKindFacts.IsFunction(xoList.PeekToken().ExpectedType))
+            if (SyntaxKindFacts.IsFunction(eNextTokenKind))
             {
                 // COUNT (*)
                 return FactoryCreateColumnExpr(xoList);
-            }
-            // If we know we have an identifier
-            else if (
-                eNextTokenKind == SyntaxKind.IdentifierToken ||
-                eNextTokenKind == SyntaxKind.IdentifierDatabaseSymbol ||
-                eNextTokenKind == SyntaxKind.IdentifierSchemaSymbol ||
-                eNextTokenKind == SyntaxKind.IdentifierTableSymbol ||
-                eNextTokenKind == SyntaxKind.IdentifierColumnSymbol)
-            {
-                // Purely an identifier
-                return FactoryCreateColumn(xoList);
             }
 
             switch (eNextTokenKind)
@@ -55,8 +44,7 @@ namespace Turing.Factories
                         NodeStrategyFactory.FactoryCreateStrategy(xoList.PopToken().ExpectedType), 
                         1); // Can only have 1 child
 
-
-                #region Conditional Expressions
+                #region Operators
 
                 case SyntaxKind.EqualsToken:
                 case SyntaxKind.GreaterThanOrEqualToken:
@@ -66,9 +54,6 @@ namespace Turing.Factories
                 case SyntaxKind.DiamondToken:
                 case SyntaxKind.AndKeyword:
                 case SyntaxKind.OrKeyword:
-
-                #endregion
-                #region Arithmatic Operators
 
                 case SyntaxKind.PlusToken:
                 case SyntaxKind.MinusToken:
@@ -95,7 +80,6 @@ namespace Turing.Factories
 
                 #endregion
 
-
                 #region JOIN
                 case SyntaxKind.JoinKeyword:
                     // All Join nodes on their own become Inner joins
@@ -111,6 +95,16 @@ namespace Turing.Factories
                 case SyntaxKind.RightJoinKeyword:
                 case SyntaxKind.CrossJoinKeyword:
                     return FactoryCreateCompoundJoin(xoList);
+                #endregion
+
+                #region Identifier
+                case SyntaxKind.IdentifierToken:
+                case SyntaxKind.IdentifierDatabaseSymbol:
+                case SyntaxKind.IdentifierSchemaSymbol:
+                case SyntaxKind.IdentifierTableSymbol:
+                case SyntaxKind.IdentifierColumnSymbol:
+                    // Purely an identifier
+                    return FactoryCreateColumn(xoList);
                 #endregion
 
                 case SyntaxKind.OpenParenthesisToken:
@@ -236,11 +230,6 @@ namespace Turing.Factories
                 }
             }
 
-
-            // Have the child consume?
-            //oReturn.TryConsumeList(xoList);
-            // Skip it
-            //xoList.PopToken();
             return oReturn;
         }
 
@@ -290,27 +279,15 @@ namespace Turing.Factories
                 iTableLocation = 0;
             }
 
-            oDatabase =
-                iTableLocation != 0 ? // Theres no database decl or schema decl
-                new Symbol(new SyntaxToken(SyntaxKind.IdentifierDatabaseSymbol, xoCurrentToken.RawSQLText)) :
-                new Symbol(new SyntaxToken(SyntaxKind.IdentifierDatabaseSymbol, String.Empty));
+            oDatabase = new Symbol(new SyntaxToken(SyntaxKind.IdentifierDatabaseSymbol, 
+                iTableLocation != 0 ? xoCurrentToken.RawSQLText : String.Empty));
 
             // Generate the Schema Node
-            oSchema = iSchemaLocation != -1 ?
-                // Type Check
-                xoList.PeekToken(iSchemaLocation).ExpectedType == SyntaxKind.IdentifierToken ?
-                    new Symbol(new SyntaxToken(SyntaxKind.IdentifierSchemaSymbol, xoList.PeekToken(iSchemaLocation).RawSQLText)) :
-                    FactoryCreateExpectingButFoundNode(
-                        "SchemaIdn", xoList.PeekToken(iSchemaLocation).RawSQLText)
-                :
-                new Symbol(new SyntaxToken(SyntaxKind.IdentifierSchemaSymbol, String.Empty));
+            oSchema = new Symbol(new SyntaxToken(SyntaxKind.IdentifierSchemaSymbol, 
+                    iSchemaLocation != -1 ? xoList.PeekToken(iSchemaLocation).RawSQLText : String.Empty));
 
             SyntaxToken oTableToken = xoList.PeekToken(iTableLocation);
-            oTable = 
-                // Type check
-                oTableToken.ExpectedType == SyntaxKind.IdentifierToken ?
-                    new Symbol(new SyntaxToken(SyntaxKind.IdentifierTableSymbol, oTableToken.RawSQLText)) :
-                    FactoryCreateExpectingButFoundNode("TableIdn", oTableToken.RawSQLText);
+            oTable = new Symbol(new SyntaxToken(SyntaxKind.IdentifierTableSymbol, oTableToken.RawSQLText));
 
             // create the decorator obj
             oSchema.AddChild(oTable);
@@ -423,8 +400,6 @@ namespace Turing.Factories
             return oTemp;
         }
 
-
-
         #endregion
 
         #region Exception Specific Nodes
@@ -432,7 +407,7 @@ namespace Turing.Factories
         public static SyntaxNode FactoryCreateExpectingButFoundNode(String xsExpected, String xsRawSQL)
         {
             // Error
-            SyntaxNode oError = new ExceptionSyntaxNode(xsRawSQL);
+            SyntaxNode oError = new ExceptionSyntaxNode(SyntaxKind.IdentifierToken, xsRawSQL);
             oError.Comments.Add(ErrorMessageLibrary.GetErrorMessage(8000, xsExpected, xsRawSQL));
             return oError;
         }

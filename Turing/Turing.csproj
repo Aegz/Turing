@@ -63,7 +63,7 @@
     <Compile Include="Syntax\Constructs\ExceptionSyntaxNode.cs" />
     <Compile Include="Syntax\Constructs\StatementSyntaxNode.cs" />
     <Compile Include="Syntax\Constructs\QuerySyntaxNode.cs" />
-    <Compile Include="Syntax\Constructs\Symbols\Collections\SymbolList.cs" />
+    <Compile Include="Syntax\Constructs\Symbols\SymbolList.cs" />
     <Compile Include="Syntax\Constructs\Symbols\NullSymbol.cs" />
     <Compile Include="Syntax\Strategies\NodeStrategy.cs" />
     <Compile Include="Syntax\Strategies\NodeStrategyFactory.cs" />

@@ -5,7 +5,6 @@ using Turing.Factories;
 using Turing.Parser;
 using Turing.Syntax.Collections;
 using Turing.Syntax.Constructs.Symbols;
-using Turing.Syntax.Constructs.Symbols.Collections;
 
 namespace Turing.Syntax.Strategies
 {
@@ -27,27 +26,17 @@ namespace Turing.Syntax.Strategies
         public static readonly NodeStrategy SYMBOL_LIST_STRATEGY = new NodeStrategy(
             NodeStrategyFactory.SymbolListCanConsumeNext,
             NodeStrategyFactory.SymbolListConsumeNext,
-            NodeStrategyFactory.DefaultAddChild); // Default
-
-        public static readonly NodeStrategy BINARY_EXPRESSION_STRATEGY = new NodeStrategy(
-            NodeStrategyFactory.BinaryExpressionCanConsumeNext,
-            NodeStrategyFactory.DefaultTryConsumeNext,
-            NodeStrategyFactory.DefaultAddChild); // Default
+            NodeStrategyFactory.DefaultAddChild); 
 
         public static readonly NodeStrategy UNARY_EXPRESSION_STRATEGY = new NodeStrategy(
             NodeStrategyFactory.ExpressionCanConsumeNext,
             NodeStrategyFactory.DefaultTryConsumeNext,
-            NodeStrategyFactory.DefaultAddChild); // Default
-
-        public static readonly NodeStrategy JOIN_STRATEGY = new NodeStrategy(
-            NodeStrategyFactory.JoinCanConsumeNext,
-            NodeStrategyFactory.TableSymbolConvertToken,
-            NodeStrategyFactory.DefaultAddChild); // Default
+            NodeStrategyFactory.DefaultAddChild); 
 
         public static readonly NodeStrategy FUNCTION_STRATEGY = new NodeStrategy(
             NodeStrategyFactory.FunctionCanConsumeNext,
             NodeStrategyFactory.DefaultTryConsumeNext,
-            NodeStrategyFactory.DefaultAddChild); // Default
+            NodeStrategyFactory.DefaultAddChild); 
 
         #endregion
 
@@ -87,6 +76,7 @@ namespace Turing.Syntax.Strategies
                     case SyntaxKind.NotKeyword:
                         oReturnNode.EligibilityFn = ExpressionCanConsumeNext;
                         break;
+
                     case SyntaxKind.IdentifierToken:
                     case SyntaxKind.IdentifierColumnSymbol:
                     case SyntaxKind.IdentifierTableSymbol:  
@@ -97,6 +87,7 @@ namespace Turing.Syntax.Strategies
                     case SyntaxKind.IdentifierSubQuerySymbol:
                         oReturnNode.EligibilityFn = SubQueryCanConsumeNext;
                         break;
+
                     #region JOIN
                     case SyntaxKind.JoinKeyword:
                     case SyntaxKind.InnerJoinKeyword:

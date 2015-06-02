@@ -2,10 +2,8 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Turing.Syntax;
 using Turing.Parser;
-using System.Collections.Generic;
 using Turing.Lexer;
 using Turing.Syntax.Constructs;
-using Turing.Syntax.Constructs.Symbols.Collections;
 using Turing.Syntax.Constructs.Symbols;
 
 namespace NetezzaParseTests
