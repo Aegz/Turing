@@ -10,7 +10,7 @@ namespace NetezzaParseTests
     public class FunctionTests
     {
         [TestMethod]
-        public void MultipleFunctionInColumn()
+        public void ParseMultipleFunctionInColumn()
         {
             SlidingTextWindow oText = new SlidingTextWindow(
                 @"   
@@ -39,7 +39,7 @@ namespace NetezzaParseTests
         }
 
         [TestMethod]
-        public void SingleFunctionInColumn()
+        public void ParseSingleFunctionInColumn()
         {
             SlidingTextWindow oText = new SlidingTextWindow(
                 @"   
@@ -67,7 +67,7 @@ namespace NetezzaParseTests
 
 
         [TestMethod]
-        public void SingleFunctionInWhere()
+        public void ParseSingleFunctionInWhere()
         {
             SlidingTextWindow oText = new SlidingTextWindow(
                 @"   
@@ -97,7 +97,7 @@ namespace NetezzaParseTests
         }
 
         [TestMethod]
-        public void MultipleFunctionInWhere()
+        public void ParseMultipleFunctionInWhere()
         {
             SlidingTextWindow oText = new SlidingTextWindow(
                 @"   
@@ -132,7 +132,7 @@ namespace NetezzaParseTests
 
 
         [TestMethod]
-        public void SingleFunctionInOn()
+        public void ParseSingleFunctionInOn()
         {
             SlidingTextWindow oText = new SlidingTextWindow(
                 @"   
@@ -165,7 +165,7 @@ namespace NetezzaParseTests
         }
 
         [TestMethod]
-        public void MultipleFunctionInOn()
+        public void ParseMultipleFunctionInOn()
         {
             SlidingTextWindow oText = new SlidingTextWindow(
                 @"   

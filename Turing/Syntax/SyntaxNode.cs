@@ -55,6 +55,12 @@ namespace Turing.Syntax
 
         public virtual Boolean AddChild(SyntaxNode xoGiven)
         {
+            // Dont add if we are full up
+            if (IsFull())
+            {
+                return false;
+            }
+
             // Add it
             Children.Add(xoGiven);
 
@@ -110,10 +116,10 @@ namespace Turing.Syntax
                 ParsingContext oContext = new ParsingContext(this, null, xoList);
 
                 // Call the Consumption fn
-                CanConsumeResult oResult = oStrategy.EligibilityFn(oContext, false);
+                CanConsumeResult eResult = oStrategy.EligibilityFn(oContext, false);
 
                 // Switch based on the result of the attempt
-                switch (oResult)
+                switch (eResult)
                 {
                     case CanConsumeResult.Consume:
                         oContext.NewNode = oStrategy.TryConsumeNextFn(oContext, false);
@@ -124,6 +130,11 @@ namespace Turing.Syntax
                             {
                                 bHasConsumedNodes = true;
                             }
+                        }
+                        else
+                        {
+                            // When we fail, we need to be able to fix this
+                            this.Comments.Add(new StatusItem("Could not generate:" + oContext.NewNode.RawSQLText));
                         }
                         break;
                     case CanConsumeResult.Skip:

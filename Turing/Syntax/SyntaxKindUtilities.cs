@@ -195,6 +195,7 @@ namespace Turing.Syntax
                     xsReturnString = SupplementaryConversions[xeKind];
                 }
 
+                
                 // Error out since we shouldnt be able to do this
                 Debug.Assert(xsReturnString != null);
             }

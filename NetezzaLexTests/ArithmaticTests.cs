@@ -11,7 +11,7 @@ namespace NetezzaLexTests
     {
         #region Minus
         [TestMethod]
-        public void TestMinusInColumn()
+        public void LexMinusInColumn()
         {
             SlidingTextWindow oText = new SlidingTextWindow(
             @"   
@@ -32,7 +32,7 @@ namespace NetezzaLexTests
         }
 
         [TestMethod]
-        public void TestMinusInWhere()
+        public void LexMinusInWhere()
         {
             SlidingTextWindow oText = new SlidingTextWindow(
             @"   
@@ -52,7 +52,7 @@ namespace NetezzaLexTests
         }
 
         [TestMethod]
-        public void TestMinusInON()
+        public void LexMinusInON()
         {
             SlidingTextWindow oText = new SlidingTextWindow(
             @"   
@@ -78,7 +78,7 @@ namespace NetezzaLexTests
 
         #region Slash
         [TestMethod]
-        public void TestSlashInColumn()
+        public void LexSlashInColumn()
         {
             SlidingTextWindow oText = new SlidingTextWindow(
             @"   
@@ -100,7 +100,7 @@ namespace NetezzaLexTests
         }
 
         [TestMethod]
-        public void TestSlashInWhere()
+        public void LexSlashInWhere()
         {
             SlidingTextWindow oText = new SlidingTextWindow(
             @"   
@@ -120,7 +120,7 @@ namespace NetezzaLexTests
         }
 
         [TestMethod]
-        public void TestSlashInON()
+        public void LexSlashInON()
         {
             SlidingTextWindow oText = new SlidingTextWindow(
             @"   
@@ -146,7 +146,7 @@ namespace NetezzaLexTests
 
         #region Plus
         [TestMethod]
-        public void TestPlusInColumn()
+        public void LexPlusInColumn()
         {
             SlidingTextWindow oText = new SlidingTextWindow(
             @"   
@@ -166,7 +166,7 @@ namespace NetezzaLexTests
         }
 
         [TestMethod]
-        public void TestPlusInWhere()
+        public void LexPlusInWhere()
         {
             SlidingTextWindow oText = new SlidingTextWindow(
             @"   
@@ -186,7 +186,7 @@ namespace NetezzaLexTests
         }
 
         [TestMethod]
-        public void TestPlusInOn()
+        public void LexPlusInOn()
         {
             SlidingTextWindow oText = new SlidingTextWindow(
             @"   
@@ -212,7 +212,7 @@ namespace NetezzaLexTests
 
         #region Star
         [TestMethod]
-        public void TestStarInColumn()
+        public void LexStarInColumn()
         {
             SlidingTextWindow oText = new SlidingTextWindow(
             @"   
@@ -234,7 +234,7 @@ namespace NetezzaLexTests
         }
 
         [TestMethod]
-        public void TestStarInWhere()
+        public void LexStarInWhere()
         {
             SlidingTextWindow oText = new SlidingTextWindow(
             @"   
@@ -254,7 +254,7 @@ namespace NetezzaLexTests
         }
 
         [TestMethod]
-        public void TestStarInOn()
+        public void LexStarInOn()
         {
             SlidingTextWindow oText = new SlidingTextWindow(
             @"   

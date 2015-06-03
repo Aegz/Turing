@@ -10,7 +10,7 @@ namespace NetezzaLexTests
     public class SelectTests
     {
         [TestMethod]
-        public void TestSelectStatementBasic()
+        public void LexSelectStatementBasic()
         {
             SlidingTextWindow oText = new SlidingTextWindow(
             @"   
@@ -35,7 +35,7 @@ namespace NetezzaLexTests
         }
 
         [TestMethod]
-        public void TestIdentifierDatabase()
+        public void LexIdentifierDatabase()
         {
             SlidingTextWindow oText = new SlidingTextWindow(
             @"   
@@ -55,7 +55,7 @@ namespace NetezzaLexTests
         }
 
         [TestMethod]
-        public void TestIdentifierTable()
+        public void LexIdentifierTable()
         {
             SlidingTextWindow oText = new SlidingTextWindow(
             @"   
@@ -75,7 +75,7 @@ namespace NetezzaLexTests
         }
 
         [TestMethod]
-        public void TestTableAlias()
+        public void LexTableAlias()
         {
             SlidingTextWindow oText = new SlidingTextWindow(
             @"   
@@ -95,7 +95,7 @@ namespace NetezzaLexTests
         }
 
         [TestMethod]
-        public void TestSelectStatementComplex()
+        public void LexSelectStatementComplex()
         {
             SlidingTextWindow oText = new SlidingTextWindow(
             @"   
@@ -116,7 +116,7 @@ namespace NetezzaLexTests
         }
 
         [TestMethod]
-        public void TestINNERJOINStatementBasic()
+        public void LexINNERJOINStatementBasic()
         {
             SlidingTextWindow oText = new SlidingTextWindow(
             @"   
@@ -144,7 +144,7 @@ namespace NetezzaLexTests
         }
 
         [TestMethod]
-        public void TestWITHStatementBasic()
+        public void LexWITHStatementBasic()
         {
             SlidingTextWindow oText = new SlidingTextWindow(
             @"   
@@ -180,7 +180,7 @@ namespace NetezzaLexTests
         }
 
         [TestMethod]
-        public void TestWITHStatementComplex()
+        public void LexWITHStatementComplex()
         {
             SlidingTextWindow oText = new SlidingTextWindow(
             @"   
@@ -228,7 +228,7 @@ namespace NetezzaLexTests
         }
 
         [TestMethod]
-        public void TestSelectExpression()
+        public void LexSelectExpression()
         {
             SlidingTextWindow oText = new SlidingTextWindow(
             @"   

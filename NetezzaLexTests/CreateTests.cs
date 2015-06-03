@@ -10,7 +10,7 @@ namespace NetezzaLexTests
     public class CreateTests
     {
         [TestMethod]
-        public void CreateTableBasic()
+        public void LexCreateTableBasic()
         {
             SlidingTextWindow oText = new SlidingTextWindow(
                 @"   

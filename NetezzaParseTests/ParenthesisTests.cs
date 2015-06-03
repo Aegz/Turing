@@ -10,7 +10,7 @@ namespace NetezzaParseTests
     public class ParenthesisTests
     {
         [TestMethod]
-        public void Test1ColumnParenthesised()
+        public void Parse1ColumnParenthesised()
         {
             SlidingTextWindow oText = new SlidingTextWindow(
                 @"   
@@ -43,7 +43,7 @@ namespace NetezzaParseTests
         }
 
         [TestMethod]
-        public void TestMultipleColumnParenthesised()
+        public void ParseMultipleColumnParenthesised()
         {
             SlidingTextWindow oText = new SlidingTextWindow(
                 @"   
@@ -77,7 +77,7 @@ namespace NetezzaParseTests
         }
 
         [TestMethod]
-        public void TestParenthesisedExpression()
+        public void ParseParenthesisedExpression()
         {
             SlidingTextWindow oText = new SlidingTextWindow(
                 @"   
@@ -109,7 +109,7 @@ namespace NetezzaParseTests
         }
 
         [TestMethod]
-        public void TestParenthesisedExpressionAND()
+        public void ParseParenthesisedExpressionAND()
         {
             SlidingTextWindow oText = new SlidingTextWindow(
                 @"   
@@ -145,7 +145,7 @@ namespace NetezzaParseTests
         }
 
         [TestMethod]
-        public void TestCascadedParenthesis()
+        public void ParseCascadedParenthesis()
         {
             SlidingTextWindow oText = new SlidingTextWindow(
                 @"   

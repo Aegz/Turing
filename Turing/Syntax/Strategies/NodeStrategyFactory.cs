@@ -200,16 +200,26 @@ namespace Turing.Syntax.Strategies
         {
             SyntaxKind oKind = xoContext.NextItemKind();
 
-            if (
-                SyntaxKindFacts.IsIdentifierOrExpression(oKind) ||
+            // Only add core statements after the column list
+            Boolean bIsCoreStatement = ((int)oKind >= (int)SyntaxKind.FromKeyword &&
+                (int)oKind <= (int)SyntaxKind.HavingKeyword);
+
+            // Enforces only 1 column list is initialised
+            Boolean bTryingToAddDuplicateColumnList = SyntaxKindFacts.IsIdentifier(oKind) &&
+                    xoContext.CurrentNode.Children.Exists((oNode) => oNode.ExpectedType == SyntaxKind.ColumnListNode);
+
+            if (!bTryingToAddDuplicateColumnList && 
+                (SyntaxKindFacts.IsIdentifierOrExpression(oKind) ||
                 oKind == SyntaxKind.StarToken ||
-                ((int)oKind >= (int)SyntaxKind.FromKeyword &&
-                (int)oKind <= (int)SyntaxKind.HavingKeyword))
+                bIsCoreStatement))
             {
                 return CheckIfConsumptionIsAllowed(xoContext);
             }
-
-            return DefaultCanConsumeNext(xoContext);
+            // Clearly we have something we can't consume here
+            else
+            {
+                return CanConsumeResult.Complete;
+            }
         }
 
         public static SyntaxNode SelectConsumeNext(ParsingContext xoContext, Boolean xbIsPreconsumption = false)
@@ -404,6 +414,12 @@ namespace Turing.Syntax.Strategies
             {
                 return CheckIfConsumptionIsAllowed(xoContext);
             }
+            // Terminate manually if we find a keyword
+            else if(SyntaxKindFacts.IsKeyword(oKind))
+            {
+                return CanConsumeResult.Complete;
+            }
+
 
             // Try convert
             return DefaultCanConsumeNext(xoContext);
@@ -422,7 +438,6 @@ namespace Turing.Syntax.Strategies
                 return DefaultTryConsumeNext(xoContext);
             }
         }
-
 
         #endregion
 
@@ -459,13 +474,15 @@ namespace Turing.Syntax.Strategies
             }
             // Terminate if we find an eof of any sort or we are full
             else if (
-                SyntaxKindFacts.IsTerminatingNode(xoContext.NextItemKind())
+                SyntaxKindFacts.IsTerminatingNode(xoContext.NextItemKind()) ||
+                xoContext.CurrentNode.IsFull()
                 )
             {
                 return CanConsumeResult.Complete;
             }
             else
             {
+                // ?? TODO: Stop everything from coming here and implement an Unknown type?
                 // Unknown, Missing?
                 return CanConsumeResult.Complete;
             }
@@ -479,6 +496,12 @@ namespace Turing.Syntax.Strategies
         /// <returns></returns>
         public static CanConsumeResult CheckIfConsumptionIsAllowed(ParsingContext xoContext, Boolean xbIsPreconsumption = false)
         {
+            // Only forcibly add a construct after we are full IF it is a binary construct
+            if (xoContext.CurrentNode.IsFull() && !SyntaxKindFacts.IsBinaryConstruct(xoContext.NextItemKind()))
+            {
+                return CanConsumeResult.Complete;
+            }
+
             return CanConsumeResult.Consume;
         }
 

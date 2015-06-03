@@ -10,7 +10,7 @@ namespace NetezzaParseTests
     public class ArithmaticTests
     {
         [TestMethod]
-        public void TestMultiplicationInColumn()
+        public void ParseMultiplicationInColumn()
         {
             SlidingTextWindow oText = new SlidingTextWindow(
                 @"   
@@ -43,7 +43,7 @@ namespace NetezzaParseTests
         }
 
         [TestMethod]
-        public void TestSubtractInColumn()
+        public void ParseSubtractInColumn()
         {
             SlidingTextWindow oText = new SlidingTextWindow(
                 @"   
@@ -76,7 +76,7 @@ namespace NetezzaParseTests
         }
    
         [TestMethod]
-        public void TestAdditionInColumn()
+        public void ParseAdditionInColumn()
         {
             SlidingTextWindow oText = new SlidingTextWindow(
                 @"   
@@ -108,7 +108,7 @@ namespace NetezzaParseTests
         }
 
         [TestMethod]
-        public void TestDivisionInColumn()
+        public void ParseDivisionInColumn()
         {
             SlidingTextWindow oText = new SlidingTextWindow(
                 @"   

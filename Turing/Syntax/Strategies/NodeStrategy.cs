@@ -18,6 +18,7 @@ namespace Turing.Syntax.Strategies
         Complete = 1,   // Cannot process anymore
         Consume  = 2,   // Can consume the node
         Skip     = 3,   // Skip the next node
+        Unknown  = 4,   // Unexpected item
     }
 
 

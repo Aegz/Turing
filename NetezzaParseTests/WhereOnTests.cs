@@ -10,7 +10,7 @@ namespace NetezzaParseTests
     public class WhereOnTests
     {
         [TestMethod]
-        public void TestBasicWhere()
+        public void ParseBasicWhere()
         {
             SlidingTextWindow oText = new SlidingTextWindow(
                 @"   
@@ -45,7 +45,7 @@ namespace NetezzaParseTests
         }
 
         [TestMethod]
-        public void TestBadWhere()
+        public void ParseBadWhere()
         {
             SlidingTextWindow oText = new SlidingTextWindow(
                 @"   
@@ -73,7 +73,7 @@ namespace NetezzaParseTests
         }
 
         [TestMethod]
-        public void TestWhereAnd()
+        public void ParseWhereAnd()
         {
             SlidingTextWindow oText = new SlidingTextWindow(
                 @"   
@@ -106,7 +106,7 @@ namespace NetezzaParseTests
         }
 
         [TestMethod]
-        public void TestBadAnd()
+        public void ParseBadAnd()
         {
             SlidingTextWindow oText = new SlidingTextWindow(
                 @"   
@@ -140,7 +140,7 @@ namespace NetezzaParseTests
         }
 
         [TestMethod]
-        public void TestEmptyAnd()
+        public void ParseEmptyAnd()
         {
             SlidingTextWindow oText = new SlidingTextWindow(
                 @"   
@@ -176,7 +176,7 @@ namespace NetezzaParseTests
 
 
         [TestMethod]
-        public void TestOnAnd()
+        public void ParseOnAnd()
         {
             SlidingTextWindow oText = new SlidingTextWindow(
                 @"   

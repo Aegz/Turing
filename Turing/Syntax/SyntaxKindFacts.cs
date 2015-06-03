@@ -8,15 +8,13 @@ namespace Turing.Syntax
 {
     class SyntaxKindFacts
     {
+        #region Keyword Specific
 
-        public static Boolean IsTerminatingNode(SyntaxKind xeKind)
+        public static Boolean IsKeyword(SyntaxKind xeKind)
         {
-            return
-                xeKind == SyntaxKind.EOFNode ||
-                xeKind == SyntaxKind.EOFTrivia ||
-                xeKind == SyntaxKind.SemiColonToken;
+            return ((int)xeKind >= (int)SyntaxKind.FromKeyword &&
+                (int)xeKind <= (int)SyntaxKind.NewKeyword);
         }
-
 
         public static Boolean IsJoinKeyword(SyntaxKind xeKind)
         {
@@ -29,6 +27,17 @@ namespace Turing.Syntax
                 xeKind == SyntaxKind.RightJoinKeyword;
         }
 
+        #endregion
+
+        public static Boolean IsTerminatingNode(SyntaxKind xeKind)
+        {
+            return
+                xeKind == SyntaxKind.EOFNode ||
+                xeKind == SyntaxKind.EOFTrivia ||
+                xeKind == SyntaxKind.SemiColonToken;
+        }
+
+        #region Operators
 
         public static Boolean IsUnaryOperator(SyntaxKind xeKind)
         {
@@ -77,6 +86,9 @@ namespace Turing.Syntax
                 IsAdjunctConditionalOperator(xeKind);
         }
 
+        #endregion
+
+        #region Identifiers and Expressions
 
         public static Boolean IsIdentifier(SyntaxKind xeKind)
         {
@@ -119,5 +131,7 @@ namespace Turing.Syntax
                 IsIdentifier(xeKind) ||
                 IsExpression(xeKind);
         }
+
+        #endregion
     }
 }

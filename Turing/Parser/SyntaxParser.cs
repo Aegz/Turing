@@ -67,9 +67,11 @@ namespace Turing.Parser
                 // If we consumed anything
                 if (CurrentNode.TryConsumeList(TokenList))
                 {
-                    // Append to the statement
-                    oStatement.AddChild(CurrentNode);
+
                 }
+
+                // Append to the statement anyways
+                oStatement.AddChild(CurrentNode);
 
                 oQuery.AddChild(oStatement);
             }

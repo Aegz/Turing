@@ -12,7 +12,7 @@ namespace NetezzaParseTests
     public class SelectTests
     {
         [TestMethod]
-        public void TestSelectFromDBTable()
+        public void ParseSelectFromDBTable()
         {
             SlidingTextWindow oText = new SlidingTextWindow(
                 @"   
@@ -39,7 +39,7 @@ namespace NetezzaParseTests
         }
 
         [TestMethod]
-        public void TestSelectColumnAlias()
+        public void ParseSelectColumnAlias()
         {
             SlidingTextWindow oText = new SlidingTextWindow(
                 @"   
@@ -69,7 +69,7 @@ namespace NetezzaParseTests
         }
 
         [TestMethod]
-        public void TestStringLiteralColumn()
+        public void ParseStringLiteralColumn()
         {
             SlidingTextWindow oText = new SlidingTextWindow(
                 @"   
@@ -97,7 +97,7 @@ namespace NetezzaParseTests
         }
 
         [TestMethod]
-        public void TestStringLiteralColumnWithAlias()
+        public void ParseStringLiteralColumnWithAlias()
         {
             SlidingTextWindow oText = new SlidingTextWindow(
                 @"   
@@ -126,7 +126,7 @@ namespace NetezzaParseTests
         }
 
         [TestMethod]
-        public void TestSelectMultipleColumns()
+        public void ParseSelectMultipleColumns()
         {
             SlidingTextWindow oText = new SlidingTextWindow(
                 @"   
@@ -151,7 +151,7 @@ namespace NetezzaParseTests
 
 
         [TestMethod]
-        public void TestSubqueryTree()
+        public void ParseSubqueryTree()
         {
             SlidingTextWindow oText = new SlidingTextWindow(
                 @"   
@@ -189,7 +189,7 @@ namespace NetezzaParseTests
         }
 
         [TestMethod]
-        public void TestBasicJoinTree()
+        public void ParseBasicJoinTree()
         {
             SlidingTextWindow oText = new SlidingTextWindow(
                 @"   
@@ -222,7 +222,7 @@ namespace NetezzaParseTests
         }
 
         [TestMethod]
-        public void TestJoinWithSubQuery()
+        public void ParseJoinWithSubQuery()
         {
             SlidingTextWindow oText = new SlidingTextWindow(
                 @"   
@@ -270,7 +270,7 @@ namespace NetezzaParseTests
         }
 
         [TestMethod]
-        public void TestJoinWithTwoSubQueries()
+        public void ParseJoinWithTwoSubQueries()
         {
             SlidingTextWindow oText = new SlidingTextWindow(
                 @"   
