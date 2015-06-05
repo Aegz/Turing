@@ -524,21 +524,6 @@ namespace Turing.Syntax.Strategies
                 return CanConsumeResult.Complete;
             }
         }
-
-
-        public static SyntaxNode ExpressionListConsumeNext(ParsingContext xoContext, Boolean xbIsPreconsumption = false)
-        {
-            if (SyntaxKindFacts.IsLiteral(xoContext.NextItemKind()))
-            {
-                return SyntaxNodeFactory.FactoryCreateColumn(xoContext.List);
-            }
-            else
-            {
-                // Let the base conversion figure out what it is
-                return DefaultTryConsumeNext(xoContext);
-            }
-        }
-
   
         #endregion
 
@@ -567,7 +552,13 @@ namespace Turing.Syntax.Strategies
             else if (eNextKind == SyntaxKind.EndKeyword)
             {
                 xoContext.CurrentNode.Add(new SyntaxNode(xoContext.List.PopToken()));
-                ((Symbol)xoContext.CurrentNode).Alias = SyntaxNodeFactory.ScanAheadForAlias(xoContext.List);
+
+                // Only assian an alias if it is a symbol
+                if (xoContext.CurrentNode.GetType() == typeof(Symbol))
+                {
+                    ((Symbol)xoContext.CurrentNode).Alias = SyntaxNodeFactory.ScanAheadForAlias(xoContext.List);
+                }
+                
                 return CanConsumeResult.Complete;
             }
             else
