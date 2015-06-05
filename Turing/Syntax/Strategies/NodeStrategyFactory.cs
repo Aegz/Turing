@@ -553,7 +553,7 @@ namespace Turing.Syntax.Strategies
             {
                 xoContext.CurrentNode.Add(new SyntaxNode(xoContext.List.PopToken()));
 
-                // Only assian an alias if it is a symbol
+                // Only assign an alias if it is a symbol
                 if (xoContext.CurrentNode.GetType() == typeof(Symbol))
                 {
                     ((Symbol)xoContext.CurrentNode).Alias = SyntaxNodeFactory.ScanAheadForAlias(xoContext.List);
