@@ -53,7 +53,6 @@
     <Compile Include="Lexer\Scanner\NumberScanner.cs" />
     <Compile Include="Lexer\Scanner\WhiteSpaceScanner.cs" />
     <Compile Include="Lexer\SlidingTextWindow.cs" />
-    <Compile Include="Lexer\SyntaxKindConverter.cs" />
     <Compile Include="Factories\SyntaxNodeFactory.cs" />
     <Compile Include="Parser\ParsingContext.cs" />
     <Compile Include="Parser\ResolutionGenerator.cs" />

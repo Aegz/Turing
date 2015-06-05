@@ -222,6 +222,26 @@ namespace Turing.Syntax
             return null;
         }
 
+        public SyntaxNode FindFirstParent(Func<SyntaxNode, Boolean> xeFunction)
+        {
+            if (Parent != null)
+            {
+                if (xeFunction(Parent))
+                {
+                    return Parent;
+                }
+                else
+                {
+                    return Parent.FindFirstParent(xeFunction);
+                }
+            }
+            else
+            {
+                return null;
+            }
+
+        }
+
         #endregion
 
     }

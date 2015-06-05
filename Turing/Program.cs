@@ -9,8 +9,9 @@ namespace Turing
     {
         static SlidingTextWindow oText = new SlidingTextWindow(
                 @"   
-                        SELECT '+61' || svc_idnty  FROM FPC_SERVICE
-                        WHERE svc_idnty = '0415783039' || 'PEW' || 'test'  
+                         SELECT  || '0'  
+                        
+                         FROM FPC_SERVICE  
                 ");
 
         static void Main(string[] args)

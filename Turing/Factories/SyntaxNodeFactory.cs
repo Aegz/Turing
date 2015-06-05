@@ -92,6 +92,9 @@ namespace Turing.Factories
                     return FactoryCreateCompoundJoin(xoList);
                 #endregion
 
+                case SyntaxKind.BarBarToken:
+                    break;
+
                 default:
                     // Default to the original token since it doesn't need to be converted
                     // any more

@@ -204,6 +204,7 @@ namespace Turing.Syntax.Strategies
             if (!bTryingToAddDuplicateColumnList && 
                 (SyntaxKindFacts.IsIdentifierOrExpression(oKind) ||
                 oKind == SyntaxKind.StarToken ||
+                oKind == SyntaxKind.BarBarToken || // This is erroreneous but handled
                 bIsCoreStatement))
             {
                 return CheckIfConsumptionIsAllowed(xoContext);
@@ -217,7 +218,7 @@ namespace Turing.Syntax.Strategies
             // Clearly we have something we can't consume here
             else
             {
-                return CanConsumeResult.Complete;
+                return DefaultCanConsumeNext(xoContext);
             }
         }
 
@@ -230,6 +231,7 @@ namespace Turing.Syntax.Strategies
             if (SyntaxKindFacts.IsIdentifier(oCurrentToken.ExpectedType) ||
                 SyntaxKindFacts.IsLiteral(oCurrentToken.ExpectedType) ||
                 SyntaxKindFacts.IsFunction(oCurrentToken.ExpectedType) ||
+                oCurrentToken.ExpectedType == SyntaxKind.BarBarToken ||
                 oCurrentToken.ExpectedType == SyntaxKind.StarToken) // * in Column is allowed
             {
                 // Initialise a list
@@ -444,6 +446,7 @@ namespace Turing.Syntax.Strategies
                 SyntaxKindFacts.IsIdentifierOrExpression(oKind) ||
                 SyntaxKindFacts.IsFunction(oKind) ||
                 oKind == SyntaxKind.StarToken ||
+                oKind == SyntaxKind.BarBarToken ||
                 SyntaxKindFacts.IsArithmaticOperator(oKind))
             {
                 return CheckIfConsumptionIsAllowed(xoContext);
@@ -485,14 +488,31 @@ namespace Turing.Syntax.Strategies
             // Consume immediately
             if (xoContext.CurrentNode.Children.Count <= 1)
             {
-                return CanConsumeResult.Consume;
+                if (SyntaxKindFacts.IsIdentifierOrExpression(oKind))
+                {
+                    return CanConsumeResult.Consume;
+                }
+                else
+                {
+                    ResolutionGenerator.HandleIncompleteNode(xoContext);
+                    return CanConsumeResult.Complete;
+                }
             }
             // Get BARBAR, consume next
             else if (oKind == SyntaxKind.BarBarToken)
             {
                 // Drop the bar bar and consume the next item
                 xoContext.List.PopToken();
-                return CanConsumeResult.Consume;
+
+                if (SyntaxKindFacts.IsIdentifierOrExpression(xoContext.NextItemKind()))
+                {
+                    return CanConsumeResult.Consume;
+                }
+                else
+                {
+                    ResolutionGenerator.HandleIncompleteNode(xoContext);
+                    return CanConsumeResult.Complete;
+                }
             }
             // Else close this object
             else
@@ -535,6 +555,13 @@ namespace Turing.Syntax.Strategies
 
         #region Default Methods
 
+        private static Boolean NodeIsOpenParenthesis(SyntaxNode oNode)
+        {
+            return
+                oNode.ExpectedType == SyntaxKind.OpenParenthesisToken ||
+                oNode.RawSQLText.Equals("(");
+        } 
+
         /// <summary>
         /// Returns true if the next node is something this node can interpret
         /// and returns false if it cannot do anything with the next node
@@ -544,14 +571,38 @@ namespace Turing.Syntax.Strategies
         public static CanConsumeResult DefaultCanConsumeNext(ParsingContext xoContext, Boolean xbIsPreconsumption = false)
         {
             SyntaxKind eKind = xoContext.NextItemKind();
+
             // If we have a Open parenthesis starting node
             // And we just found a closing Token
-            if ((xoContext.CurrentNode.ExpectedType == SyntaxKind.OpenParenthesisToken ||
-                xoContext.CurrentNode.RawSQLText.Equals("(")) &&
-                eKind == SyntaxKind.CloseParenthesisToken)
+            if (eKind == SyntaxKind.CloseParenthesisToken)
             {
-                xoContext.List.PopToken();
-                return CanConsumeResult.Complete;
+                // We have an open paren node, remove the token and close
+                if (NodeIsOpenParenthesis(xoContext.CurrentNode))
+                {
+                    xoContext.List.PopToken();
+                    // Helps us get back to the appropriate Node
+                    return CanConsumeResult.Complete;
+                }
+                else
+                {
+                    // Scan up to see if there is an open parenthesis.
+                    SyntaxNode oOpenParenParent = xoContext.CurrentNode.FindFirstParent(
+                        NodeIsOpenParenthesis);
+
+                    if (oOpenParenParent != null)
+                    {
+                        // Helps us get back to the appropriate Node
+                        return CanConsumeResult.Complete;
+                    }
+                    else
+                    {
+                        // Invalid Closing parenthesis here
+                        xoContext.List.PopToken(); // drop it
+                        // keep processing
+                        return CanConsumeResult.Skip;
+                    }
+                }
+
             }
             // Terminate if we find an eof of any sort or we are full
             else if (SyntaxKindFacts.IsTerminatingNode(eKind) || 
