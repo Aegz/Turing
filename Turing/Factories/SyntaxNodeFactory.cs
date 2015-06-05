@@ -93,6 +93,10 @@ namespace Turing.Factories
                     return FactoryCreateCompoundJoin(xoList);
                 #endregion
 
+                //case SyntaxKind.CaseKeyword:
+                case SyntaxKind.WhenKeyword:
+                case SyntaxKind.ThenKeyword:
+                case SyntaxKind.ElseKeyword:
                 case SyntaxKind.BarBarToken:
                     break;
 
@@ -351,6 +355,24 @@ namespace Turing.Factories
             {
                 // Purely an identifier
                 oReturnNode = FactoryCreateColumn(xoList);
+            }
+            else if (eNextTokenKind == SyntaxKind.CaseKeyword)
+            {
+                if (xoCurrentNode.ExpectedType == SyntaxKind.ColumnListNode)
+                {
+                    // Purely an identifier
+                    return new Symbol(
+                               xoList.PeekToken(),
+                               NodeStrategyFactory.FactoryCreateStrategy(xoList.PopToken().ExpectedType), -1);
+                }
+                else
+                {
+                    // Purely an identifier
+                    return new SyntaxNode(
+                               xoList.PeekToken(),
+                               NodeStrategyFactory.FactoryCreateStrategy(xoList.PopToken().ExpectedType));
+                }
+
             }
             else
             {

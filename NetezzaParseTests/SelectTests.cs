@@ -258,8 +258,8 @@ namespace NetezzaParseTests
             Assert.IsTrue(oFrom != null);
 
             SyntaxNode oLeftJoin = oFrom[0];
-            Assert.AreEqual(oLeftJoin.ExpectedType, SyntaxKind.LeftJoinKeyword);
-            Assert.AreEqual(oLeftJoin[1].ExpectedType, SyntaxKind.IdentifierDatabaseSymbol);
+            Assert.AreEqual(SyntaxKind.LeftJoinKeyword, oLeftJoin.ExpectedType);
+            Assert.AreEqual(SyntaxKind.IdentifierDatabaseSymbol, oLeftJoin[1].ExpectedType);
 
             SyntaxNode oInnerJoin = oLeftJoin[0];
             Assert.AreEqual(oInnerJoin.ExpectedType, SyntaxKind.InnerJoinKeyword);

@@ -53,6 +53,10 @@ namespace Turing.Syntax.Constructs.Symbols
         {
         }
 
+        public Symbol(SyntaxToken xoToken, NodeStrategy xoStrategy, int xiMaxChildren) : base(xoToken, xoStrategy, xiMaxChildren)
+        {
+        }
+
         public Symbol(SyntaxToken xoToken) : this(xoToken, NodeStrategyFactory.FactoryCreateStrategy(xoToken.ExpectedType))
         {
         }

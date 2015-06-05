@@ -95,8 +95,7 @@ namespace Turing.Syntax
         public static Boolean IsIdentifier(SyntaxKind xeKind)
         {
             return
-                xeKind == SyntaxKind.CaseKeyword || // CASE can substitute Identifier
-                xeKind == SyntaxKind.OpenParenthesisToken || // Could always be a (Idn)
+
                 xeKind == SyntaxKind.IdentifierToken ||
                 // More specific Identifiers
                 xeKind == SyntaxKind.IdentifierDatabaseSymbol ||
@@ -132,6 +131,7 @@ namespace Turing.Syntax
         public static Boolean IsIdentifierOrExpression(SyntaxKind xeKind)
         {
             return
+                xeKind == SyntaxKind.OpenParenthesisToken || // Could always be a (Idn)
                 xeKind == SyntaxKind.CaseKeyword ||
                 IsIdentifier(xeKind) ||
                 IsExpression(xeKind);
