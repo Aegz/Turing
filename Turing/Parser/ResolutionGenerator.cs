@@ -7,6 +7,7 @@ using Turing.Factories;
 using Turing.Syntax;
 using Turing.Syntax.Collections;
 using Turing.Syntax.Constructs;
+using Turing.Syntax.Constructs.Exceptions;
 
 namespace Turing.Parser
 {
@@ -47,9 +48,9 @@ namespace Turing.Parser
                 eNextTokenKind = SyntaxKind.BooleanToken;
             }
 
-            // Default to unknown
-            xoContext.CurrentNode.AddChild(
-                new ExceptionSyntaxNode(
+            // Default to unknown Filler
+            xoContext.CurrentNode.Add(
+                new FillerNode(
                     eNextTokenKind,
                     "Missing (" + SyntaxKindUtilities.GetStringFromKind(eNextTokenKind) + ")"));
         }
@@ -69,10 +70,10 @@ namespace Turing.Parser
                 SyntaxKindFacts.IsConditionalOperator(xoContext.CurrentNode.ExpectedType))
             {
                 // Only when we have children
-                if (xoContext.CurrentNode.Children.Count > 0)
+                if (xoContext.CurrentNode.Count > 0)
                 {
                     // Set the return kind
-                    eNextTokenKind = xoContext.CurrentNode.Children[0].ExpectedType;
+                    eNextTokenKind = xoContext.CurrentNode[0].ExpectedType;
                 }
             }
             // Boolean
@@ -95,8 +96,8 @@ namespace Turing.Parser
             }
 
             // Default to unknown
-            xoContext.CurrentNode.AddChild(
-                new ExceptionSyntaxNode(
+            xoContext.CurrentNode.Add(
+                new FillerNode(
                     eNextTokenKind,
                     "Missing (" + SyntaxKindUtilities.GetStringFromKind(eNextTokenKind) + ")"));
         }

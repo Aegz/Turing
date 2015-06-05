@@ -58,11 +58,11 @@ namespace NetezzaParseTests
             SyntaxNode oSelect = oTemp.FindFirst(SyntaxKind.SelectKeyword);
             Assert.IsTrue(oSelect != null);
 
-            SyntaxNode oColumnList = oSelect.Children[0];
-            Assert.AreEqual(1, oColumnList.Children.Count); // Should be 1 column
+            SyntaxNode oColumnList = oSelect[0];
+            Assert.AreEqual(1, oColumnList.Count); // Should be 1 column
             Assert.AreEqual(SyntaxKind.ColumnListNode, oColumnList.ExpectedType);
 
-            SyntaxNode oLiteralColumn = oColumnList.Children[0];
+            SyntaxNode oLiteralColumn = oColumnList[0];
             Assert.AreEqual(SyntaxKind.IdentifierTableSymbol, oLiteralColumn.ExpectedType);
             Assert.AreEqual(typeof(Symbol), oLiteralColumn.GetType()); // Table is the top level then col
             Assert.AreEqual("c2", ((Symbol)oLiteralColumn).Alias);
@@ -88,11 +88,11 @@ namespace NetezzaParseTests
             SyntaxNode oSelect = oTemp.FindFirst(SyntaxKind.SelectKeyword);
             Assert.AreNotEqual(null, oSelect);
 
-            SyntaxNode oColumnList = oSelect.Children[0];
-            Assert.AreEqual(1, oColumnList.Children.Count); // Should be 1 column
+            SyntaxNode oColumnList = oSelect[0];
+            Assert.AreEqual(1, oColumnList.Count); // Should be 1 column
             Assert.AreEqual(SyntaxKind.ColumnListNode, oColumnList.ExpectedType); 
 
-            SyntaxNode oLiteralColumn = oColumnList.Children[0];
+            SyntaxNode oLiteralColumn = oColumnList[0];
             Assert.AreEqual(SyntaxKind.LiteralToken, oLiteralColumn.ExpectedType);
         }
 
@@ -116,11 +116,11 @@ namespace NetezzaParseTests
             SyntaxNode oSelect = oTemp.FindFirst(SyntaxKind.SelectKeyword);
             Assert.AreNotEqual(null, oSelect);
 
-            SyntaxNode oColumnList = oSelect.Children[0];
-            Assert.AreEqual(1, oColumnList.Children.Count); // Should be 1 column
+            SyntaxNode oColumnList = oSelect[0];
+            Assert.AreEqual(1, oColumnList.Count); // Should be 1 column
             Assert.AreEqual(SyntaxKind.ColumnListNode, oColumnList.ExpectedType);
 
-            SyntaxNode oLiteralColumn = oColumnList.Children[0];
+            SyntaxNode oLiteralColumn = oColumnList[0];
             Assert.AreEqual(typeof(Symbol), oLiteralColumn.GetType());
             Assert.AreEqual("var1", ((Symbol)oLiteralColumn).Alias);
         }
@@ -145,8 +145,8 @@ namespace NetezzaParseTests
             SyntaxNode oSelect = oTemp.FindFirst(SyntaxKind.SelectKeyword);
             Assert.IsTrue(oSelect != null);
 
-            SyntaxNode oTableIdn = oSelect.Children[0];
-            Assert.AreEqual(2, oTableIdn.Children.Count); // Should be 2 columns
+            SyntaxNode oTableIdn = oSelect[0];
+            Assert.AreEqual(2, oTableIdn.Count); // Should be 2 columns
         }
 
 
@@ -213,13 +213,13 @@ namespace NetezzaParseTests
             SyntaxNode oFrom = oTemp.FindFirst(SyntaxKind.FromKeyword);
             Assert.IsTrue(oFrom != null);
 
-            SyntaxNode oInnerJoin = oFrom.Children[0];
-            Assert.AreEqual(3, oInnerJoin.Children.Count);
+            SyntaxNode oInnerJoin = oFrom[0];
+            Assert.AreEqual(3, oInnerJoin.Count);
             Assert.AreEqual(SyntaxKind.InnerJoinKeyword, oInnerJoin.ExpectedType);
 
             // test children are correct
-            Assert.AreEqual(oInnerJoin.Children[0].ExpectedType, SyntaxKind.IdentifierDatabaseSymbol);
-            Assert.AreEqual(oInnerJoin.Children[1].ExpectedType, SyntaxKind.IdentifierDatabaseSymbol);
+            Assert.AreEqual(oInnerJoin[0].ExpectedType, SyntaxKind.IdentifierDatabaseSymbol);
+            Assert.AreEqual(oInnerJoin[1].ExpectedType, SyntaxKind.IdentifierDatabaseSymbol);
         }
 
         [TestMethod]
@@ -257,17 +257,17 @@ namespace NetezzaParseTests
             SyntaxNode oFrom = oTemp.FindFirst(SyntaxKind.FromKeyword);
             Assert.IsTrue(oFrom != null);
 
-            SyntaxNode oLeftJoin = oFrom.Children[0];
+            SyntaxNode oLeftJoin = oFrom[0];
             Assert.AreEqual(oLeftJoin.ExpectedType, SyntaxKind.LeftJoinKeyword);
-            Assert.AreEqual(oLeftJoin.Children[1].ExpectedType, SyntaxKind.IdentifierDatabaseSymbol);
+            Assert.AreEqual(oLeftJoin[1].ExpectedType, SyntaxKind.IdentifierDatabaseSymbol);
 
-            SyntaxNode oInnerJoin = oLeftJoin.Children[0];
+            SyntaxNode oInnerJoin = oLeftJoin[0];
             Assert.AreEqual(oInnerJoin.ExpectedType, SyntaxKind.InnerJoinKeyword);
             
 
             // test children are correct
-            Assert.AreEqual(oInnerJoin.Children[0].ExpectedType, SyntaxKind.IdentifierDatabaseSymbol);
-            Assert.AreEqual(oInnerJoin.Children[1].ExpectedType, SyntaxKind.IdentifierSubQuerySymbol);
+            Assert.AreEqual(oInnerJoin[0].ExpectedType, SyntaxKind.IdentifierDatabaseSymbol);
+            Assert.AreEqual(oInnerJoin[1].ExpectedType, SyntaxKind.IdentifierSubQuerySymbol);
         }
 
         [TestMethod]
@@ -306,21 +306,21 @@ namespace NetezzaParseTests
             SyntaxNode oFrom = oTemp.FindFirst(SyntaxKind.FromKeyword);
             Assert.IsTrue(oFrom != null);
 
-            SyntaxNode oLeftJoin = oFrom.Children[0];
+            SyntaxNode oLeftJoin = oFrom[0];
             Assert.AreEqual(SyntaxKind.LeftJoinKeyword, oLeftJoin.ExpectedType);
-            Assert.AreEqual(3, oLeftJoin.Children.Count);
-            Assert.AreEqual("omr", ((Symbol)oLeftJoin.Children[1]).Alias);
+            Assert.AreEqual(3, oLeftJoin.Count);
+            Assert.AreEqual("omr", ((Symbol)oLeftJoin[1]).Alias);
 
-            SyntaxNode oInnerJoin = oLeftJoin.Children[0];
-            Assert.AreEqual(3, oInnerJoin.Children.Count);
+            SyntaxNode oInnerJoin = oLeftJoin[0];
+            Assert.AreEqual(3, oInnerJoin.Count);
             Assert.AreEqual(SyntaxKind.InnerJoinKeyword, oInnerJoin.ExpectedType);
             
             // test children are correct
-            Assert.AreEqual(SyntaxKind.IdentifierDatabaseSymbol, oInnerJoin.Children[0].ExpectedType);
-            Assert.AreEqual("svc", ((Symbol)oInnerJoin.Children[0]).Alias);
+            Assert.AreEqual(SyntaxKind.IdentifierDatabaseSymbol, oInnerJoin[0].ExpectedType);
+            Assert.AreEqual("svc", ((Symbol)oInnerJoin[0]).Alias);
 
-            Assert.AreEqual(SyntaxKind.IdentifierSubQuerySymbol, oInnerJoin.Children[1].ExpectedType);
-            Assert.AreEqual("omrbase", ((Symbol)oInnerJoin.Children[1]).Alias);
+            Assert.AreEqual(SyntaxKind.IdentifierSubQuerySymbol, oInnerJoin[1].ExpectedType);
+            Assert.AreEqual("omrbase", ((Symbol)oInnerJoin[1]).Alias);
         }
 
     }

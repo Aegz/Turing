@@ -9,8 +9,7 @@ namespace Turing
     {
         static SlidingTextWindow oText = new SlidingTextWindow(
                 @"   
-                         SELECT  || '0'  
-                        
+                        SELECT CASE WHEN ADDED ='INTERNATIONAL' THEN 'Y' ELSE 'N' END AS VARSTRING2
                          FROM FPC_SERVICE  
                 ");
 

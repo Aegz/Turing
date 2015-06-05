@@ -26,11 +26,11 @@ namespace NetezzaParseTests
 
             SyntaxNode oWhere = oTemp.FindFirst(SyntaxKind.WhereKeyword);
             Assert.AreNotEqual(null, oWhere);
-            Assert.AreEqual(1, oWhere.Children.Count);
-            Assert.AreEqual(2, oWhere.Children[0].Children.Count);
-            Assert.AreEqual(SyntaxKind.IdentifierTableSymbol, oWhere.Children[0].Children[0].ExpectedType);
-            Assert.AreEqual(SyntaxKind.BarBarToken, oWhere.Children[0].Children[1].ExpectedType);
-            Assert.AreEqual(3, oWhere.Children[0].Children[1].Children.Count);
+            Assert.AreEqual(1, oWhere.Count);
+            Assert.AreEqual(2, oWhere[0].Count);
+            Assert.AreEqual(SyntaxKind.IdentifierTableSymbol, oWhere[0][0].ExpectedType);
+            Assert.AreEqual(SyntaxKind.BarBarToken, oWhere[0][1].ExpectedType);
+            Assert.AreEqual(3, oWhere[0][1].Count);
         }
 
         [TestMethod]
@@ -49,14 +49,14 @@ namespace NetezzaParseTests
 
             SyntaxNode oSelect = oTemp.FindFirst(SyntaxKind.SelectKeyword);
             Assert.AreNotEqual(null, oSelect);
-            Assert.AreEqual(2, oSelect.Children.Count);
+            Assert.AreEqual(2, oSelect.Count);
 
-            SyntaxNode oColumnList = oSelect.Children[0];
-            Assert.AreEqual(1, oColumnList.Children.Count);
+            SyntaxNode oColumnList = oSelect[0];
+            Assert.AreEqual(1, oColumnList.Count);
             Assert.AreEqual(SyntaxKind.ColumnListNode, oColumnList.ExpectedType);
 
-            SyntaxNode oBarBar = oColumnList.Children[0];
-            Assert.AreEqual(2, oBarBar.Children.Count);
+            SyntaxNode oBarBar = oColumnList[0];
+            Assert.AreEqual(2, oBarBar.Count);
             Assert.AreEqual(SyntaxKind.BarBarToken, oBarBar.ExpectedType);
         }
 
@@ -76,14 +76,14 @@ namespace NetezzaParseTests
 
             SyntaxNode oSelect = oTemp.FindFirst(SyntaxKind.SelectKeyword);
             Assert.AreNotEqual(null, oSelect);
-            Assert.AreEqual(2, oSelect.Children.Count);
+            Assert.AreEqual(2, oSelect.Count);
 
-            SyntaxNode oColumnList = oSelect.Children[0];
-            Assert.AreEqual(1, oColumnList.Children.Count);
+            SyntaxNode oColumnList = oSelect[0];
+            Assert.AreEqual(1, oColumnList.Count);
             Assert.AreEqual(SyntaxKind.ColumnListNode, oColumnList.ExpectedType);
 
-            SyntaxNode oBarBar = oColumnList.Children[0];
-            Assert.AreEqual(2, oBarBar.Children.Count);
+            SyntaxNode oBarBar = oColumnList[0];
+            Assert.AreEqual(2, oBarBar.Count);
             Assert.AreEqual(SyntaxKind.BarBarToken, oBarBar.ExpectedType);
         }
 
@@ -103,14 +103,14 @@ namespace NetezzaParseTests
 
             SyntaxNode oSelect = oTemp.FindFirst(SyntaxKind.SelectKeyword);
             Assert.AreNotEqual(null, oSelect);
-            Assert.AreEqual(2, oSelect.Children.Count);
+            Assert.AreEqual(2, oSelect.Count);
 
-            SyntaxNode oColumnList = oSelect.Children[0];
-            Assert.AreEqual(1, oColumnList.Children.Count);
+            SyntaxNode oColumnList = oSelect[0];
+            Assert.AreEqual(1, oColumnList.Count);
             Assert.AreEqual(SyntaxKind.ColumnListNode, oColumnList.ExpectedType);
 
-            SyntaxNode oBarBar = oColumnList.Children[0];
-            Assert.AreEqual(2, oBarBar.Children.Count);
+            SyntaxNode oBarBar = oColumnList[0];
+            Assert.AreEqual(2, oBarBar.Count);
             Assert.AreEqual(SyntaxKind.BarBarToken, oBarBar.ExpectedType);
         }
 
@@ -130,18 +130,18 @@ namespace NetezzaParseTests
 
             SyntaxNode oSelect = oTemp.FindFirst(SyntaxKind.SelectKeyword);
             Assert.AreNotEqual(null, oSelect);
-            Assert.AreEqual(2, oSelect.Children.Count);
+            Assert.AreEqual(2, oSelect.Count);
 
-            SyntaxNode oColumnList = oSelect.Children[0];
-            Assert.AreEqual(1, oColumnList.Children.Count);
+            SyntaxNode oColumnList = oSelect[0];
+            Assert.AreEqual(1, oColumnList.Count);
             Assert.AreEqual(SyntaxKind.ColumnListNode, oColumnList.ExpectedType);
 
-            SyntaxNode oBarBar = oColumnList.Children[0];
-            Assert.AreEqual(3, oBarBar.Children.Count);
+            SyntaxNode oBarBar = oColumnList[0];
+            Assert.AreEqual(3, oBarBar.Count);
             Assert.AreEqual(SyntaxKind.BarBarToken, oBarBar.ExpectedType);
-            Assert.AreEqual(SyntaxKind.LiteralToken, oBarBar.Children[0].ExpectedType);
-            Assert.AreEqual(SyntaxKind.SubStringKeyword, oBarBar.Children[1].ExpectedType);
-            Assert.AreEqual(SyntaxKind.LiteralToken, oBarBar.Children[2].ExpectedType);
+            Assert.AreEqual(SyntaxKind.LiteralToken, oBarBar[0].ExpectedType);
+            Assert.AreEqual(SyntaxKind.SubStringKeyword, oBarBar[1].ExpectedType);
+            Assert.AreEqual(SyntaxKind.LiteralToken, oBarBar[2].ExpectedType);
         }
     }
 }

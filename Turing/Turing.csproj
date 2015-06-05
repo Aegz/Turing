@@ -60,7 +60,8 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Syntax\Collections\SyntaxTokenList.cs" />
-    <Compile Include="Syntax\Constructs\ExceptionSyntaxNode.cs" />
+    <Compile Include="Syntax\Constructs\Exceptions\SkippedNode.cs" />
+    <Compile Include="Syntax\Constructs\Exceptions\FillerNode.cs" />
     <Compile Include="Syntax\Constructs\StatementSyntaxNode.cs" />
     <Compile Include="Syntax\Constructs\QuerySyntaxNode.cs" />
     <Compile Include="Syntax\Constructs\Symbols\SymbolList.cs" />

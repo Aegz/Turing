@@ -9,7 +9,7 @@ namespace Turing.Syntax
         {
         }
 
-        public override bool AddChild(SyntaxNode xoGiven)
+        public override bool Add(SyntaxNode xoGiven)
         {
             // Add no children
             return false;

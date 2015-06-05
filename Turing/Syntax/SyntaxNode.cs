@@ -1,13 +1,17 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using Turing.Diagnostics;
 using Turing.Parser;
+using System.Linq;
 using Turing.Syntax.Collections;
 using Turing.Syntax.Strategies;
+using Turing.Syntax.Constructs;
+using Turing.Syntax.Constructs.Exceptions;
 
 namespace Turing.Syntax
 {
-    public class SyntaxNode 
+    public class SyntaxNode : IEnumerable<SyntaxNode>, IList<SyntaxNode>
     {
         #region Object Attributes
 
@@ -36,11 +40,11 @@ namespace Turing.Syntax
 
         #endregion
 
-        #region Node Attributes
+        #region List Functions
 
         protected List<SyntaxNode> aoChildren; // Currently at protected for Query and Statement
 
-        public List<SyntaxNode> Children
+        protected List<SyntaxNode> Children
         {
             get
             {
@@ -53,7 +57,55 @@ namespace Turing.Syntax
             }
         }
 
-        public virtual Boolean AddChild(SyntaxNode xoGiven)
+        public SyntaxNode this[int xiIndex]
+        {
+            get
+            {
+                return Children[xiIndex];
+            }
+        }
+
+        public Boolean Exists (Predicate<SyntaxNode> xoFunc)
+        {
+            return Children.Exists(xoFunc);
+        }
+
+        public void RemoveAt(int xiIndex)
+        {
+            Children.RemoveAt(xiIndex);
+        }
+
+        public virtual int Count
+        {
+            get
+            {
+                // ?? TODO: Exclude Exception Nodes
+                return Children.Where((oNode) => oNode.GetType() != typeof(SkippedNode)).Count();
+            }
+        }
+
+        public bool IsReadOnly
+        {
+            get
+            {
+                return ((IList<SyntaxNode>)Children).IsReadOnly;
+            }
+        }
+
+        SyntaxNode IList<SyntaxNode>.this[int index]
+        {
+            get
+            {
+                return ((IList<SyntaxNode>)Children)[index];
+            }
+
+            set
+            {
+                ((IList<SyntaxNode>)Children)[index] = value;
+            }
+        }
+
+        public virtual Boolean Add(SyntaxNode xoGiven)
         {
             // Dont add if we are full up
             if (IsFull())
@@ -173,7 +225,7 @@ namespace Turing.Syntax
                         !this.Equals(oLoopingVar))
                     {
                         // Consume the previous sibling
-                        AddChild(oLoopingVar);
+                        Add(oLoopingVar);
 
                         // Remove the sibling from the parent
                         Parent.Children.RemoveAt(iIndex);
@@ -240,6 +292,51 @@ namespace Turing.Syntax
                 return null;
             }
 
+        }
+
+        public IEnumerator<SyntaxNode> GetEnumerator()
+        {
+            return ((IEnumerable<SyntaxNode>)Children).GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return ((IEnumerable<SyntaxNode>)Children).GetEnumerator();
+        }
+
+        public int IndexOf(SyntaxNode item)
+        {
+            return ((IList<SyntaxNode>)Children).IndexOf(item);
+        }
+
+        public void Insert(int index, SyntaxNode item)
+        {
+            ((IList<SyntaxNode>)Children).Insert(index, item);
+        }
+
+        void ICollection<SyntaxNode>.Add(SyntaxNode item)
+        {
+            ((IList<SyntaxNode>)Children).Add(item);
+        }
+
+        public void Clear()
+        {
+            ((IList<SyntaxNode>)Children).Clear();
+        }
+
+        public bool Contains(SyntaxNode item)
+        {
+            return ((IList<SyntaxNode>)Children).Contains(item);
+        }
+
+        public void CopyTo(SyntaxNode[] array, int arrayIndex)
+        {
+            ((IList<SyntaxNode>)Children).CopyTo(array, arrayIndex);
+        }
+
+        public bool Remove(SyntaxNode item)
+        {
+            return ((IList<SyntaxNode>)Children).Remove(item);
         }
 
         #endregion

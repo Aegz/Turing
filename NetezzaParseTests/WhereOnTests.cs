@@ -39,9 +39,9 @@ namespace NetezzaParseTests
             Assert.AreNotEqual(oEqual, null);
 
             // Test that the AND was generated properly (exactly 2 children)
-            Assert.AreEqual(2, oEqual.Children.Count);
-            Assert.AreEqual(SyntaxKind.IdentifierTableSymbol, oEqual.Children[0].ExpectedType);
-            Assert.AreEqual(SyntaxKind.LiteralToken, oEqual.Children[1].ExpectedType);
+            Assert.AreEqual(2, oEqual.Count);
+            Assert.AreEqual(SyntaxKind.IdentifierTableSymbol, oEqual[0].ExpectedType);
+            Assert.AreEqual(SyntaxKind.LiteralToken, oEqual[1].ExpectedType);
         }
 
         [TestMethod]
@@ -69,7 +69,7 @@ namespace NetezzaParseTests
             SyntaxNode oWhere = oTemp.FindFirst(SyntaxKind.WhereKeyword);
             Assert.AreNotEqual(null, oWhere);
     
-            Assert.AreEqual(SyntaxKind.BooleanToken, oWhere.Children[0].ExpectedType); // Check for the Filler node
+            Assert.AreEqual(SyntaxKind.BooleanToken, oWhere[0].ExpectedType); // Check for the Filler node
         }
 
         [TestMethod]
@@ -102,7 +102,7 @@ namespace NetezzaParseTests
             Assert.IsTrue(oOR != null);
 
             // Test that the OR was generated properly (exactly 2 children)
-            Assert.AreEqual(2, oOR.Children.Count);
+            Assert.AreEqual(2, oOR.Count);
         }
 
         [TestMethod]
@@ -138,8 +138,8 @@ namespace NetezzaParseTests
             Assert.AreNotEqual(null, oOR);
 
             // Test that the AND was generated properly (exactly 2 children)
-            Assert.AreEqual(2, oOR.Children.Count);
-            Assert.AreEqual(2, oOR.Children[0].Children.Count); // Inner AND has 2 children
+            Assert.AreEqual(2, oOR.Count);
+            Assert.AreEqual(2, oOR[0].Count); // Inner AND has 2 children
         }
 
 
@@ -173,7 +173,7 @@ namespace NetezzaParseTests
             Assert.IsTrue(oAND != null);
 
             // Test that the AND was generated properly (exactly 2 children)
-            Assert.AreEqual(2, oAND.Children.Count);
+            Assert.AreEqual(2, oAND.Count);
         }
 
         [TestMethod]
@@ -209,8 +209,8 @@ namespace NetezzaParseTests
             Assert.AreNotEqual(null, oAND);
 
             // Test that the AND was generated properly (exactly 2 children)
-            Assert.AreEqual(2, oAND.Children.Count);
-            Assert.AreEqual(2, oAND.Children[0].Children.Count); // Inner AND has 2 children
+            Assert.AreEqual(2, oAND.Count);
+            Assert.AreEqual(2, oAND[0].Count); // Inner AND has 2 children
         }
 
 
@@ -242,10 +242,10 @@ namespace NetezzaParseTests
             // Test that there is a select keyword in that subquery
             SyntaxNode oAND = oWhere.FindFirst(SyntaxKind.AndKeyword);
             Assert.AreNotEqual(null, oAND);
-            Assert.AreEqual(SyntaxKind.BooleanToken, oAND.Children[0].ExpectedType); // Check for the Filler node
+            Assert.AreEqual(SyntaxKind.BooleanToken, oAND[0].ExpectedType); // Check for the Filler node
 
             // Test that the AND was generated properly (exactly 2 children)
-            Assert.AreEqual(2, oAND.Children.Count);
+            Assert.AreEqual(2, oAND.Count);
         }
 
         [TestMethod]
@@ -276,10 +276,10 @@ namespace NetezzaParseTests
             // Test that there is a select keyword in that subquery
             SyntaxNode oAND = oWhere.FindFirst(SyntaxKind.AndKeyword);
             Assert.AreNotEqual(null, oAND);
-            Assert.AreEqual(SyntaxKind.BooleanToken, oAND.Children[0].ExpectedType); // Check for the Filler node
+            Assert.AreEqual(SyntaxKind.BooleanToken, oAND[0].ExpectedType); // Check for the Filler node
 
             // Test that the AND was generated properly (exactly 2 children)
-            Assert.AreEqual(2, oAND.Children.Count);
+            Assert.AreEqual(2, oAND.Count);
         }
 
 
@@ -319,22 +319,22 @@ namespace NetezzaParseTests
             Assert.AreEqual(oAND.RawSQLText, "AND");
 
             // Test that the AND was generated properly (exactly 2 children)
-            Assert.AreEqual(2, oAND.Children.Count);
+            Assert.AreEqual(2, oAND.Count);
 
-            SyntaxNode oLeftEquals = oAND.Children[0];
+            SyntaxNode oLeftEquals = oAND[0];
             Assert.AreEqual(oLeftEquals.ExpectedType, SyntaxKind.EqualsToken);
 
-            SyntaxNode oLeftEqualsL = oLeftEquals.Children[0];
+            SyntaxNode oLeftEqualsL = oLeftEquals[0];
             Assert.AreEqual(oLeftEqualsL.ExpectedType, SyntaxKind.IdentifierTableSymbol);
-            SyntaxNode oLeftEqualsR = oLeftEquals.Children[1];
+            SyntaxNode oLeftEqualsR = oLeftEquals[1];
             Assert.AreEqual(oLeftEqualsR.ExpectedType, SyntaxKind.LiteralToken);
 
 
-            SyntaxNode oRightEquals = oAND.Children[1];
+            SyntaxNode oRightEquals = oAND[1];
             Assert.AreEqual(oLeftEquals.ExpectedType, SyntaxKind.EqualsToken);
-            SyntaxNode oRightEqualsL = oRightEquals.Children[0];
+            SyntaxNode oRightEqualsL = oRightEquals[0];
             Assert.AreEqual(oRightEqualsL.ExpectedType, SyntaxKind.IdentifierTableSymbol);
-            SyntaxNode oRightEqualsR = oRightEquals.Children[1];
+            SyntaxNode oRightEqualsR = oRightEquals[1];
             Assert.AreEqual(oRightEqualsR.ExpectedType, SyntaxKind.IdentifierTableSymbol);
         }
 

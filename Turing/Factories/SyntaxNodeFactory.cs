@@ -3,6 +3,7 @@ using Turing.Diagnostics;
 using Turing.Syntax;
 using Turing.Syntax.Collections;
 using Turing.Syntax.Constructs;
+using Turing.Syntax.Constructs.Exceptions;
 using Turing.Syntax.Constructs.Symbols;
 using Turing.Syntax.Strategies;
 
@@ -62,7 +63,7 @@ namespace Turing.Factories
 
                 case SyntaxKind.StarToken:
                     // No items in the list to consume (Solitary *)
-                    if (xoCurrentNode.Children.Count == 0)
+                    if (xoCurrentNode.Count == 0)
                     {
                         // 
                         return FactoryCreateColumn(xoList);
@@ -268,8 +269,8 @@ namespace Turing.Factories
             oTable = new Symbol(new SyntaxToken(SyntaxKind.IdentifierTableSymbol, oTableToken.RawSQLText));
 
             // create the decorator obj
-            oSchema.AddChild(oTable);
-            oDatabase.AddChild(oSchema);
+            oSchema.Add(oTable);
+            oDatabase.Add(oSchema);
 
             // Pop the tokens
             xoList.PopTokens(Math.Max(iSchemaLocation, iTableLocation) + 1);
@@ -328,7 +329,6 @@ namespace Turing.Factories
             return new SyntaxNode(oReturn, NodeStrategyFactory.FactoryCreateStrategy(oReturn.ExpectedType), iMaxChildCount);
         }
 
-
         public static SyntaxNode FactoryCreateColumnOrExpression (SyntaxNode xoCurrentNode, SyntaxTokenList xoList)
         {
             SyntaxKind eNextTokenKind = xoList.PeekToken().ExpectedType;
@@ -363,7 +363,7 @@ namespace Turing.Factories
                 xoList.PeekToken().ExpectedType == SyntaxKind.BarBarToken)
             {
                 SyntaxNode oBarNode = new SyntaxNode(xoList.PopToken());
-                oBarNode.AddChild(oReturnNode);
+                oBarNode.Add(oReturnNode);
 
                 return oBarNode;         
             }
@@ -405,7 +405,7 @@ namespace Turing.Factories
             {
                 oTable = new Symbol(xoCurrentToken, NodeStrategyFactory.NULL_STRATEGY);
                 oColumn = new Symbol(xoList.PeekToken(2)); // Grab the Column
-                oTable.AddChild(oColumn);
+                oTable.Add(oColumn);
                 xoList.PopTokens(3); // Skip over the next 2
             }
             // Standalone Column
@@ -413,7 +413,7 @@ namespace Turing.Factories
             {
                 oTable = new Symbol(new SyntaxToken(SyntaxKind.IdentifierTableSymbol, String.Empty));
                 oColumn = new Symbol(xoCurrentToken, NodeStrategyFactory.NULL_STRATEGY); // Grab the Column
-                oTable.AddChild(oColumn);
+                oTable.Add(oColumn);
                 xoList.PopToken(); // Skip over the next 1
             }
 
@@ -444,26 +444,6 @@ namespace Turing.Factories
         }
         #endregion
 
-        #endregion
-
-        #region Exception Specific Nodes
-
-        public static SyntaxNode FactoryCreateExpectingButFoundNode(String xsExpected, String xsRawSQL)
-        {
-            // Error
-            SyntaxNode oError = new ExceptionSyntaxNode(SyntaxKind.IdentifierToken, xsRawSQL);
-            oError.Comments.Add(ErrorMessageLibrary.GetErrorMessage(8000, xsExpected, xsRawSQL));
-            return oError;
-        }
-
-        public static SyntaxNode FactoryCreateMissingNode(String xsRawSQL)
-        {
-            // Error
-            SyntaxNode oError = new ExceptionSyntaxNode(SyntaxKind.MissingNode, xsRawSQL);
-            oError.Comments.Add(ErrorMessageLibrary.GetErrorMessage(8003, xsRawSQL));
-            return oError;
-        }
-   
         #endregion
 
         #region Common Functions

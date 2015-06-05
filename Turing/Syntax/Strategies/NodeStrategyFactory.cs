@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Turing.Factories;
 using Turing.Parser;
+using Turing.Syntax.Constructs.Exceptions;
 using Turing.Syntax.Constructs.Symbols;
 
 namespace Turing.Syntax.Strategies
@@ -177,7 +178,7 @@ namespace Turing.Syntax.Strategies
             CanConsumeResult eResult = DefaultCanConsumeNext(xoContext);
 
             // Post execution check
-            if (eResult == CanConsumeResult.Complete && xoContext.CurrentNode.Children.Count != 1)
+            if (eResult == CanConsumeResult.Complete && xoContext.CurrentNode.Count != 1)
             {
                 ResolutionGenerator.HandleIncompleteNode(xoContext);
             }
@@ -199,7 +200,7 @@ namespace Turing.Syntax.Strategies
 
             // Enforces only 1 column list is initialised
             Boolean bTryingToAddDuplicateColumnList = SyntaxKindFacts.IsIdentifier(oKind) &&
-                    xoContext.CurrentNode.Children.Exists((oNode) => oNode.ExpectedType == SyntaxKind.ColumnListNode);
+                    xoContext.CurrentNode.Exists((oNode) => oNode.ExpectedType == SyntaxKind.ColumnListNode);
 
             if (!bTryingToAddDuplicateColumnList && 
                 (SyntaxKindFacts.IsIdentifierOrExpression(oKind) ||
@@ -283,7 +284,7 @@ namespace Turing.Syntax.Strategies
                 eKind == SyntaxKind.CloseParenthesisToken)
             {
                 // Post execution check
-                if (xoContext.CurrentNode.Children.Count != 3)
+                if (xoContext.CurrentNode.Count != 3)
                 {
                     ResolutionGenerator.HandleIncompleteNode(xoContext);
                 }
@@ -398,7 +399,7 @@ namespace Turing.Syntax.Strategies
                 eKind == SyntaxKind.CloseParenthesisToken)
             {
                 // Post execution check
-                if (xoContext.CurrentNode.Children.Count != 2)
+                if (xoContext.CurrentNode.Count != 2)
                 {
                     ResolutionGenerator.HandleIncompleteNode(xoContext);
                 }
@@ -486,7 +487,7 @@ namespace Turing.Syntax.Strategies
             SyntaxKind oKind = xoContext.NextItemKind();
             
             // Consume immediately
-            if (xoContext.CurrentNode.Children.Count <= 1)
+            if (xoContext.CurrentNode.Count <= 1)
             {
                 if (SyntaxKindFacts.IsIdentifierOrExpression(oKind))
                 {
@@ -518,7 +519,7 @@ namespace Turing.Syntax.Strategies
             else
             {
                 // Post consumption check
-                if (xoContext.CurrentNode.Children.Count <= 1)
+                if (xoContext.CurrentNode.Count <= 1)
                 {
                     ResolutionGenerator.HandleIncompleteNode(xoContext);
                 }
@@ -597,7 +598,7 @@ namespace Turing.Syntax.Strategies
                     else
                     {
                         // Invalid Closing parenthesis here
-                        xoContext.List.PopToken(); // drop it
+                        xoContext.CurrentNode.Add(new SkippedNode(xoContext.List.PopToken())); // Add as excluded node
                         // keep processing
                         return CanConsumeResult.Skip;
                     }
@@ -674,7 +675,7 @@ namespace Turing.Syntax.Strategies
             if (SyntaxKindFacts.IsBinaryConstruct(oNewNode.ExpectedType))
             {
                 // If there is nothing to preconsume
-                if (xoContext.CurrentNode.Children.Count == 0)
+                if (xoContext.CurrentNode.Count == 0)
                 {
                     // Else we have an error to fix
                     ResolutionGenerator.HandlePreconsumptionError(new ParsingContext(oNewNode, null, xoContext.List));
@@ -682,8 +683,8 @@ namespace Turing.Syntax.Strategies
                 // If there is something to preconsume
                 else
                 {
-                    int iSiblingPosition = xoContext.CurrentNode.Children.Count - 1;
-                    SyntaxNode oPrevSibling = xoContext.CurrentNode.Children[iSiblingPosition];
+                    int iSiblingPosition = xoContext.CurrentNode.Count - 1;
+                    SyntaxNode oPrevSibling = xoContext.CurrentNode[iSiblingPosition];
                     
                     // Check the eligibility of the previous node
                     CanConsumeResult eEligibility = oNewNode.CanConsumeNode(
@@ -695,10 +696,10 @@ namespace Turing.Syntax.Strategies
                         oNewNode.Parent = xoContext.CurrentNode;
 
                         // Pull off the last node from the parent
-                        oNewNode.AddChild(oPrevSibling);
+                        oNewNode.Add(oPrevSibling);
 
                         // Remove it too
-                        xoContext.CurrentNode.Children.RemoveAt(iSiblingPosition);
+                        xoContext.CurrentNode.RemoveAt(iSiblingPosition);
                     }
                     else
                     {
@@ -716,7 +717,7 @@ namespace Turing.Syntax.Strategies
             else
             {
                 // Add the child
-                xoContext.CurrentNode.AddChild(oNewNode);
+                xoContext.CurrentNode.Add(oNewNode);
                 // 2. Depth first traversal from the child
                 if (oNewNode.TryConsumeList(xoContext.List))
                 {

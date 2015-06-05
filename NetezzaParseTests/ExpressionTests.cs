@@ -26,10 +26,10 @@ namespace NetezzaParseTests
 
             SyntaxNode oWhere = oTemp.FindFirst(SyntaxKind.WhereKeyword);
             Assert.AreNotEqual(null, oWhere);
-            Assert.AreEqual(1, oWhere.Children.Count);
-            Assert.AreEqual(2, oWhere.Children[0].Children.Count);
-            Assert.AreEqual(SyntaxKind.IdentifierTableSymbol, oWhere.Children[0].Children[0].ExpectedType);
-            Assert.AreEqual(SyntaxKind.StarToken, oWhere.Children[0].Children[1].ExpectedType);
+            Assert.AreEqual(1, oWhere.Count);
+            Assert.AreEqual(2, oWhere[0].Count);
+            Assert.AreEqual(SyntaxKind.IdentifierTableSymbol, oWhere[0][0].ExpectedType);
+            Assert.AreEqual(SyntaxKind.StarToken, oWhere[0][1].ExpectedType);
         }
 
         [TestMethod]
@@ -49,12 +49,12 @@ namespace NetezzaParseTests
 
             SyntaxNode oWhere = oTemp.FindFirst(SyntaxKind.WhereKeyword);
             Assert.AreNotEqual(null, oWhere);
-            Assert.AreEqual(1, oWhere.Children.Count);
-            Assert.AreEqual(SyntaxKind.IsKeyword, oWhere.Children[0].ExpectedType);
-            Assert.AreEqual(2, oWhere.Children[0].Children.Count);
+            Assert.AreEqual(1, oWhere.Count);
+            Assert.AreEqual(SyntaxKind.IsKeyword, oWhere[0].ExpectedType);
+            Assert.AreEqual(2, oWhere[0].Count);
 
-            Assert.AreEqual(SyntaxKind.IdentifierTableSymbol, oWhere.Children[0].Children[0].ExpectedType);
-            Assert.AreEqual(SyntaxKind.NullKeyword,           oWhere.Children[0].Children[1].ExpectedType);
+            Assert.AreEqual(SyntaxKind.IdentifierTableSymbol, oWhere[0][0].ExpectedType);
+            Assert.AreEqual(SyntaxKind.NullKeyword,           oWhere[0][1].ExpectedType);
         }
 
         [TestMethod]
@@ -74,15 +74,15 @@ namespace NetezzaParseTests
 
             SyntaxNode oWhere = oTemp.FindFirst(SyntaxKind.WhereKeyword);
             Assert.AreNotEqual(null, oWhere);
-            Assert.AreEqual(1, oWhere.Children.Count);
-            Assert.AreEqual(SyntaxKind.IsKeyword, oWhere.Children[0].ExpectedType);
-            Assert.AreEqual(2, oWhere.Children[0].Children.Count);
+            Assert.AreEqual(1, oWhere.Count);
+            Assert.AreEqual(SyntaxKind.IsKeyword, oWhere[0].ExpectedType);
+            Assert.AreEqual(2, oWhere[0].Count);
 
-            Assert.AreEqual(SyntaxKind.IdentifierTableSymbol, oWhere.Children[0].Children[0].ExpectedType);
-            Assert.AreEqual(SyntaxKind.NotKeyword, oWhere.Children[0].Children[1].ExpectedType);
+            Assert.AreEqual(SyntaxKind.IdentifierTableSymbol, oWhere[0][0].ExpectedType);
+            Assert.AreEqual(SyntaxKind.NotKeyword, oWhere[0][1].ExpectedType);
 
-            Assert.AreEqual(1, oWhere.Children[0].Children[1].Children.Count);
-            Assert.AreEqual(SyntaxKind.NullKeyword, oWhere.Children[0].Children[1].Children[0].ExpectedType);
+            Assert.AreEqual(1, oWhere[0][1].Count);
+            Assert.AreEqual(SyntaxKind.NullKeyword, oWhere[0][1][0].ExpectedType);
         }
 
         [TestMethod]
@@ -102,13 +102,13 @@ namespace NetezzaParseTests
 
             SyntaxNode oWhere = oTemp.FindFirst(SyntaxKind.WhereKeyword);
             Assert.AreNotEqual(null, oWhere);
-            Assert.AreEqual(1, oWhere.Children.Count);
-            Assert.AreEqual(SyntaxKind.InKeyword, oWhere.Children[0].ExpectedType);
-            Assert.AreEqual(2, oWhere.Children[0].Children.Count);
+            Assert.AreEqual(1, oWhere.Count);
+            Assert.AreEqual(SyntaxKind.InKeyword, oWhere[0].ExpectedType);
+            Assert.AreEqual(2, oWhere[0].Count);
 
-            Assert.AreEqual(SyntaxKind.IdentifierTableSymbol, oWhere.Children[0].Children[0].ExpectedType);
-            Assert.AreEqual(SyntaxKind.OpenParenthesisToken, oWhere.Children[0].Children[1].ExpectedType);
-            Assert.AreEqual(1, oWhere.Children[0].Children[1].Children.Count);
+            Assert.AreEqual(SyntaxKind.IdentifierTableSymbol, oWhere[0][0].ExpectedType);
+            Assert.AreEqual(SyntaxKind.OpenParenthesisToken, oWhere[0][1].ExpectedType);
+            Assert.AreEqual(1, oWhere[0][1].Count);
         }
 
 
@@ -129,13 +129,13 @@ namespace NetezzaParseTests
 
             SyntaxNode oWhere = oTemp.FindFirst(SyntaxKind.WhereKeyword);
             Assert.AreNotEqual(null, oWhere);
-            Assert.AreEqual(1, oWhere.Children.Count);
-            Assert.AreEqual(SyntaxKind.InKeyword, oWhere.Children[0].ExpectedType);
-            Assert.AreEqual(2, oWhere.Children[0].Children.Count);
+            Assert.AreEqual(1, oWhere.Count);
+            Assert.AreEqual(SyntaxKind.InKeyword, oWhere[0].ExpectedType);
+            Assert.AreEqual(2, oWhere[0].Count);
 
-            Assert.AreEqual(SyntaxKind.IdentifierTableSymbol, oWhere.Children[0].Children[0].ExpectedType);
-            Assert.AreEqual(SyntaxKind.OpenParenthesisToken, oWhere.Children[0].Children[1].ExpectedType);
-            Assert.AreEqual(1, oWhere.Children[0].Children[1].Children.Count);
+            Assert.AreEqual(SyntaxKind.IdentifierTableSymbol, oWhere[0][0].ExpectedType);
+            Assert.AreEqual(SyntaxKind.OpenParenthesisToken, oWhere[0][1].ExpectedType);
+            Assert.AreEqual(1, oWhere[0][1].Count);
         }
 
         [TestMethod]
@@ -155,13 +155,13 @@ namespace NetezzaParseTests
             
             SyntaxNode oWhere = oTemp.FindFirst(SyntaxKind.WhereKeyword);
             Assert.AreNotEqual(null, oWhere);
-            Assert.AreEqual(1, oWhere.Children.Count);
-            Assert.AreEqual(SyntaxKind.InKeyword, oWhere.Children[0].ExpectedType);
-            Assert.AreEqual(2, oWhere.Children[0].Children.Count);
+            Assert.AreEqual(1, oWhere.Count);
+            Assert.AreEqual(SyntaxKind.InKeyword, oWhere[0].ExpectedType);
+            Assert.AreEqual(2, oWhere[0].Count);
 
-            Assert.AreEqual(SyntaxKind.IdentifierTableSymbol, oWhere.Children[0].Children[0].ExpectedType);
-            Assert.AreEqual(SyntaxKind.ColumnListNode, oWhere.Children[0].Children[1].ExpectedType);
-            Assert.AreEqual(3, oWhere.Children[0].Children[1].Children.Count);
+            Assert.AreEqual(SyntaxKind.IdentifierTableSymbol, oWhere[0][0].ExpectedType);
+            Assert.AreEqual(SyntaxKind.ColumnListNode, oWhere[0][1].ExpectedType);
+            Assert.AreEqual(3, oWhere[0][1].Count);
         }
     }
 }

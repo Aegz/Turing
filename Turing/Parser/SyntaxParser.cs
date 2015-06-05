@@ -71,9 +71,9 @@ namespace Turing.Parser
                 }
 
                 // Append to the statement anyways
-                oStatement.AddChild(CurrentNode);
+                oStatement.Add(CurrentNode);
 
-                oQuery.AddChild(oStatement);
+                oQuery.Add(oStatement);
             }
 
             // Return the Query

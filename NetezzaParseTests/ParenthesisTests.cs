@@ -29,13 +29,13 @@ namespace NetezzaParseTests
             SyntaxNode oSelect = oTemp.FindFirst(SyntaxKind.SelectKeyword);
             Assert.AreNotEqual(oSelect, null);
 
-            SyntaxNode oColList = oSelect.Children[0];
-            Assert.AreEqual(oColList.Children.Count, 1);
+            SyntaxNode oColList = oSelect[0];
+            Assert.AreEqual(oColList.Count, 1);
 
-            foreach (SyntaxNode oChild in oColList.Children)
+            foreach (SyntaxNode oChild in oColList)
             {
                 Assert.AreEqual(oChild.ExpectedType, SyntaxKind.OpenParenthesisToken);
-                SyntaxNode oColInner = oChild.Children[0];
+                SyntaxNode oColInner = oChild[0];
                 Assert.IsTrue(
                     oColInner.ExpectedType == SyntaxKind.StarToken || 
                     oColInner.ExpectedType == SyntaxKind.IdentifierTableSymbol);
@@ -62,13 +62,13 @@ namespace NetezzaParseTests
             SyntaxNode oSelect = oTemp.FindFirst(SyntaxKind.SelectKeyword);
             Assert.AreNotEqual(oSelect, null);
 
-            SyntaxNode oColList = oSelect.Children[0];
-            Assert.AreEqual(3, oColList.Children.Count);
+            SyntaxNode oColList = oSelect[0];
+            Assert.AreEqual(3, oColList.Count);
 
-            foreach (SyntaxNode oChild in oColList.Children)
+            foreach (SyntaxNode oChild in oColList)
             {
                 Assert.AreEqual(oChild.ExpectedType, SyntaxKind.OpenParenthesisToken);
-                SyntaxNode oColInner = oChild.Children[0];
+                SyntaxNode oColInner = oChild[0];
                 Assert.IsTrue(
                     oColInner.ExpectedType == SyntaxKind.StarToken ||
                     oColInner.ExpectedType == SyntaxKind.IdentifierColumnSymbol ||
@@ -99,11 +99,11 @@ namespace NetezzaParseTests
             SyntaxNode oWhere = oTemp.FindFirst(SyntaxKind.WhereKeyword);
             Assert.IsTrue(oWhere != null);
 
-            SyntaxNode oParenthesis = oWhere.Children[0];
+            SyntaxNode oParenthesis = oWhere[0];
             Assert.AreEqual(oParenthesis.ExpectedType, SyntaxKind.OpenParenthesisToken);
 
             // Test that there is a select keyword in that subquery
-            SyntaxNode oAND = oParenthesis.Children[0];
+            SyntaxNode oAND = oParenthesis[0];
             Assert.AreEqual(oAND.ExpectedType, SyntaxKind.AndKeyword);
 
         }
@@ -133,14 +133,14 @@ namespace NetezzaParseTests
 
 
             // Test that there is a select keyword in that subquery
-            SyntaxNode oFirstAND = oWhere.Children[0];
+            SyntaxNode oFirstAND = oWhere[0];
             Assert.AreEqual(oFirstAND.ExpectedType, SyntaxKind.AndKeyword);
 
-            SyntaxNode oParenthesis = oFirstAND.Children[0];
+            SyntaxNode oParenthesis = oFirstAND[0];
             Assert.AreEqual(oParenthesis.ExpectedType, SyntaxKind.OpenParenthesisToken);
 
             // Test that there is a select keyword in that subquery
-            SyntaxNode oSecondParenthesis = oFirstAND.Children[1];
+            SyntaxNode oSecondParenthesis = oFirstAND[1];
             Assert.AreEqual(oSecondParenthesis.ExpectedType, SyntaxKind.OpenParenthesisToken);
         }
 
@@ -168,22 +168,22 @@ namespace NetezzaParseTests
             Assert.IsTrue(oWhere != null);
 
             // Test that there is a select keyword in that subquery
-            SyntaxNode oFirstAND = oWhere.Children[0];
+            SyntaxNode oFirstAND = oWhere[0];
             Assert.AreEqual(oFirstAND.ExpectedType, SyntaxKind.AndKeyword);
 
-            SyntaxNode oParenthesis = oFirstAND.Children[0];
+            SyntaxNode oParenthesis = oFirstAND[0];
             Assert.AreEqual(oParenthesis.ExpectedType, SyntaxKind.OpenParenthesisToken);
 
             // Inner AND
-            SyntaxNode oInnerAND = oParenthesis.Children[0];
+            SyntaxNode oInnerAND = oParenthesis[0];
             Assert.AreEqual(oInnerAND.ExpectedType, SyntaxKind.AndKeyword);
 
             // LEFT SIDE of INNER AND should be parenthesis
-            SyntaxNode oInnerParenthesis = oInnerAND.Children[0];
+            SyntaxNode oInnerParenthesis = oInnerAND[0];
             Assert.AreEqual(oParenthesis.ExpectedType, SyntaxKind.OpenParenthesisToken);
 
             // Test that there is a select keyword in that subquery
-            SyntaxNode oSecondParenthesis = oFirstAND.Children[1];
+            SyntaxNode oSecondParenthesis = oFirstAND[1];
             Assert.AreEqual(oSecondParenthesis.ExpectedType, SyntaxKind.OpenParenthesisToken);
         }
 

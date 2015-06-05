@@ -34,11 +34,11 @@ namespace NetezzaParseTests
             SyntaxNode oStarExpression = oSelect.FindFirst(SyntaxKind.StarToken);
             Assert.AreNotEqual(oStarExpression, null);
 
-            SyntaxNode oLeft = oStarExpression.Children[0];
-            SyntaxNode oRight = oStarExpression.Children[1];
+            SyntaxNode oLeft = oStarExpression[0];
+            SyntaxNode oRight = oStarExpression[1];
 
             Assert.AreEqual(oLeft.ExpectedType, SyntaxKind.IdentifierTableSymbol);
-            Assert.AreEqual(oLeft.Children[0].ExpectedType, SyntaxKind.IdentifierColumnSymbol);
+            Assert.AreEqual(oLeft[0].ExpectedType, SyntaxKind.IdentifierColumnSymbol);
             Assert.AreEqual(oRight.ExpectedType,SyntaxKind.NumericToken);
         }
 
@@ -67,11 +67,11 @@ namespace NetezzaParseTests
             SyntaxNode oStarExpression = oSelect.FindFirst(SyntaxKind.MinusToken);
             Assert.AreNotEqual(oStarExpression, null);
 
-            SyntaxNode oLeft = oStarExpression.Children[0];
-            SyntaxNode oRight = oStarExpression.Children[1];
+            SyntaxNode oLeft = oStarExpression[0];
+            SyntaxNode oRight = oStarExpression[1];
 
             Assert.AreEqual(oLeft.ExpectedType, SyntaxKind.IdentifierTableSymbol);
-            Assert.AreEqual(oLeft.Children[0].ExpectedType, SyntaxKind.IdentifierColumnSymbol);
+            Assert.AreEqual(oLeft[0].ExpectedType, SyntaxKind.IdentifierColumnSymbol);
             Assert.AreEqual(oRight.ExpectedType, SyntaxKind.NumericToken);
         }
    
@@ -100,8 +100,8 @@ namespace NetezzaParseTests
             SyntaxNode oStarExpression = oSelect.FindFirst(SyntaxKind.PlusToken);
             Assert.AreNotEqual(oStarExpression, null);
 
-            SyntaxNode oLeft = oStarExpression.Children[0];
-            SyntaxNode oRight = oStarExpression.Children[1];
+            SyntaxNode oLeft = oStarExpression[0];
+            SyntaxNode oRight = oStarExpression[1];
 
             Assert.AreEqual(oLeft.ExpectedType, SyntaxKind.IdentifierTableSymbol);
             Assert.AreEqual(oRight.ExpectedType, SyntaxKind.NumericToken);
@@ -132,8 +132,8 @@ namespace NetezzaParseTests
             SyntaxNode oStarExpression = oSelect.FindFirst(SyntaxKind.SlashToken);
             Assert.AreNotEqual(oStarExpression, null);
 
-            SyntaxNode oLeft = oStarExpression.Children[0];
-            SyntaxNode oRight = oStarExpression.Children[1];
+            SyntaxNode oLeft = oStarExpression[0];
+            SyntaxNode oRight = oStarExpression[1];
 
             Assert.AreEqual(oLeft.ExpectedType, SyntaxKind.IdentifierTableSymbol);
             Assert.AreEqual(oRight.ExpectedType, SyntaxKind.NumericToken);
