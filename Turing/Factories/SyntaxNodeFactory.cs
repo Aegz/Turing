@@ -22,10 +22,9 @@ namespace Turing.Factories
             SyntaxKind eNextTokenKind = xoList.PeekToken().ExpectedType;
 
             // Is any identifier or Expression (function/literal)
-            if (SyntaxKindFacts.IsFunction(eNextTokenKind))
+            if (SyntaxKindFacts.IsIdentifierOrExpression(eNextTokenKind))
             {
-                // COUNT (*)
-                return FactoryCreateColumnFunction(xoList);
+                return FactoryCreateColumnOrExpression(xoCurrentNode, xoList);
             }
 
             int iMaxChildCount = -1;
@@ -92,28 +91,6 @@ namespace Turing.Factories
                 case SyntaxKind.CrossJoinKeyword:
                     return FactoryCreateCompoundJoin(xoList);
                 #endregion
-
-                #region Identifier
-                case SyntaxKind.IdentifierToken:
-                case SyntaxKind.IdentifierDatabaseSymbol:
-                case SyntaxKind.IdentifierSchemaSymbol:
-                case SyntaxKind.IdentifierTableSymbol:
-                case SyntaxKind.IdentifierColumnSymbol:
-                    // Purely an identifier
-                    return FactoryCreateColumn(xoList);
-                #endregion
-
-                case SyntaxKind.OpenParenthesisToken:
-                    // Given a (, Try and guess what type of () this is
-                    return FactoryInterpretOpenParenthesisToken(xoCurrentNode, xoList);
-
-                // The type of the expression will be determined by the Token's
-                // Type and we will use this to compare compatibility
-                case SyntaxKind.LiteralToken: // String
-                    // Factory Creation Method
-                case SyntaxKind.BooleanToken: // true and false
-                case SyntaxKind.NumericToken: // Integer
-                case SyntaxKind.DateToken:    // Date objects
 
                 default:
                     // Default to the original token since it doesn't need to be converted
@@ -300,6 +277,101 @@ namespace Turing.Factories
             return oDatabase;
         }
 
+        public static SyntaxNode FactoryCreateCompoundJoin (SyntaxTokenList xoList)
+        {
+            // Create the Join Node
+            //JoinSyntaxNode oTemp = new JoinSyntaxNode(xoList.PopToken());
+            SyntaxNode oTemp = new SyntaxNode(xoList.PeekToken(), NodeStrategyFactory.FactoryCreateStrategy(xoList.PopToken().ExpectedType)); 
+
+            // If the next node is actually an OUTER keyword
+            if (xoList.PeekToken().ExpectedType == SyntaxKind.OuterKeyword)
+            {
+                // Construct a proper Join keyword with the type declared
+                oTemp.RawSQLText += " " + xoList.PopToken().RawSQLText; // add the text (OUTER)
+            }
+            // If the next node is actually a Join
+            if (xoList.PeekToken().ExpectedType == SyntaxKind.JoinKeyword)
+            {
+                // Construct a proper Join keyword with the type declared
+                oTemp.RawSQLText += " " + xoList.PopToken().RawSQLText; // add the text (JOIN)
+            }
+            else
+            {
+                // Add an error
+                oTemp.Comments.Add(ErrorMessageLibrary.GetErrorMessage(8000, xoList.PopToken().RawSQLText, "JOIN"));
+
+            }
+            // Return the Join node
+            return oTemp;
+        }
+
+        public static SyntaxNode FactoryCreateNot (SyntaxTokenList xoList)
+        {
+            int iMaxChildCount = 1;
+            SyntaxToken oReturn = xoList.PopToken();
+            if (xoList.PeekToken().ExpectedType == SyntaxKind.InKeyword)
+            {
+                oReturn.ExpectedType = SyntaxKind.NotInKeyword;
+                oReturn.RawSQLText += " " + xoList.PopToken().RawSQLText;
+                iMaxChildCount = 2;
+            }
+            else if (xoList.PeekToken().ExpectedType == SyntaxKind.LikeKeyword)
+            {
+                oReturn.ExpectedType = SyntaxKind.NotLikeKeyword;
+                oReturn.RawSQLText += " " + xoList.PopToken().RawSQLText;
+                iMaxChildCount = 2;
+            }
+
+            return new SyntaxNode(oReturn, NodeStrategyFactory.FactoryCreateStrategy(oReturn.ExpectedType), iMaxChildCount);
+        }
+
+
+        public static SyntaxNode FactoryCreateColumnOrExpression (SyntaxNode xoCurrentNode, SyntaxTokenList xoList)
+        {
+            SyntaxKind eNextTokenKind = xoList.PeekToken().ExpectedType;
+            SyntaxNode oReturnNode;
+
+            // Is any identifier or Expression (function/literal)
+            if (SyntaxKindFacts.IsFunction(eNextTokenKind))
+            {
+                // COUNT (*)
+                oReturnNode = FactoryCreateColumnFunction(xoList);
+            }
+            else if (eNextTokenKind == SyntaxKind.OpenParenthesisToken)
+            {
+                // Purely an identifier
+                oReturnNode = FactoryInterpretOpenParenthesisToken(xoCurrentNode, xoList);
+            }
+            else if (
+                SyntaxKindFacts.IsIdentifier(eNextTokenKind) ||
+                SyntaxKindFacts.IsLiteral(eNextTokenKind))
+            {
+                // Purely an identifier
+                oReturnNode = FactoryCreateColumn(xoList);
+            }
+            else
+            {
+                oReturnNode = new SyntaxLeaf(xoList.PopToken());
+            }
+            // CASE
+
+            // If we have a trailing || (and we arent already using a bar bar
+            if (xoCurrentNode.ExpectedType != SyntaxKind.BarBarToken &&
+                xoList.PeekToken().ExpectedType == SyntaxKind.BarBarToken)
+            {
+                SyntaxNode oBarNode = new SyntaxNode(xoList.PopToken());
+                oBarNode.AddChild(oReturnNode);
+
+                return oBarNode;         
+            }
+            // Valid case, no fixing necessary
+            else
+            {
+                return oReturnNode;
+            }
+        }
+
+        #region Column Identifier/Function 
         /// <summary>
         /// Generates a Column Symbol (Used everywhere else)
         /// </summary>
@@ -353,12 +425,11 @@ namespace Turing.Factories
             return oTable;
         }
 
-
         public static SyntaxNode FactoryCreateColumnFunction(SyntaxTokenList xoList)
         {
             // generate the item
             Symbol oColumnExp = new Symbol(xoList.PopToken());
-            
+
             // Consume Ahead
             oColumnExp.TryConsumeList(xoList);
 
@@ -368,116 +439,7 @@ namespace Turing.Factories
             // Return the column
             return oColumnExp;
         }
-
-
-        public static SyntaxNode FactoryCreateCompoundJoin (SyntaxTokenList xoList)
-        {
-            // Create the Join Node
-            //JoinSyntaxNode oTemp = new JoinSyntaxNode(xoList.PopToken());
-            SyntaxNode oTemp = new SyntaxNode(xoList.PeekToken(), NodeStrategyFactory.FactoryCreateStrategy(xoList.PopToken().ExpectedType)); 
-
-            // If the next node is actually an OUTER keyword
-            if (xoList.PeekToken().ExpectedType == SyntaxKind.OuterKeyword)
-            {
-                // Construct a proper Join keyword with the type declared
-                oTemp.RawSQLText += " " + xoList.PopToken().RawSQLText; // add the text (OUTER)
-            }
-            // If the next node is actually a Join
-            if (xoList.PeekToken().ExpectedType == SyntaxKind.JoinKeyword)
-            {
-                // Construct a proper Join keyword with the type declared
-                oTemp.RawSQLText += " " + xoList.PopToken().RawSQLText; // add the text (JOIN)
-            }
-            else
-            {
-                // Add an error
-                oTemp.Comments.Add(ErrorMessageLibrary.GetErrorMessage(8000, xoList.PopToken().RawSQLText, "JOIN"));
-
-            }
-            // Return the Join node
-            return oTemp;
-        }
-
-
-        public static SyntaxNode FactoryCreateNot (SyntaxTokenList xoList)
-        {
-            int iMaxChildCount = 1;
-            SyntaxToken oReturn = xoList.PopToken();
-            if (xoList.PeekToken().ExpectedType == SyntaxKind.InKeyword)
-            {
-                oReturn.ExpectedType = SyntaxKind.NotInKeyword;
-                oReturn.RawSQLText += " " + xoList.PopToken().RawSQLText;
-                iMaxChildCount = 2;
-            }
-            else if (xoList.PeekToken().ExpectedType == SyntaxKind.LikeKeyword)
-            {
-                oReturn.ExpectedType = SyntaxKind.NotLikeKeyword;
-                oReturn.RawSQLText += " " + xoList.PopToken().RawSQLText;
-                iMaxChildCount = 2;
-            }
-
-            return new SyntaxNode(oReturn, NodeStrategyFactory.FactoryCreateStrategy(oReturn.ExpectedType), iMaxChildCount);
-        }
-
-
-        public static SyntaxNode FactoryCreateColumnOrExpression (SyntaxTokenList xoList)
-        {
-            SyntaxKind eNextTokenKind = xoList.PeekToken().ExpectedType;
-
-            // Is any identifier or Expression (function/literal)
-            if (SyntaxKindFacts.IsFunction(eNextTokenKind))
-            {
-                // COUNT (*)
-                return FactoryCreateColumnFunction(xoList);
-            }
-
-            // Intermediate var
-            SyntaxToken oToken = xoList.PopToken();
-
-            Boolean bHaveATrailingBarBarItem = false;
-
-            // 1. Figure out what kind of token we have
-            if (oToken.ExpectedType == SyntaxKind.BarBarToken)
-            {
-                // Create a list item
-                SyntaxNode oArrayList = new SyntaxNode(oToken);
-
-                // Add missing node
-
-
-                // Initialise and start consuming the other items and add them
-            
-                
-            }
-            // Valid case, no fixing necessary
-            else
-            {
-
-            }
-
-          
-            
-            // IDN (Column)
-            // Literal
-            // Numeric
-            // Interval
-            // DateTime
-            // Star Token
-            // Parenthesised Item ( - )
-            // CASE
-            // Boolean
-            // Array Item -> ||
-
-
-
-            return null;
-        }
-
-        public static SyntaxNode FactoryCreateExpression(SyntaxTokenList xoList)
-        {
-            return null;
-        }
-        
+        #endregion
 
         #endregion
 

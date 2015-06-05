@@ -80,7 +80,7 @@ namespace Turing.Syntax
 
         #region Construction
 
-        public SyntaxNode (SyntaxToken xoToken, int xiMaxChildCount = -1) : this (xoToken, NodeStrategyFactory.DEFAULT_STRATEGY, xiMaxChildCount)
+        public SyntaxNode (SyntaxToken xoToken, int xiMaxChildCount = -1) : this (xoToken, NodeStrategyFactory.FactoryCreateStrategy(xoToken.ExpectedType), xiMaxChildCount)
         {
         }
 
@@ -141,6 +141,8 @@ namespace Turing.Syntax
                         //xoList.PopToken(); // Skip the next node
                         break;
                     case CanConsumeResult.Complete:
+                        return bHasConsumedNodes;
+                    case CanConsumeResult.Unknown:
                         return bHasConsumedNodes;
                 }                           
             }

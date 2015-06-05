@@ -78,6 +78,10 @@ namespace Turing.Syntax.Strategies
                         oReturnNode.EligibilityFn = NullTwoArgument;
                         break;
 
+                    case SyntaxKind.BarBarToken:
+                        oReturnNode.EligibilityFn = ConcatCanConsume;
+                        break;
+
                     case SyntaxKind.IdentifierSubQuerySymbol:
                         oReturnNode.EligibilityFn = SubQueryCanConsumeNext;
                         break;
@@ -206,8 +210,8 @@ namespace Turing.Syntax.Strategies
             }
             else if (SyntaxKindFacts.IsTerminatingNode(oKind))
             {
-                // We want to consume the terminated node and quit
-                xoContext.CurrentNode.AddChild(DefaultTryConsumeNext(xoContext));
+                // We want to remove the terminated node and quit
+                xoContext.List.PopToken();
                 return CanConsumeResult.Complete;
             }
             // Clearly we have something we can't consume here
@@ -459,7 +463,7 @@ namespace Turing.Syntax.Strategies
         {
             if (SyntaxKindFacts.IsLiteral(xoContext.NextItemKind()))
             {
-                return SyntaxNodeFactory.FactoryCreateColumn(xoContext.List);
+                return SyntaxNodeFactory.ContextSensitiveConvertTokenToNode(xoContext.CurrentNode, xoContext.List);
             }
             else
             {
@@ -473,22 +477,33 @@ namespace Turing.Syntax.Strategies
         #region Expression List
 
 
-        public static CanConsumeResult ExpressionListCanConsumeNext(ParsingContext xoContext, Boolean xbIsPreconsumption = false)
+        public static CanConsumeResult ConcatCanConsume(ParsingContext xoContext, Boolean xbIsPreconsumption = false)
         {
             // Intermediate var
             SyntaxKind oKind = xoContext.NextItemKind();
-
-            // If we get a comma, just drop it
-            if (oKind == SyntaxKind.BarBarToken)
+            
+            // Consume immediately
+            if (xoContext.CurrentNode.Children.Count <= 1)
+            {
+                return CanConsumeResult.Consume;
+            }
+            // Get BARBAR, consume next
+            else if (oKind == SyntaxKind.BarBarToken)
             {
                 // Drop the bar bar and consume the next item
                 xoContext.List.PopToken();
                 return CanConsumeResult.Consume;
             }
+            // Else close this object
             else
             {
-                // Try convert
-                return DefaultCanConsumeNext(xoContext);
+                // Post consumption check
+                if (xoContext.CurrentNode.Children.Count <= 1)
+                {
+                    ResolutionGenerator.HandleIncompleteNode(xoContext);
+                }
+
+                return CanConsumeResult.Complete;
             }
         }
 
