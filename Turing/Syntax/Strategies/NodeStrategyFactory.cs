@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using Turing.Diagnostics;
 using Turing.Factories;
 using Turing.Parser;
-using Turing.Syntax.Collections;
 using Turing.Syntax.Constructs.Symbols;
 
 namespace Turing.Syntax.Strategies
@@ -23,18 +21,13 @@ namespace Turing.Syntax.Strategies
             NodeStrategyFactory.DefaultTryConsumeNext,
             NodeStrategyFactory.NullThreeArgument);
 
-        public static readonly NodeStrategy SYMBOL_LIST_STRATEGY = new NodeStrategy(
-            NodeStrategyFactory.SymbolListCanConsumeNext,
-            NodeStrategyFactory.SymbolListConsumeNext,
-            NodeStrategyFactory.DefaultAddChild);
+        //public static readonly NodeStrategy SYMBOL_LIST_STRATEGY = new NodeStrategy(
+        //    NodeStrategyFactory.SymbolListCanConsumeNext,
+        //    NodeStrategyFactory.SymbolListConsumeNext,
+        //    NodeStrategyFactory.DefaultAddChild);
 
         public static readonly NodeStrategy UNARY_EXPRESSION_STRATEGY = new NodeStrategy(
             NodeStrategyFactory.ExpressionCanConsumeNext,
-            NodeStrategyFactory.DefaultTryConsumeNext,
-            NodeStrategyFactory.DefaultAddChild);
-
-        public static readonly NodeStrategy FUNCTION_STRATEGY = new NodeStrategy(
-            NodeStrategyFactory.FunctionCanConsumeNext,
             NodeStrategyFactory.DefaultTryConsumeNext,
             NodeStrategyFactory.DefaultAddChild);
 
@@ -60,7 +53,7 @@ namespace Turing.Syntax.Strategies
                     DefaultTryConsumeNext,
                     DefaultAddChild); // Default
 
-                // Create the strategy
+                // Explicit Strategies
                 switch (xeKind)
                 {
                     case SyntaxKind.SelectKeyword:
@@ -82,48 +75,44 @@ namespace Turing.Syntax.Strategies
                     case SyntaxKind.IdentifierTableSymbol:
                     case SyntaxKind.IdentifierSchemaSymbol:
                     case SyntaxKind.IdentifierDatabaseSymbol:
-                        oReturnNode.EligibilityFn = IdentifierCanConsumeNext;
+                        oReturnNode.EligibilityFn = NullTwoArgument;
                         break;
+
                     case SyntaxKind.IdentifierSubQuerySymbol:
                         oReturnNode.EligibilityFn = SubQueryCanConsumeNext;
                         break;
 
-                    #region JOIN
-                    case SyntaxKind.JoinKeyword:
-                    case SyntaxKind.InnerJoinKeyword:
-                    case SyntaxKind.OuterKeyword:
-                    case SyntaxKind.LeftJoinKeyword:
-                    case SyntaxKind.RightJoinKeyword:
-                    case SyntaxKind.CrossJoinKeyword:
-                        oReturnNode.EligibilityFn = JoinCanConsumeNext;
-                        oReturnNode.TryConsumeNextFn = TableSymbolConvertToken;
-                        break;
-                    #endregion
-                    #region Conditional Operators
-                    case SyntaxKind.EqualsToken:
-                    case SyntaxKind.GreaterThanOrEqualToken:
-                    case SyntaxKind.GreaterThanToken:
-                    case SyntaxKind.LessThanOrEqualToToken:
-                    case SyntaxKind.LessThanToken:
-                    case SyntaxKind.DiamondToken:
-                    #endregion
-                    #region Arithmatic Operators
-                    case SyntaxKind.PlusToken:
-                    case SyntaxKind.MinusToken:
-                    case SyntaxKind.StarToken:
-                    case SyntaxKind.SlashToken:
-                    #endregion
-                    #region Functions
-
-                    #endregion
-
-                    case SyntaxKind.AndKeyword:
-                    case SyntaxKind.OrKeyword:
-                        oReturnNode.EligibilityFn = BinaryExpressionCanConsumeNext;
+                    case SyntaxKind.ColumnListNode:
+                        oReturnNode.EligibilityFn = SymbolListCanConsumeNext;
+                        oReturnNode.TryConsumeNextFn = SymbolListConsumeNext;
                         break;
                 }
 
-                // Store it
+                // Other Explicit conversions can be performed here (saves on writing every kind above)
+                if (SyntaxKindFacts.IsFunction(xeKind))
+                {
+                    oReturnNode.EligibilityFn = FunctionCanConsumeNext;
+                }
+                // Join Keyword
+                else if (SyntaxKindFacts.IsJoinKeyword(xeKind))
+                {
+                    oReturnNode.EligibilityFn = JoinCanConsumeNext;
+                    oReturnNode.TryConsumeNextFn = TableSymbolConvertToken;
+                }
+                // Arithmatic/Conditional/Adjunct operators
+                else if (
+                    SyntaxKindFacts.IsAdjunctConditionalOperator(xeKind) ||
+                    SyntaxKindFacts.IsArithmaticOperator(xeKind) ||
+                    SyntaxKindFacts.IsConditionalOperator(xeKind))
+                {
+                    oReturnNode.EligibilityFn = BinaryExpressionCanConsumeNext;
+                }
+                else if (SyntaxKindFacts.IsLiteral(xeKind))
+                {
+                    oReturnNode.EligibilityFn = NullTwoArgument;
+                }
+
+                // Cache it
                 dsStrategyCache.Add(xeKind, oReturnNode);
 
                 // return it
@@ -215,6 +204,12 @@ namespace Turing.Syntax.Strategies
             {
                 return CheckIfConsumptionIsAllowed(xoContext);
             }
+            else if (SyntaxKindFacts.IsTerminatingNode(oKind))
+            {
+                // We want to consume the terminated node and quit
+                xoContext.CurrentNode.AddChild(DefaultTryConsumeNext(xoContext));
+                return CanConsumeResult.Complete;
+            }
             // Clearly we have something we can't consume here
             else
             {
@@ -270,21 +265,31 @@ namespace Turing.Syntax.Strategies
 
             if (SyntaxKindFacts.IsIdentifier(eKind) ||
                 eKind == SyntaxKind.OnKeyword ||
-                (xbIsPreconsumption && SyntaxKindFacts.IsJoinKeyword(eKind))
+                (xbIsPreconsumption && SyntaxKindFacts.IsJoinKeyword(eKind)) // Allow preconsumption to use JOIN keywods
                 )
             {
                 return CheckIfConsumptionIsAllowed(xoContext);
             }
+            // If we got another keyword (that we cant process)
+            else if (
+                SyntaxKindFacts.IsTerminatingNode(eKind) ||
+                SyntaxKindFacts.IsKeyword(eKind) || 
+                eKind == SyntaxKind.CloseParenthesisToken)
+            {
+                // Post execution check
+                if (xoContext.CurrentNode.Children.Count != 3)
+                {
+                    ResolutionGenerator.HandleIncompleteNode(xoContext);
+                }
+
+                return CanConsumeResult.Complete;
+            }
 
             CanConsumeResult eResult = DefaultCanConsumeNext(xoContext);
 
-            // Post execution check
-            if (eResult == CanConsumeResult.Complete && xoContext.CurrentNode.Children.Count != 2)
-            {
-                ResolutionGenerator.HandleIncompleteNode(xoContext);
-            }
 
-            return eResult;
+
+            return DefaultCanConsumeNext(xoContext);
         }
 
         #endregion
@@ -355,27 +360,52 @@ namespace Turing.Syntax.Strategies
             SyntaxKind eKind = xoContext.NextItemKind();
 
             // If we have something we are actually allowed to consume
-            if (
+            if ((xbIsPreconsumption && SyntaxKindFacts.IsAdjunctConditionalOperator(eKind)) || // Allow AND/OR in preconsump
                 SyntaxKindFacts.IsIdentifierOrExpression(eKind) || // Identifiers and Expressions are allowed here
-                                                                   //SyntaxKindFacts.IsAdjunctConditionalOperator(eKind) || // AND OR
                 SyntaxKindFacts.IsConditionalOperator(eKind) || // = >= IN
                 SyntaxKindFacts.IsUnaryOperator(eKind) || // NOT
                 SyntaxKindFacts.IsArithmaticOperator(eKind))
             {
-                return CheckIfConsumptionIsAllowed(xoContext);
+                CanConsumeResult eResult = CheckIfConsumptionIsAllowed(xoContext);
+
+                switch (eResult)
+                {
+                    // Possible erroroneous
+                    case CanConsumeResult.Unknown:
+
+                    // Definitely finished
+                    case CanConsumeResult.Complete:
+                        // Perform final checks
+                        break;
+                    
+                    // Break immediately
+                    case CanConsumeResult.Skip:
+                    case CanConsumeResult.Consume:
+                        return eResult;
+                }
             }
 
-            CanConsumeResult eResult = DefaultCanConsumeNext(xoContext);
-
-            // Post execution check
-            if (eResult == CanConsumeResult.Complete && xoContext.CurrentNode.Children.Count != 2)
+            // Closing condition
+            if (xoContext.CurrentNode.IsFull() ||
+                SyntaxKindFacts.IsTerminatingNode(eKind) ||
+                SyntaxKindFacts.IsKeyword(eKind) || 
+                eKind == SyntaxKind.CloseParenthesisToken)
             {
-                ResolutionGenerator.HandleIncompleteNode(xoContext);
+                // Post execution check
+                if (xoContext.CurrentNode.Children.Count != 2)
+                {
+                    ResolutionGenerator.HandleIncompleteNode(xoContext);
+                }
+
+                return CanConsumeResult.Complete;
             }
 
-            return eResult;
+            //
+            return DefaultCanConsumeNext(xoContext);
         }
 
+
+    
 
         public static SyntaxNode ExpressionConvertToken(ParsingContext xoContext, Boolean xbIsPreconsumption = false)
         {
@@ -420,7 +450,6 @@ namespace Turing.Syntax.Strategies
                 return CanConsumeResult.Complete;
             }
 
-
             // Try convert
             return DefaultCanConsumeNext(xoContext);
         }
@@ -439,6 +468,45 @@ namespace Turing.Syntax.Strategies
             }
         }
 
+        #endregion
+
+        #region Expression List
+
+
+        public static CanConsumeResult ExpressionListCanConsumeNext(ParsingContext xoContext, Boolean xbIsPreconsumption = false)
+        {
+            // Intermediate var
+            SyntaxKind oKind = xoContext.NextItemKind();
+
+            // If we get a comma, just drop it
+            if (oKind == SyntaxKind.BarBarToken)
+            {
+                // Drop the bar bar and consume the next item
+                xoContext.List.PopToken();
+                return CanConsumeResult.Consume;
+            }
+            else
+            {
+                // Try convert
+                return DefaultCanConsumeNext(xoContext);
+            }
+        }
+
+
+        public static SyntaxNode ExpressionListConsumeNext(ParsingContext xoContext, Boolean xbIsPreconsumption = false)
+        {
+            if (SyntaxKindFacts.IsLiteral(xoContext.NextItemKind()))
+            {
+                return SyntaxNodeFactory.FactoryCreateColumn(xoContext.List);
+            }
+            else
+            {
+                // Let the base conversion figure out what it is
+                return DefaultTryConsumeNext(xoContext);
+            }
+        }
+
+  
         #endregion
 
         #region Identifier
@@ -460,23 +528,19 @@ namespace Turing.Syntax.Strategies
         /// <returns></returns>
         public static CanConsumeResult DefaultCanConsumeNext(ParsingContext xoContext, Boolean xbIsPreconsumption = false)
         {
+            SyntaxKind eKind = xoContext.NextItemKind();
             // If we have a Open parenthesis starting node
             // And we just found a closing Token
-            if (xoContext.CurrentNode.ExpectedType == SyntaxKind.OpenParenthesisToken &&
-                xoContext.NextItemKind() == SyntaxKind.CloseParenthesisToken)
+            if ((xoContext.CurrentNode.ExpectedType == SyntaxKind.OpenParenthesisToken ||
+                xoContext.CurrentNode.RawSQLText.Equals("(")) &&
+                eKind == SyntaxKind.CloseParenthesisToken)
             {
                 xoContext.List.PopToken();
-
-                // If there is an issue, handle it appropriately
-                //ResolutionGenerator.Parenthesis(xoContext.CurrentNode);
-
                 return CanConsumeResult.Complete;
             }
             // Terminate if we find an eof of any sort or we are full
-            else if (
-                SyntaxKindFacts.IsTerminatingNode(xoContext.NextItemKind()) ||
-                xoContext.CurrentNode.IsFull()
-                )
+            else if (SyntaxKindFacts.IsTerminatingNode(eKind) || 
+                xoContext.CurrentNode.IsFull())
             {
                 return CanConsumeResult.Complete;
             }
@@ -484,7 +548,7 @@ namespace Turing.Syntax.Strategies
             {
                 // ?? TODO: Stop everything from coming here and implement an Unknown type?
                 // Unknown, Missing?
-                return CanConsumeResult.Complete;
+                return CanConsumeResult.Unknown;
             }
         }
 
@@ -496,9 +560,22 @@ namespace Turing.Syntax.Strategies
         /// <returns></returns>
         public static CanConsumeResult CheckIfConsumptionIsAllowed(ParsingContext xoContext, Boolean xbIsPreconsumption = false)
         {
+            Boolean bIsCompoundNotItem = xoContext.List != null ?
+                xoContext.List.PeekToken().ExpectedType == SyntaxKind.NotKeyword &&
+                (xoContext.List.PeekToken(1).ExpectedType == SyntaxKind.InKeyword ||
+                xoContext.List.PeekToken(1).ExpectedType == SyntaxKind.LikeKeyword) : false;
+
+            Boolean bIsBinaryOperator =
+                bIsCompoundNotItem ||
+                SyntaxKindFacts.IsBinaryConstruct(xoContext.NextItemKind());
+
             // Only forcibly add a construct after we are full IF it is a binary construct
-            if (xoContext.CurrentNode.IsFull() && !SyntaxKindFacts.IsBinaryConstruct(xoContext.NextItemKind()))
+            if (xoContext.CurrentNode.IsFull() && 
+                !bIsBinaryOperator)
             {
+                // We also find most of our problematic nodes here
+                // And orphaned nodes
+
                 return CanConsumeResult.Complete;
             }
 
@@ -600,5 +677,6 @@ namespace Turing.Syntax.Strategies
         #endregion
 
         #endregion Node Methods
+
     }
 }

@@ -73,6 +73,77 @@ namespace NetezzaParseTests
         }
 
         [TestMethod]
+        public void ParseWhereOr()
+        {
+            SlidingTextWindow oText = new SlidingTextWindow(
+                @"   
+                        /* TEST */      
+                        SELECT  
+                            col1, col2
+                        FROM
+                        (
+                            SELECT * FROM FPC_SERVICE
+                        ) svc
+                        WHERE svc.MKT_PROD_CD = 'MOB PT' OR svc.SVC_STAT_CD <> 'C'      
+                ");
+
+            // Initialises the Parser
+            SyntaxParser oParser = new SyntaxParser(oText);
+
+            // Try and generate a tree
+            SyntaxNode oTemp = oParser.ParseTree();
+
+            // Test that a subquery type node was built
+            SyntaxNode oWhere = oTemp.FindFirst(SyntaxKind.WhereKeyword);
+            Assert.IsTrue(oWhere != null);
+
+            // Test that there is a select keyword in that subquery
+            SyntaxNode oOR = oWhere.FindFirst(SyntaxKind.OrKeyword);
+            Assert.IsTrue(oOR != null);
+
+            // Test that the OR was generated properly (exactly 2 children)
+            Assert.AreEqual(2, oOR.Children.Count);
+        }
+
+        [TestMethod]
+        public void ParseWhereOrTree()
+        {
+            SlidingTextWindow oText = new SlidingTextWindow(
+                @"   
+                        /* TEST */      
+                        SELECT  
+                            col1, col2
+                        FROM
+                        (
+                            SELECT * FROM FPC_SERVICE
+                        ) svc
+                        WHERE 
+                            svc.MKT_PROD_CD = 'MOB PT' OR 
+                            svc.SVC_STAT_CD <> 'C' or
+                            svc.SVC_IDNTY = '0423234042'
+                ");
+
+            // Initialises the Parser
+            SyntaxParser oParser = new SyntaxParser(oText);
+
+            // Try and generate a tree
+            SyntaxNode oTemp = oParser.ParseTree();
+
+            // Test that a subquery type node was built
+            SyntaxNode oWhere = oTemp.FindFirst(SyntaxKind.WhereKeyword);
+            Assert.AreNotEqual(oWhere, null);
+
+            // Test that there is a select keyword in that subquery
+            SyntaxNode oOR = oWhere.FindFirst(SyntaxKind.OrKeyword);
+            Assert.AreNotEqual(null, oOR);
+
+            // Test that the AND was generated properly (exactly 2 children)
+            Assert.AreEqual(2, oOR.Children.Count);
+            Assert.AreEqual(2, oOR.Children[0].Children.Count); // Inner AND has 2 children
+        }
+
+
+        [TestMethod]
         public void ParseWhereAnd()
         {
             SlidingTextWindow oText = new SlidingTextWindow(
@@ -104,6 +175,44 @@ namespace NetezzaParseTests
             // Test that the AND was generated properly (exactly 2 children)
             Assert.AreEqual(2, oAND.Children.Count);
         }
+
+        [TestMethod]
+        public void ParseWhereAndTree()
+        {
+            SlidingTextWindow oText = new SlidingTextWindow(
+                @"   
+                        /* TEST */      
+                        SELECT  
+                            col1, col2
+                        FROM
+                        (
+                            SELECT * FROM FPC_SERVICE
+                        ) svc
+                        WHERE 
+                            svc.MKT_PROD_CD = 'MOB PT' AND 
+                            svc.SVC_STAT_CD <> 'C' AND
+                            svc.SVC_IDNTY = '0423234042'
+                ");
+
+            // Initialises the Parser
+            SyntaxParser oParser = new SyntaxParser(oText);
+
+            // Try and generate a tree
+            SyntaxNode oTemp = oParser.ParseTree();
+
+            // Test that a subquery type node was built
+            SyntaxNode oWhere = oTemp.FindFirst(SyntaxKind.WhereKeyword);
+            Assert.AreNotEqual(oWhere, null);
+
+            // Test that there is a select keyword in that subquery
+            SyntaxNode oAND = oWhere.FindFirst(SyntaxKind.AndKeyword);
+            Assert.AreNotEqual(null, oAND);
+
+            // Test that the AND was generated properly (exactly 2 children)
+            Assert.AreEqual(2, oAND.Children.Count);
+            Assert.AreEqual(2, oAND.Children[0].Children.Count); // Inner AND has 2 children
+        }
+
 
         [TestMethod]
         public void ParseBadAnd()

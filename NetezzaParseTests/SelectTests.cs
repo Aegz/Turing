@@ -214,6 +214,7 @@ namespace NetezzaParseTests
             Assert.IsTrue(oFrom != null);
 
             SyntaxNode oInnerJoin = oFrom.Children[0];
+            Assert.AreEqual(3, oInnerJoin.Children.Count);
             Assert.AreEqual(SyntaxKind.InnerJoinKeyword, oInnerJoin.ExpectedType);
 
             // test children are correct
@@ -307,9 +308,11 @@ namespace NetezzaParseTests
 
             SyntaxNode oLeftJoin = oFrom.Children[0];
             Assert.AreEqual(SyntaxKind.LeftJoinKeyword, oLeftJoin.ExpectedType);
+            Assert.AreEqual(3, oLeftJoin.Children.Count);
             Assert.AreEqual("omr", ((Symbol)oLeftJoin.Children[1]).Alias);
 
             SyntaxNode oInnerJoin = oLeftJoin.Children[0];
+            Assert.AreEqual(3, oInnerJoin.Children.Count);
             Assert.AreEqual(SyntaxKind.InnerJoinKeyword, oInnerJoin.ExpectedType);
             
             // test children are correct

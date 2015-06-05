@@ -36,6 +36,8 @@ namespace NetezzaParseTests
 
             SyntaxNode oFunction = oColumnList.Children[1];
             Assert.AreEqual(SyntaxKind.CoalesceKeyword, oFunction.ExpectedType);
+            Assert.AreEqual(1, oFunction.Children.Count);
+            Assert.AreEqual(3, oFunction.Children[0].Children.Count);
         }
 
         [TestMethod]
@@ -62,6 +64,8 @@ namespace NetezzaParseTests
 
             SyntaxNode oFunction = oColumnList.Children[0];
             Assert.AreEqual(SyntaxKind.CoalesceKeyword, oFunction.ExpectedType);
+            Assert.AreEqual(1, oFunction.Children.Count);
+            Assert.AreEqual(3, oFunction.Children[0].Children.Count);
         }
 
 

@@ -9,14 +9,8 @@ namespace Turing
     {
         static SlidingTextWindow oText = new SlidingTextWindow(
                 @"   
-                        /* TEST */      
-                        SELECT  
-                            col1, col2
-                        FROM
-                        (
-                            SELECT * FROM FPC_SERVICE
-                        ) svc
-                        WHERE svc_stat_cd = 'A' mkt
+                        SELECT * FROM FPC_SERVICE
+                        WHERE svc_idnty NOT IN ('0415783039')   
                 ");
 
         static void Main(string[] args)

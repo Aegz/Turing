@@ -57,8 +57,10 @@ namespace Turing.Syntax
         {
             return
                 xeKind == SyntaxKind.InKeyword ||
-                xeKind == SyntaxKind.IsKeyword ||
+                xeKind == SyntaxKind.NotLikeKeyword ||
                 xeKind == SyntaxKind.LikeKeyword ||
+                xeKind == SyntaxKind.NotInKeyword ||
+                xeKind == SyntaxKind.IsKeyword ||
 
                 xeKind == SyntaxKind.EqualsToken ||
                 xeKind == SyntaxKind.GreaterThanOrEqualToken ||
@@ -100,6 +102,7 @@ namespace Turing.Syntax
                 xeKind == SyntaxKind.IdentifierDatabaseSymbol ||
                 xeKind == SyntaxKind.IdentifierSchemaSymbol ||
                 xeKind == SyntaxKind.IdentifierTableSymbol ||
+                xeKind == SyntaxKind.IdentifierSubQuerySymbol ||
                 xeKind == SyntaxKind.IdentifierColumnSymbol;
         }
 
@@ -113,7 +116,9 @@ namespace Turing.Syntax
 
         public static Boolean IsLiteral(SyntaxKind xeKind)
         {
-            return xeKind == SyntaxKind.NumericToken ||
+            return 
+                xeKind == SyntaxKind.NullKeyword || 
+                xeKind == SyntaxKind.NumericToken ||
                 xeKind == SyntaxKind.LiteralToken ||
                 xeKind == SyntaxKind.BooleanToken;
         }

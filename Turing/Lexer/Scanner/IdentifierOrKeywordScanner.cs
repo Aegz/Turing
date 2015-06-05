@@ -12,6 +12,7 @@ namespace Turing.Lexer.Scanner
             // Found some valid identifier
             if (ScanIdentifier(TextWindow, out xoToken))
             {
+
                 SyntaxKind eNewType = SyntaxKindConverter.ConvertKeywordIntoSyntaxKind(xoToken.RawSQLText);
 
                 // If it is not a core keyword then presume its an identifier

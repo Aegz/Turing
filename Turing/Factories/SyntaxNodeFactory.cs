@@ -25,27 +25,28 @@ namespace Turing.Factories
             if (SyntaxKindFacts.IsFunction(eNextTokenKind))
             {
                 // COUNT (*)
-                return FactoryCreateColumnExpr(xoList);
+                return FactoryCreateColumnFunction(xoList);
             }
+
+            int iMaxChildCount = -1;
 
             switch (eNextTokenKind)
             {
                 case SyntaxKind.SelectKeyword:
-                    return new SyntaxNode(
-                        xoList.PeekToken(), 
-                        NodeStrategyFactory.FactoryCreateStrategy(xoList.PopToken().ExpectedType),
-                        -1); // Can have multiple children
-                        
+                    break;
                 case SyntaxKind.FromKeyword:
                 case SyntaxKind.WhereKeyword:
                 case SyntaxKind.OnKeyword:
-                    return new SyntaxNode(
-                        xoList.PeekToken(), 
-                        NodeStrategyFactory.FactoryCreateStrategy(xoList.PopToken().ExpectedType), 
-                        1); // Can only have 1 child
+                    iMaxChildCount = 1;
+                    break;
+
+                case SyntaxKind.NotKeyword:
+                    return FactoryCreateNot(xoList);
 
                 #region Operators
-
+                case SyntaxKind.IsKeyword:
+                case SyntaxKind.InKeyword:
+                case SyntaxKind.LikeKeyword:
                 case SyntaxKind.EqualsToken:
                 case SyntaxKind.GreaterThanOrEqualToken:
                 case SyntaxKind.GreaterThanToken:
@@ -54,14 +55,12 @@ namespace Turing.Factories
                 case SyntaxKind.DiamondToken:
                 case SyntaxKind.AndKeyword:
                 case SyntaxKind.OrKeyword:
-
                 case SyntaxKind.PlusToken:
                 case SyntaxKind.MinusToken:
                 case SyntaxKind.SlashToken:
-                    return new SyntaxNode(
-                        xoList.PeekToken(),
-                        NodeStrategyFactory.FactoryCreateStrategy(xoList.PopToken().ExpectedType),
-                        2); // 2 Children only as they are binary
+                    iMaxChildCount = 2;
+                    break;
+
                 case SyntaxKind.StarToken:
                     // No items in the list to consume (Solitary *)
                     if (xoCurrentNode.Children.Count == 0)
@@ -71,12 +70,9 @@ namespace Turing.Factories
                     }
                     else
                     {
-                        return new SyntaxNode(
-                            xoList.PeekToken(),
-                            NodeStrategyFactory.FactoryCreateStrategy(xoList.PopToken().ExpectedType),
-                            2); // 2 Children only as they are binary
+                        iMaxChildCount = 2;
+                        break;
                     }
-
 
                 #endregion
 
@@ -111,24 +107,25 @@ namespace Turing.Factories
                     // Given a (, Try and guess what type of () this is
                     return FactoryInterpretOpenParenthesisToken(xoCurrentNode, xoList);
 
-                case SyntaxKind.NotKeyword:
-                    return new SyntaxNode(
-                        xoList.PeekToken(),
-                        NodeStrategyFactory.FactoryCreateStrategy(xoList.PopToken().ExpectedType),
-                        1);
-
                 // The type of the expression will be determined by the Token's
                 // Type and we will use this to compare compatibility
                 case SyntaxKind.LiteralToken: // String
+                    // Factory Creation Method
                 case SyntaxKind.BooleanToken: // true and false
                 case SyntaxKind.NumericToken: // Integer
                 case SyntaxKind.DateToken:    // Date objects
-                    //return new SyntaxLeaf(xoList.PopToken());
+
                 default:
                     // Default to the original token since it doesn't need to be converted
                     // any more
                     return new SyntaxLeaf(xoList.PopToken());
             }
+
+            return new SyntaxNode(
+                       xoList.PeekToken(),
+                       NodeStrategyFactory.FactoryCreateStrategy(xoList.PopToken().ExpectedType),
+                       iMaxChildCount); // Can have multiple children
+
         }
 
         #region Core Factory Methods
@@ -208,6 +205,7 @@ namespace Turing.Factories
                 if (bCommaFound)
                 {
                     //
+                    xoCurrentToken.ExpectedType = SyntaxKind.ColumnListNode;
                     oReturn = new SymbolList(xoCurrentToken);
                 }
                 // Single column
@@ -319,7 +317,7 @@ namespace Turing.Factories
             // If this is a literal Column
             if (SyntaxKindFacts.IsLiteral(xoCurrentToken.ExpectedType))
             {
-                oColumn = new Symbol(xoList.PopToken());
+                oColumn = new Symbol(xoList.PopToken(), NodeStrategyFactory.NULL_STRATEGY);
 
                 // Assign the alias
                 oColumn.Alias = SyntaxNodeFactory.ScanAheadForAlias(xoList);
@@ -330,7 +328,7 @@ namespace Turing.Factories
             // Trailing item is . (table.column)
             if (xoList.PeekToken(1).ExpectedType == SyntaxKind.DotToken)
             {
-                oTable = new Symbol(xoCurrentToken);
+                oTable = new Symbol(xoCurrentToken, NodeStrategyFactory.NULL_STRATEGY);
                 oColumn = new Symbol(xoList.PeekToken(2)); // Grab the Column
                 oTable.AddChild(oColumn);
                 xoList.PopTokens(3); // Skip over the next 2
@@ -339,7 +337,7 @@ namespace Turing.Factories
             else
             {
                 oTable = new Symbol(new SyntaxToken(SyntaxKind.IdentifierTableSymbol, String.Empty));
-                oColumn = new Symbol(xoCurrentToken); // Grab the Column
+                oColumn = new Symbol(xoCurrentToken, NodeStrategyFactory.NULL_STRATEGY); // Grab the Column
                 oTable.AddChild(oColumn);
                 xoList.PopToken(); // Skip over the next 1
             }
@@ -356,10 +354,10 @@ namespace Turing.Factories
         }
 
 
-        public static SyntaxNode FactoryCreateColumnExpr(SyntaxTokenList xoList)
+        public static SyntaxNode FactoryCreateColumnFunction(SyntaxTokenList xoList)
         {
             // generate the item
-            Symbol oColumnExp = new Symbol(xoList.PopToken(), NodeStrategyFactory.FUNCTION_STRATEGY);
+            Symbol oColumnExp = new Symbol(xoList.PopToken());
             
             // Consume Ahead
             oColumnExp.TryConsumeList(xoList);
@@ -399,6 +397,87 @@ namespace Turing.Factories
             // Return the Join node
             return oTemp;
         }
+
+
+        public static SyntaxNode FactoryCreateNot (SyntaxTokenList xoList)
+        {
+            int iMaxChildCount = 1;
+            SyntaxToken oReturn = xoList.PopToken();
+            if (xoList.PeekToken().ExpectedType == SyntaxKind.InKeyword)
+            {
+                oReturn.ExpectedType = SyntaxKind.NotInKeyword;
+                oReturn.RawSQLText += " " + xoList.PopToken().RawSQLText;
+                iMaxChildCount = 2;
+            }
+            else if (xoList.PeekToken().ExpectedType == SyntaxKind.LikeKeyword)
+            {
+                oReturn.ExpectedType = SyntaxKind.NotLikeKeyword;
+                oReturn.RawSQLText += " " + xoList.PopToken().RawSQLText;
+                iMaxChildCount = 2;
+            }
+
+            return new SyntaxNode(oReturn, NodeStrategyFactory.FactoryCreateStrategy(oReturn.ExpectedType), iMaxChildCount);
+        }
+
+
+        public static SyntaxNode FactoryCreateColumnOrExpression (SyntaxTokenList xoList)
+        {
+            SyntaxKind eNextTokenKind = xoList.PeekToken().ExpectedType;
+
+            // Is any identifier or Expression (function/literal)
+            if (SyntaxKindFacts.IsFunction(eNextTokenKind))
+            {
+                // COUNT (*)
+                return FactoryCreateColumnFunction(xoList);
+            }
+
+            // Intermediate var
+            SyntaxToken oToken = xoList.PopToken();
+
+            Boolean bHaveATrailingBarBarItem = false;
+
+            // 1. Figure out what kind of token we have
+            if (oToken.ExpectedType == SyntaxKind.BarBarToken)
+            {
+                // Create a list item
+                SyntaxNode oArrayList = new SyntaxNode(oToken);
+
+                // Add missing node
+
+
+                // Initialise and start consuming the other items and add them
+            
+                
+            }
+            // Valid case, no fixing necessary
+            else
+            {
+
+            }
+
+          
+            
+            // IDN (Column)
+            // Literal
+            // Numeric
+            // Interval
+            // DateTime
+            // Star Token
+            // Parenthesised Item ( - )
+            // CASE
+            // Boolean
+            // Array Item -> ||
+
+
+
+            return null;
+        }
+
+        public static SyntaxNode FactoryCreateExpression(SyntaxTokenList xoList)
+        {
+            return null;
+        }
+        
 
         #endregion
 

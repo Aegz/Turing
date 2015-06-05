@@ -177,8 +177,11 @@ namespace Turing.Syntax
         InKeyword               = 14070,
         IsKeyword               = 14480, // Eg. IS NOT NULL
         LikeKeyword             = 14490,
+
         NotKeyword              = 14500,
-        NotNullKeyword          = 14510,
+        NotInKeyword            = 14501,
+        NotLikeKeyword          = 14502,
+
         NullKeyword             = 14520,
 
         // Adjunct

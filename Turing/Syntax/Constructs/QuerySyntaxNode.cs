@@ -14,14 +14,5 @@ namespace Turing.Syntax.Constructs
             
         }
 
-        public override bool AddChild(SyntaxNode xoGiven)
-        {
-            if (xoGiven.Children.Count == 0)
-            {
-                return false;
-            }
-            return base.AddChild(xoGiven);
-        }
-
     }
 }
