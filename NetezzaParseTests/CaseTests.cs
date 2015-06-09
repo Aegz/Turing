@@ -50,6 +50,46 @@ namespace NetezzaParseTests
         }
 
         [TestMethod]
+        public void ParseSimpleColumnCaseMissingEND()
+        {
+            SlidingTextWindow oText = new SlidingTextWindow(
+                @"   
+                        SELECT CASE WHEN ADDED ='INTERNATIONAL' THEN 'Y' ELSE 'N' AS VARSTRING2
+                        FROM FPC_SERVICE  
+                ");
+
+            // Initialises the Parser
+            SyntaxParser oParser = new SyntaxParser(oText);
+
+            // Try and generate a tree
+            SyntaxNode oTemp = oParser.ParseTree();
+
+            SyntaxNode oSelect = oTemp.FindFirst(SyntaxKind.SelectKeyword);
+            Assert.AreNotEqual(null, oSelect);
+            Assert.AreEqual(2, oSelect.Count);
+
+            SyntaxNode oColList = oSelect[0];
+            Assert.AreEqual(SyntaxKind.ColumnListNode, oColList.ExpectedType);
+            Assert.AreEqual(1, oColList.Count);
+
+            SyntaxNode oCase = oColList[0];
+            Assert.AreEqual(SyntaxKind.CaseKeyword, oCase.ExpectedType);
+            Assert.AreEqual(3, oCase.Count);
+            Assert.AreEqual("VARSTRING2", ((Symbol)oCase).Alias);
+
+            SyntaxNode oWhen = oCase[0];
+            Assert.AreEqual(SyntaxKind.WhenKeyword, oWhen.ExpectedType);
+            Assert.AreEqual(2, oWhen.Count); // Literal and THEN
+            Assert.AreEqual(SyntaxKind.EqualsToken, oWhen[0].ExpectedType);
+
+            SyntaxNode oElse = oCase[1];
+            Assert.AreEqual(SyntaxKind.ElseKeyword, oElse.ExpectedType);
+            Assert.AreEqual(1, oElse.Count);
+            Assert.AreEqual(SyntaxKind.LiteralToken, oElse[0].ExpectedType);
+        }
+
+
+        [TestMethod]
         public void ParseComplexColumnCase()
         {
             SlidingTextWindow oText = new SlidingTextWindow(

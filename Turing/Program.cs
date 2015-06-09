@@ -9,8 +9,10 @@ namespace Turing
     {
         static SlidingTextWindow oText = new SlidingTextWindow(
                 @"   
-                    SELECT * FROM APAPP_CRMMP..MA504740005_COMM9729001
-                    WHERE VARDATA3 = CASE WHEN VARDATA3 IS NOT NULL THEN 'MOBILE PHONE' ELSE '' END
+                        SELECT CASE     
+                            WHEN CASE WHEN svc.MKT_PROD IN ('MOB PT', 'MOB PP') THEN '-' ELSE '*' END
+                            ELSE 'N' END AS VARSTRING2
+                        FROM FPC_SERVICE  
                 ");
 
         static void Main(string[] args)

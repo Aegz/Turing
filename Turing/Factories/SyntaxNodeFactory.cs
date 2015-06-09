@@ -352,8 +352,9 @@ namespace Turing.Factories
                 SyntaxKindFacts.IsIdentifier(eNextTokenKind) ||
                 SyntaxKindFacts.IsLiteral(eNextTokenKind))
             {
-                // Purely an identifier
-                oReturnNode = FactoryCreateColumn(xoList);
+                // Only Column List Nodes can create an Alias
+                Boolean bIsAliasNeeded = xoCurrentNode.ExpectedType == SyntaxKind.ColumnListNode;
+                oReturnNode = FactoryCreateColumn(xoList, bIsAliasNeeded);
             }
             else if (eNextTokenKind == SyntaxKind.CaseKeyword)
             {
@@ -375,15 +376,18 @@ namespace Turing.Factories
             {
                 oReturnNode = new SyntaxLeaf(xoList.PopToken());
             }
-            // CASE
 
-            // If we have a trailing || (and we arent already using a bar bar
+            // If we have a trailing || and we arent already using a bar bar
             if (xoCurrentNode.ExpectedType != SyntaxKind.BarBarToken &&
                 xoList.PeekToken().ExpectedType == SyntaxKind.BarBarToken)
             {
+                // Create a new bar bar node (to hold the children)
                 SyntaxNode oBarNode = new SyntaxNode(xoList.PopToken());
+
+                // Add the child 
                 oBarNode.Add(oReturnNode);
 
+                // return this collection
                 return oBarNode;         
             }
             // Valid case, no fixing necessary
@@ -400,7 +404,7 @@ namespace Turing.Factories
         /// <param name="xoCurrentToken"></param>
         /// <param name="xoList"></param>
         /// <returns></returns>
-        private static SyntaxNode FactoryCreateColumn(SyntaxTokenList xoList)
+        private static SyntaxNode FactoryCreateColumn(SyntaxTokenList xoList, Boolean xbIsAliasNeeded = false)
         {
             SyntaxToken xoCurrentToken = xoList.PeekToken();
 
@@ -414,7 +418,10 @@ namespace Turing.Factories
                 oColumn = new Symbol(xoList.PopToken(), NodeStrategyFactory.NULL_STRATEGY);
 
                 // Assign the alias
-                oColumn.Alias = SyntaxNodeFactory.ScanAheadForAlias(xoList);
+                if (xbIsAliasNeeded)
+                {
+                    oColumn.Alias = SyntaxNodeFactory.ScanAheadForAlias(xoList);
+                }
 
                 return oColumn;
             }

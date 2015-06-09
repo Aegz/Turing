@@ -563,11 +563,20 @@ namespace Turing.Syntax.Strategies
             }
             else
             {
-                return DefaultCanConsumeNext(xoContext);
+                // Improper closing of the CASE
+                xoContext.CurrentNode.Add(new SyntaxNode(new SyntaxToken(SyntaxKind.EndKeyword, "END")));
+
+                // Only assign an alias if it is a symbol
+                if (xoContext.CurrentNode.GetType() == typeof(Symbol))
+                {
+                    ((Symbol)xoContext.CurrentNode).Alias = SyntaxNodeFactory.ScanAheadForAlias(xoContext.List);
+                }
+
+                return CanConsumeResult.Complete;
+
+                //return DefaultCanConsumeNext(xoContext);
             }
         }
-
-
 
         public static CanConsumeResult WhenCanConsume(ParsingContext xoContext, Boolean xbIsPreconsumption = false)
         {
