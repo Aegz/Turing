@@ -9,10 +9,10 @@ namespace Turing
     {
         static SlidingTextWindow oText = new SlidingTextWindow(
                 @"   
-                        SELECT CASE     
-                            WHEN CASE WHEN svc.MKT_PROD IN ('MOB PT', 'MOB PP') THEN '-' ELSE '*' END
-                            ELSE 'N' END AS VARSTRING2
-                        FROM FPC_SERVICE  
+                        SELECT  
+                        * /* Star, for everything */
+                        FROM
+                        APSHARE_FPVIEWS..FPC_SERVICE svc          
                 ");
 
         static void Main(string[] args)

@@ -11,21 +11,11 @@ namespace Turing.Syntax.Strategies
     {
         #region Static Cache of Strategies
 
-        // Set static Strategies to reduce memory
-        public static readonly NodeStrategy DEFAULT_STRATEGY = new NodeStrategy(
-            NodeStrategyFactory.DefaultCanConsumeNext,
-            NodeStrategyFactory.DefaultTryConsumeNext,
-            NodeStrategyFactory.DefaultAddChild); // Default
-
+        // Set static Strategies to reduce memory usage
         public static readonly NodeStrategy NULL_STRATEGY = new NodeStrategy(
             NodeStrategyFactory.NullTwoArgument,
             NodeStrategyFactory.DefaultTryConsumeNext,
-            NodeStrategyFactory.NullThreeArgument);
-
-        //public static readonly NodeStrategy SYMBOL_LIST_STRATEGY = new NodeStrategy(
-        //    NodeStrategyFactory.SymbolListCanConsumeNext,
-        //    NodeStrategyFactory.SymbolListConsumeNext,
-        //    NodeStrategyFactory.DefaultAddChild);
+            NodeStrategyFactory.DefaultAddChild);
 
         public static readonly NodeStrategy UNARY_EXPRESSION_STRATEGY = new NodeStrategy(
             NodeStrategyFactory.ExpressionCanConsumeNext,
@@ -806,11 +796,6 @@ namespace Turing.Syntax.Strategies
         public static CanConsumeResult NullTwoArgument(ParsingContext xoContext, Boolean xbIsPreconsumption = false)
         {
             return CanConsumeResult.Complete;
-        }
-
-        public static Boolean NullThreeArgument(ParsingContext xoContext, Boolean xbIsPreconsumption = false)
-        {
-            return false;
         }
 
         #endregion

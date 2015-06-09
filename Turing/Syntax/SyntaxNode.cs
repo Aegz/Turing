@@ -202,7 +202,6 @@ namespace Turing.Syntax
 
         #endregion
 
-
         #region Consume Prev Sibling
 
         /// <summary>

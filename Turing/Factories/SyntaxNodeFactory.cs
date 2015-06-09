@@ -27,98 +27,81 @@ namespace Turing.Factories
             {
                 return FactoryCreateColumnOrExpression(xoCurrentNode, xoList);
             }
-
-            int iMaxChildCount = -1;
-
-            switch (eNextTokenKind)
+            else if (SyntaxKindFacts.IsJoinKeyword(eNextTokenKind))
             {
-                case SyntaxKind.SelectKeyword:
-                    break;
-                case SyntaxKind.FromKeyword:
-                case SyntaxKind.WhereKeyword:
-                case SyntaxKind.OnKeyword:
-                    iMaxChildCount = 1;
-                    break;
+                return FactoryCreateCompoundJoin(xoList);
+            }
+            else
+            {
+                int iMaxChildCount = -1;
 
-                case SyntaxKind.NotKeyword:
-                    return FactoryCreateNot(xoList);
+                switch (eNextTokenKind)
+                {
+                    case SyntaxKind.SelectKeyword:
+                        break;
+                    case SyntaxKind.FromKeyword:
+                    case SyntaxKind.WhereKeyword:
+                    case SyntaxKind.OnKeyword:
+                        iMaxChildCount = 1;
+                        break;
 
-                #region Operators
-                case SyntaxKind.IsKeyword:
-                case SyntaxKind.InKeyword:
-                case SyntaxKind.LikeKeyword:
-                case SyntaxKind.EqualsToken:
-                case SyntaxKind.GreaterThanOrEqualToken:
-                case SyntaxKind.GreaterThanToken:
-                case SyntaxKind.LessThanOrEqualToToken:
-                case SyntaxKind.LessThanToken:
-                case SyntaxKind.DiamondToken:
-                case SyntaxKind.AndKeyword:
-                case SyntaxKind.OrKeyword:
-                case SyntaxKind.PlusToken:
-                case SyntaxKind.MinusToken:
-                case SyntaxKind.SlashToken:
-                    iMaxChildCount = 2;
-                    break;
+                    case SyntaxKind.NotKeyword:
+                        return FactoryCreateNot(xoList);
 
-                case SyntaxKind.StarToken:
-                    // No items in the list to consume (Solitary *)
-                    if (xoCurrentNode.Count == 0)
-                    {
-                        // 
-                        return FactoryCreateColumn(xoList);
-                    }
-                    else
-                    {
+                    #region Operators
+                    case SyntaxKind.IsKeyword:
+                    case SyntaxKind.InKeyword:
+                    case SyntaxKind.LikeKeyword:
+                    case SyntaxKind.EqualsToken:
+                    case SyntaxKind.GreaterThanOrEqualToken:
+                    case SyntaxKind.GreaterThanToken:
+                    case SyntaxKind.LessThanOrEqualToToken:
+                    case SyntaxKind.LessThanToken:
+                    case SyntaxKind.DiamondToken:
+                    case SyntaxKind.AndKeyword:
+                    case SyntaxKind.OrKeyword:
+                    case SyntaxKind.PlusToken:
+                    case SyntaxKind.MinusToken:
+                    case SyntaxKind.SlashToken:
                         iMaxChildCount = 2;
                         break;
-                    }
 
-                #endregion
+                    case SyntaxKind.StarToken:
+                        // No items in the list to consume (Solitary *)
+                        if (xoCurrentNode.Count == 0)
+                        {
+                            // 
+                            return FactoryCreateColumn(xoList);
+                        }
+                        else
+                        {
+                            iMaxChildCount = 2;
+                            break;
+                        }
 
-                #region JOIN
-                case SyntaxKind.JoinKeyword:
-                    // All Join nodes on their own become Inner joins
-                    SyntaxNode oJoinNode = new SyntaxNode(
-                        xoList.PeekToken(), 
-                        NodeStrategyFactory.FactoryCreateStrategy(xoList.PopToken().ExpectedType), 
-                        2);
-                    oJoinNode.ExpectedType = SyntaxKind.InnerJoinKeyword;
-                    return oJoinNode;
-                case SyntaxKind.InnerJoinKeyword:
-                case SyntaxKind.OuterKeyword:
-                case SyntaxKind.LeftJoinKeyword:
-                case SyntaxKind.RightJoinKeyword:
-                case SyntaxKind.CrossJoinKeyword:
-                    return FactoryCreateCompoundJoin(xoList);
-                #endregion
+                    #endregion
 
-                //case SyntaxKind.CaseKeyword:
-                case SyntaxKind.WhenKeyword:
-                case SyntaxKind.ThenKeyword:
-                case SyntaxKind.ElseKeyword:
-                case SyntaxKind.BarBarToken:
-                    break;
+                    //case SyntaxKind.CaseKeyword:
+                    case SyntaxKind.WhenKeyword:
+                    case SyntaxKind.ThenKeyword:
+                    case SyntaxKind.ElseKeyword:
+                    case SyntaxKind.BarBarToken:
+                        break;
 
-                default:
-                    // Default to the original token since it doesn't need to be converted
-                    // any more
-                    return new SyntaxLeaf(xoList.PopToken());
+                }
+
+                return new SyntaxNode(
+                           xoList.PeekToken(),
+                           NodeStrategyFactory.FactoryCreateStrategy(xoList.PopToken().ExpectedType),
+                           iMaxChildCount); // Can have multiple children
             }
-
-            return new SyntaxNode(
-                       xoList.PeekToken(),
-                       NodeStrategyFactory.FactoryCreateStrategy(xoList.PopToken().ExpectedType),
-                       iMaxChildCount); // Can have multiple children
-
         }
 
         #region Core Factory Methods
 
         /// <summary>
-        /// Generates a simple Table Symbol (used only in FROM)
+        /// Generates a simple Table Symbol 
         /// </summary>
-        /// <param name="xoCurrentToken"></param>
         /// <param name="xoList"></param>
         /// <returns></returns>
         public static SyntaxNode FactoryCreateTable(SyntaxTokenList xoList)
@@ -187,12 +170,6 @@ namespace Turing.Factories
         /// <summary>
         /// A factory method for interpreting what kind of Open Parenthesis construct
         /// we have here. 
-        /// 
-        /// This could be:
-        /// 1. SubQuery                 (SELECT * FROM X) Y
-        /// 2. An Expression grouping   WHERE (X==Y) AND ((X > Z) OR (X > A))
-        /// 3. SymbolList               GROUP BY (SVC_IDNTY, MKT_PROD_CD)
-        /// 4. Solo Column
         /// </summary>
         /// <param name="xoCurrentToken"></param>
         /// <param name="xoList"></param>
@@ -287,8 +264,19 @@ namespace Turing.Factories
 
         private static SyntaxNode FactoryCreateCompoundJoin (SyntaxTokenList xoList)
         {
+            // Break early if we got 1 join keyword
+            if (xoList.PeekToken().ExpectedType == SyntaxKind.JoinKeyword)
+            {
+                // All Join nodes on their own become Inner joins
+                SyntaxNode oJoinNode = new SyntaxNode(
+                    xoList.PeekToken(),
+                    NodeStrategyFactory.FactoryCreateStrategy(xoList.PopToken().ExpectedType),
+                    2);
+                oJoinNode.ExpectedType = SyntaxKind.InnerJoinKeyword;
+                return oJoinNode;
+            }
+
             // Create the Join Node
-            //JoinSyntaxNode oTemp = new JoinSyntaxNode(xoList.PopToken());
             SyntaxNode oTemp = new SyntaxNode(xoList.PeekToken(), NodeStrategyFactory.FactoryCreateStrategy(xoList.PopToken().ExpectedType)); 
 
             // If the next node is actually an OUTER keyword
@@ -297,6 +285,7 @@ namespace Turing.Factories
                 // Construct a proper Join keyword with the type declared
                 oTemp.RawSQLText += " " + xoList.PopToken().RawSQLText; // add the text (OUTER)
             }
+
             // If the next node is actually a Join
             if (xoList.PeekToken().ExpectedType == SyntaxKind.JoinKeyword)
             {
