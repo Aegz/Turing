@@ -170,6 +170,11 @@ namespace Turing.Syntax
 
         #endregion
 
+        public static Boolean ContainsKey(String xsGiven)
+        {
+            return Conversions.ContainsKey(xsGiven);
+        }
+
         public static SyntaxKind GetKindFromString (String xsGiven)
         {
             // Perform any cleaning to the string here

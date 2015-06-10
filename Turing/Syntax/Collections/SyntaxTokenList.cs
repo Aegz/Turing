@@ -78,6 +78,11 @@ namespace Turing.Syntax.Collections
             return oTemp;
         }
 
+        public void Insert(List<SyntaxToken> xaoList, int xiIndex)
+        {
+            aoItems.InsertRange(xiIndex, xaoList);
+        }
+
         public List<SyntaxToken> PopTokens(int xiLength)
         {
             List<SyntaxToken> aoReturn = new List<SyntaxToken>();

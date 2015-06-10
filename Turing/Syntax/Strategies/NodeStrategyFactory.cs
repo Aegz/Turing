@@ -199,18 +199,20 @@ namespace Turing.Syntax.Strategies
             Boolean bIsCoreStatement = ((int)oKind >= (int)SyntaxKind.FromKeyword &&
                 (int)oKind <= (int)SyntaxKind.HavingKeyword);
 
-            // Enforces only 1 column list is initialised
-            Boolean bTryingToAddDuplicateColumnList = SyntaxKindFacts.IsIdentifier(oKind) &&
-                    xoContext.CurrentNode.Exists((oNode) => oNode.ExpectedType == SyntaxKind.ColumnListNode);
-
-            if (!bTryingToAddDuplicateColumnList && 
-                (SyntaxKindFacts.IsIdentifierOrExpression(oKind) ||
-                oKind == SyntaxKind.StarToken ||
-                oKind == SyntaxKind.BarBarToken || // This is erroreneous but handled
-                bIsCoreStatement))
+            // If a column list hasn't been initialised yet
+            if (xoContext.CurrentNode.Count == 0 &&
+                // And we have something that can be consumed by a column list
+                (SyntaxKindFacts.IsIdentifierOrExpression(oKind) || 
+                oKind == SyntaxKind.StarToken || oKind == SyntaxKind.BarBarToken))
             {
                 return CheckIfConsumptionIsAllowed(xoContext);
             }
+            // Else we have a column list and we just found a core keyword
+            else if (xoContext.CurrentNode.Count >= 1 && bIsCoreStatement)
+            {
+                return CheckIfConsumptionIsAllowed(xoContext);
+            }
+            // Else a terminating condition
             else if (SyntaxKindFacts.IsTerminatingNode(oKind))
             {
                 // We want to remove the terminated node and quit
@@ -252,6 +254,7 @@ namespace Turing.Syntax.Strategies
         public static CanConsumeResult FromCanConsumeNext(ParsingContext xoContext, Boolean xbIsPreconsumption = false)
         {
             SyntaxKind eKind = xoContext.NextItemKind();
+
             if (SyntaxKindFacts.IsIdentifier(eKind) ||
                 eKind == SyntaxKind.OpenParenthesisToken ||
                 SyntaxKindFacts.IsJoinKeyword(eKind))
@@ -433,33 +436,52 @@ namespace Turing.Syntax.Strategies
 
         #region SymbolList
 
+        private static Boolean EligibleColumnSymbol(SyntaxKind xeKind)
+        {
+            return
+                SyntaxKindFacts.IsIdentifierOrExpression(xeKind) ||
+                SyntaxKindFacts.IsFunction(xeKind) ||
+                xeKind == SyntaxKind.StarToken ||
+                xeKind == SyntaxKind.BarBarToken ||
+                SyntaxKindFacts.IsArithmaticOperator(xeKind);
+        }
+
         public static CanConsumeResult SymbolListCanConsumeNext(ParsingContext xoContext, Boolean xbIsPreconsumption = false)
         {
             // Intermediate var
             SyntaxKind oKind = xoContext.NextItemKind();
 
-            // If we get a comma, just drop it
-            if (oKind == SyntaxKind.CommaToken)
-            {
-                xoContext.List.PopToken();
-                return CanConsumeResult.Skip;
-            }
-            else if (
-                SyntaxKindFacts.IsIdentifierOrExpression(oKind) ||
-                SyntaxKindFacts.IsFunction(oKind) ||
-                oKind == SyntaxKind.StarToken ||
-                oKind == SyntaxKind.BarBarToken ||
-                SyntaxKindFacts.IsArithmaticOperator(oKind))
-            {
-                return CheckIfConsumptionIsAllowed(xoContext);
-            }
-            // Terminate manually if we find a keyword
-            else if(SyntaxKindFacts.IsKeyword(oKind))
+            // Manually terminate if we have a keyword here
+            if (SyntaxKindFacts.IsKeyword(oKind))
             {
                 return CanConsumeResult.Complete;
             }
-
-            // Try convert
+            else if (xoContext.CurrentNode.Count == 0 && // If this is the first item, it can consume an IDN
+                EligibleColumnSymbol(oKind))
+            {
+                return CanConsumeResult.Consume;
+            }
+            // If we have some items
+            else if (xoContext.CurrentNode.Count > 0 )
+            {
+                if (oKind == SyntaxKind.CommaToken)
+                {
+                    // Consume next
+                    xoContext.List.PopToken(); // drop the comma
+                    return CanConsumeResult.Consume; // consume next
+                }
+                // Can consume conjunctive items
+                else if (
+                    oKind == SyntaxKind.BarBarToken ||
+                    SyntaxKindFacts.IsArithmaticOperator(oKind)
+                    )
+                {
+                    return CanConsumeResult.Consume;
+                }
+                // Goes to default
+            }
+       
+            // Try default
             return DefaultCanConsumeNext(xoContext);
         }
 

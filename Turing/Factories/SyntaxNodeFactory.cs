@@ -342,7 +342,8 @@ namespace Turing.Factories
                 SyntaxKindFacts.IsLiteral(eNextTokenKind))
             {
                 // Only Column List Nodes can create an Alias
-                Boolean bIsAliasNeeded = xoCurrentNode.ExpectedType == SyntaxKind.ColumnListNode;
+                Boolean bIsAliasNeeded = xoCurrentNode.ExpectedType == SyntaxKind.ColumnListNode && 
+                    eNextTokenKind != SyntaxKind.StarToken; // Stars do not get alias'
                 oReturnNode = FactoryCreateColumn(xoList, bIsAliasNeeded);
             }
             else if (eNextTokenKind == SyntaxKind.CaseKeyword)
@@ -432,9 +433,11 @@ namespace Turing.Factories
                 xoList.PopToken(); // Skip over the next 1
             }
 
-
             // Assign the alias
-            oColumn.Alias = SyntaxNodeFactory.ScanAheadForAlias(xoList);
+            if (xbIsAliasNeeded)
+            {
+                oColumn.Alias = SyntaxNodeFactory.ScanAheadForAlias(xoList);
+            }
 
             oColumn.ExpectedType = SyntaxKind.IdentifierColumnSymbol;
             oTable.ExpectedType = SyntaxKind.IdentifierTableSymbol;

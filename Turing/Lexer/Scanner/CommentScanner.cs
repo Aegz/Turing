@@ -80,6 +80,22 @@ namespace Turing.Lexer.Scanner
             return oErraneousToken;
         }
 
+        private static Boolean CheckCommentForKeywords(String xsCommentText)
+        {
+            String[] asIndividualTokens = xsCommentText.Split();
+
+            for (int iIndex = 0; iIndex < asIndividualTokens.Length; iIndex++)
+            {
+                String sWord = asIndividualTokens[iIndex];
+
+                if (SyntaxKindUtilities.ContainsKey(sWord))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
 
         public static SyntaxTrivia ScanMultiLineComment(SlidingTextWindow TextWindow)
         {

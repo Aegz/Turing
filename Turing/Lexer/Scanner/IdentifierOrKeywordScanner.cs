@@ -211,9 +211,14 @@ namespace Turing.Lexer.Scanner
                 sCharactersScannedSoFar += cNextChar;
             }
 
-            // Could not identify anything valid
-            xoToken = null;
-            return false;
+            // Return what we found (if we found anything)
+
+            // Closing case (anything that is not valid in an identifier)
+            xoToken = new SyntaxToken(SyntaxKind.UnknownNode, sCharactersScannedSoFar);
+            // Skip ahead the length of the token
+            TextWindow.SkipAhead(xoToken.RawSQLText.Length);
+            // Is true if we had a valid token (string)
+            return sCharactersScannedSoFar.Length > 0;
         }
 
         // ?? TODO: Implement this if necessary

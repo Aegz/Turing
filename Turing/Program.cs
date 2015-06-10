@@ -9,10 +9,11 @@ namespace Turing
     {
         static SlidingTextWindow oText = new SlidingTextWindow(
                 @"   
-                        SELECT  
-                        * /* Star, for everything */
-                        FROM
-                        APSHARE_FPVIEWS..FPC_SERVICE svc          
+                        SELECT CASE     
+                            WHEN ADDED ='INTERNATIONAL' THEN 'Y' 
+                            WHEN svc.MKT_PROD IN ('MOB PT', 'MOB PP') THEN '-' 
+                            ELSE 'N' END AS VARSTRING2
+                        FROM FPC_SERVICE      
                 ");
 
         static void Main(string[] args)

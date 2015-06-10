@@ -30,7 +30,7 @@ namespace Turing.Syntax
         public SyntaxNode Parent { get; set; }  // Parent Node
         public List<StatusItem> Comments;       // Comments/Errors specific to this node
 
-        protected SyntaxToken Token { get; set; }
+        public SyntaxToken Token { get; set; }
 
         protected NodeStrategy oStrategy; 
 
@@ -195,6 +195,15 @@ namespace Turing.Syntax
                     case CanConsumeResult.Complete:
                         return bHasConsumedNodes;
                     case CanConsumeResult.Unknown:
+                        // We can scan the next tokens Leading Trivia
+                        // And the last token's trailing trivia for a keyword
+                        if (ResolutionGenerator.ScanSurroundingTriviaForKeyword(oContext))
+                        {
+                            // Found a solution, keep processing
+                            break;
+                        }
+
+
                         return bHasConsumedNodes;
                 }                           
             }
@@ -242,6 +251,18 @@ namespace Turing.Syntax
         #endregion
 
         #region Common Utility
+
+        public SyntaxNode GetLastChild()
+        {
+            if (Children.Count == 0)
+            {
+                return this;
+            }
+            else
+            {
+                return Children[Count - 1].GetLastChild();
+            }
+        }
 
         public override String ToString()
         {

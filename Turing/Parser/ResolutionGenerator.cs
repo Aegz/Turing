@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Turing.Factories;
+using Turing.Lexer;
 using Turing.Syntax;
 using Turing.Syntax.Collections;
 using Turing.Syntax.Constructs;
@@ -100,6 +101,102 @@ namespace Turing.Parser
                 new FillerNode(
                     eNextTokenKind,
                     "Missing (" + SyntaxKindUtilities.GetStringFromKind(eNextTokenKind) + ")"));
+        }
+
+        public static Boolean ScanSurroundingTriviaForKeyword(ParsingContext xoContext)
+        {
+            //SyntaxNode oCurrent = xoContext.CurrentNode;
+            SyntaxNode oLastChild = xoContext.CurrentNode.GetLastChild();
+            SyntaxToken oNextToken = xoContext.List.PeekToken();
+
+            // Scan the trailing trivia of the last node created 
+            SyntaxTrivia oTrailingTrivia = oLastChild.Token.TrailingTrivia.Find((oTrivia) => 
+                oTrivia.ExpectedType == SyntaxKind.MultiLineCommentTrivia ||
+                oTrivia.ExpectedType == SyntaxKind.SingleLineCommentTrivia);
+
+            if (oTrailingTrivia != null)
+            {
+                // Find first possible keyword
+                // if we found one, Lex everything afterwards and insert into the token list
+                List<SyntaxToken> xaoNewTokens = ScanTriviaForKeywords(oTrailingTrivia);
+                
+                // If we have no tokens to parse
+                if (xaoNewTokens.Count > 0)
+                {
+                    // Add the tokens
+                    xoContext.List.Insert(xaoNewTokens, xoContext.List.Position);
+                    return true;
+                }
+            }
+
+            // Try leading trivia
+            SyntaxTrivia oLeadingTrivia = oNextToken.LeadingTrivia.Find((oTrivia) =>
+                oTrivia.ExpectedType == SyntaxKind.MultiLineCommentTrivia ||
+                oTrivia.ExpectedType == SyntaxKind.SingleLineCommentTrivia);
+
+            // Use the leading trivia of the next node
+            if (oLeadingTrivia != null)
+            {
+                // Find first possible keyword
+                // if we found one, Lex everything afterwards and insert into the token list
+                List<SyntaxToken> xaoNewTokens = ScanTriviaForKeywords(oLeadingTrivia);
+
+                // If we have no tokens to parse
+                if (xaoNewTokens.Count > 0)
+                {
+                    // Add the tokens
+                    xoContext.List.Insert(xaoNewTokens, xoContext.List.Position);
+                    return true;
+                }
+            }
+
+            // Scan Trailing of last
+
+            return false;
+        }
+
+        /// <summary>
+        /// This is very unsafe as everything is converted to Upper
+        /// before the conversion (ie. it matches against any case)
+        /// </summary>
+        /// <param name="xoTrivia"></param>
+        /// <param name="xeExpectedKind"></param>
+        /// <returns></returns>
+        public static List<SyntaxToken> ScanTriviaForKeywords(
+            SyntaxTrivia xoTrivia, 
+            Predicate<SyntaxKind> xoExpectedKind = null)
+        {
+            String[] asTriviaTextTokens = xoTrivia.RawSQLText.Split();
+            List<SyntaxToken> xaoReturnList = new List<SyntaxToken>();
+
+            for (int iIndex = 0; iIndex < asTriviaTextTokens.Length; iIndex++)
+            {
+                String sLoopingVar = asTriviaTextTokens[iIndex];
+                SyntaxKind ePossibleKind = SyntaxKindUtilities.GetKindFromString(sLoopingVar);
+
+                // If we have a positive match
+                if (ePossibleKind != SyntaxKind.UnknownNode)
+                {
+                    if (xoExpectedKind == null || // If there is no expected fn
+                        (xoExpectedKind != null && xoExpectedKind(ePossibleKind))) // Or there is one and this matches
+                    {
+                        int iCleanIndex = iIndex == 0 ? 0 : iIndex - 1;
+                        String sRemainingText = String.Join(" ", asTriviaTextTokens.Skip(iIndex));
+                        xoTrivia.RawSQLText = String.Join(" ", asTriviaTextTokens.Take(iIndex));
+
+                        // Start lexing the rest of the terms
+                        SyntaxLexer oLexer = new SyntaxLexer(new SlidingTextWindow(sRemainingText));
+
+                        // Add the new tokens to our list
+                        while (oLexer.HasTokensLeftToProcess())
+                        {
+                            xaoReturnList.Add(oLexer.LexNextToken());
+                        }
+                    }
+                }
+            }
+
+            return xaoReturnList;
         }
 
 
