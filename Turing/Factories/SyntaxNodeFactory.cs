@@ -455,7 +455,7 @@ namespace Turing.Factories
             Symbol oColumnExp = new Symbol(xoContext.List.Pop());
 
             // Consume Ahead
-            oColumnExp.TryConsumeList(xoContext);
+            oColumnExp.TryConsumeFromContext(xoContext);
 
             // Assign the alias
             oColumnExp.Alias = SyntaxNodeFactory.ScanAheadForAlias(xoContext.List);

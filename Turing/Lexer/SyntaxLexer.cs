@@ -173,7 +173,6 @@ namespace Turing.Lexer
                 case '\'': // ' right case
                 case '\"': // " wrong case - needs to be fixed
                     // Scan ahead to see if the literal has been closed properly
-                    // ?? TODO: Create a function which can try to close off literals/comments
                     SyntaxToken oLiteralToken;
                     if (LiteralScanner.ScanLiteral(TextWindow, out oLiteralToken))
                     {
@@ -304,7 +303,6 @@ namespace Turing.Lexer
                     // Did we just find an orphaned */?
                     if (TextWindow.PeekCharacter(1) == '/')
                     {
-                        // ?? TODO: Figure out what to do with this
                         // This could be an issue
                         return new SyntaxToken(
                             SyntaxKind.StarSlashToken,
@@ -427,7 +425,7 @@ namespace Turing.Lexer
                 case '8':
                 case '9':
                     SyntaxToken oNumberToken;
-                    // ?? TODO: Scan for a Number/Integer
+                    // Scan for a Number/Integer
                     if (NumberScanner.ScanNumber(TextWindow, out oNumberToken))
                     {
                         return oNumberToken;

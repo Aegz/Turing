@@ -183,10 +183,11 @@ namespace Turing.Parser
                     // Mayfly
                     SyntaxToken oToken = new SyntaxToken(ePossibleKind, sLoopingVar);
 
-                    if (xoContext.CurrentNode.Strategy.EligibilityFn(
+                    // If we can consume this node (it is something we expect)
+                    if (xoContext.CurrentNode.CanConsumeNode(
                             new ParsingContext(xoContext.CurrentNode, 
                             new SyntaxList(oToken)), 
-                            false) == CanConsumeResult.Consume) // Or there is one and this matches
+                            false) == CanConsumeResult.Consume) 
                     {
                         // Create tokens from everything beyond this Keyword we can use (because they will most likely be
                         // a part of the new keyword)
@@ -207,8 +208,6 @@ namespace Turing.Parser
 
             return xaoReturnList.Count > 0;
         }
-
-
 
     }
 }

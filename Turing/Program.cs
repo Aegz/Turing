@@ -9,9 +9,7 @@ namespace Turing
     {
         static SlidingTextWindow oText = new SlidingTextWindow(
                 @"   
-                        SELECT  
-                        * --bad comment FROM
-                        APSHARE_FPVIEWS..FPC_SERVICE svc   
+                        SELECT * --bad comment FROM APSHARE_FPVIEWS..FPC_SERVICE svc   
                 ");
 
         static void Main(string[] args)

@@ -56,7 +56,7 @@ namespace Turing.Syntax
             }
         }
 
-        public NodeStrategy Strategy { get; set; }
+        protected NodeStrategy Strategy { get; set; }
 
         //
         protected Boolean bHasConsumedNodes = false; // Tells you when it has actually built anything
@@ -103,7 +103,7 @@ namespace Turing.Syntax
         {
             get
             {
-                // ?? TODO: Exclude Exception Nodes
+                // Exclude Skipped, but include Filler
                 return Children.Where((oNode) => oNode.GetType() != typeof(SkippedNode)).Count();
             }
         }
@@ -162,7 +162,12 @@ namespace Turing.Syntax
 
         public SyntaxNode(ISyntax xoToken, NodeStrategy xoStrategy, int xiMaxChildCount = -1)
         {
+            // Assign object vars
             iMaxChildCount = xiMaxChildCount;
+            Comments = new List<StatusItem>();
+            Strategy = xoStrategy;
+
+            // Add the token according to what was given
             Type oType = xoToken.GetType();
             if (oType == typeof(SyntaxToken))
             {
@@ -172,16 +177,11 @@ namespace Turing.Syntax
             {
                 Token = ((SyntaxNode)xoToken).Token;
             }
-            else if (oType == typeof(SyntaxTrivia))
+            else
             {
-                Token = new SyntaxToken(SyntaxKind.AddKeyword, "");
-                // Trivia?
+                // Added trivia or something obscure
+                throw new Exception("Invalid object added to SyntaxNode (" + oType.ToString() + ")");
             }
-
-            
-            
-            Comments = new List<StatusItem>();
-            Strategy = xoStrategy;
         }
 
 
@@ -195,11 +195,11 @@ namespace Turing.Syntax
         }
 
         /// <summary>
-        /// Allows this node to consume tokens from the given window
+        /// This node will try and consume items from the list
         /// </summary>
-        /// <param name="xoList"></param>
+        /// <param name="xoContext"></param>
         /// <returns></returns>
-        public virtual Boolean TryConsumeList(ParsingContext xoContext)
+        public virtual Boolean TryConsumeFromContext(ParsingContext xoContext)
         {
             // Until we break
             while (true)
@@ -234,7 +234,6 @@ namespace Turing.Syntax
                             // When we fail, we need to be able to fix this
                             this.Comments.Add(new StatusItem("Could not generate:" + oNew.RawSQLText));
                         }
-
                         break;
                     case CanConsumeResult.Skip:
                         //xoList.PopToken(); // Skip the next node
@@ -250,7 +249,7 @@ namespace Turing.Syntax
                             break;
                         }
 
-
+                        // Else, fail and leave here
                         return bHasConsumedNodes;
                 }                           
             }

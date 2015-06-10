@@ -65,7 +65,7 @@ namespace Turing.Parser
                 SyntaxNode CurrentNode = SyntaxNodeFactory.ContextSensitiveConvertTokenToNode(new ParsingContext(oQuery, TokenList));
 
                 // If we consumed anything
-                if (CurrentNode.TryConsumeList(new ParsingContext(CurrentNode, TokenList)))
+                if (CurrentNode.TryConsumeFromContext(new ParsingContext(CurrentNode, TokenList)))
                 {
 
                 }
