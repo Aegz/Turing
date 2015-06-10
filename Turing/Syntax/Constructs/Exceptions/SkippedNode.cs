@@ -12,7 +12,7 @@ namespace Turing.Syntax.Constructs.Exceptions
     /// </summary>
     class SkippedNode : SyntaxNode
     {
-        public SkippedNode(SyntaxToken xoToken) : base(xoToken)
+        public SkippedNode(ISyntax xoToken) : base(xoToken)
         {
         }
 

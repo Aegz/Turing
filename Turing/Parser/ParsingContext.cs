@@ -11,26 +11,13 @@ namespace Turing.Parser
     public class ParsingContext
     {
         public SyntaxNode CurrentNode;
-        public SyntaxNode NewNode;
-        public SyntaxTokenList List;
+        public SyntaxList List;
 
-        public ParsingContext(SyntaxNode xoCurrentNode, SyntaxNode xoNewNode, SyntaxTokenList xoList)
+        public ParsingContext(ISyntax xoCurrentNode,  SyntaxList xoList)
         {
-            CurrentNode = xoCurrentNode;
-            NewNode = xoNewNode;
+            CurrentNode = (SyntaxNode)xoCurrentNode;
             List = xoList;
         }
 
-        public SyntaxKind NextItemKind()
-        {
-            if (NewNode != null)
-            {
-                return NewNode.ExpectedType;
-            }
-            else
-            {
-                return List.PeekToken().ExpectedType;
-            }
-        }
     }
 }

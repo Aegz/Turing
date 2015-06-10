@@ -1,5 +1,6 @@
 ﻿using System;
 using Turing.Diagnostics;
+using Turing.Parser;
 using Turing.Syntax;
 using Turing.Syntax.Collections;
 using Turing.Syntax.Constructs;
@@ -18,18 +19,19 @@ namespace Turing.Factories
         /// <param name="xoCurrentToken"></param>
         /// <param name="xoList"></param>
         /// <returns></returns>
-        public static SyntaxNode ContextSensitiveConvertTokenToNode(SyntaxNode xoCurrentNode, SyntaxTokenList xoList)
+        public static SyntaxNode ContextSensitiveConvertTokenToNode(
+            ParsingContext xoContext)
         {
-            SyntaxKind eNextTokenKind = xoList.PeekToken().ExpectedType;
+            SyntaxKind eNextTokenKind = xoContext.List.Peek().ExpectedType;
 
             // Is any identifier or Expression (function/literal)
             if (SyntaxKindFacts.IsIdentifierOrExpression(eNextTokenKind))
             {
-                return FactoryCreateColumnOrExpression(xoCurrentNode, xoList);
+                return FactoryCreateColumnOrExpression(xoContext);
             }
             else if (SyntaxKindFacts.IsJoinKeyword(eNextTokenKind))
             {
-                return FactoryCreateCompoundJoin(xoList);
+                return FactoryCreateCompoundJoin(xoContext);
             }
             else
             {
@@ -46,7 +48,7 @@ namespace Turing.Factories
                         break;
 
                     case SyntaxKind.NotKeyword:
-                        return FactoryCreateNot(xoList);
+                        return FactoryCreateNot(xoContext);
 
                     #region Operators
                     case SyntaxKind.IsKeyword:
@@ -68,10 +70,10 @@ namespace Turing.Factories
 
                     case SyntaxKind.StarToken:
                         // No items in the list to consume (Solitary *)
-                        if (xoCurrentNode.Count == 0)
+                        if (xoContext.CurrentNode.Count == 0)
                         {
                             // 
-                            return FactoryCreateColumn(xoList);
+                            return FactoryCreateColumn(xoContext);
                         }
                         else
                         {
@@ -91,8 +93,8 @@ namespace Turing.Factories
                 }
 
                 return new SyntaxNode(
-                           xoList.PeekToken(),
-                           NodeStrategyFactory.FactoryCreateStrategy(xoList.PopToken().ExpectedType),
+                           xoContext.List.Peek(),
+                           NodeStrategyFactory.FactoryCreateStrategy(xoContext.List.Pop().ExpectedType),
                            iMaxChildCount); // Can have multiple children
             }
         }
@@ -104,14 +106,14 @@ namespace Turing.Factories
         /// </summary>
         /// <param name="xoList"></param>
         /// <returns></returns>
-        public static SyntaxNode FactoryCreateTable(SyntaxTokenList xoList)
+        public static SyntaxNode FactoryCreateTable(ParsingContext xoContext)
         {
-            SyntaxToken xoCurrentToken = xoList.PeekToken();
+            ISyntax xoCurrentToken = xoContext.List.Peek();
 
             if (xoCurrentToken.ExpectedType == SyntaxKind.OpenParenthesisToken)
             {
                 // Subquery start
-                SyntaxToken oNextToken = xoList.PopToken();
+                ISyntax oNextToken = xoContext.List.Pop();
                 oNextToken.ExpectedType = SyntaxKind.IdentifierSubQuerySymbol; // give it a better type
                 // Create a table symbol
                 Symbol oSubquery = new Symbol(oNextToken);
@@ -127,12 +129,12 @@ namespace Turing.Factories
             int iTableLocation = 0;
 
             // Trailing item is a .. (Database)
-            if (xoList.PeekToken(1).ExpectedType == SyntaxKind.DotDotToken)
+            if (xoContext.List.Peek(1).ExpectedType == SyntaxKind.DotDotToken)
             {
                 iSchemaLocation = -1;
                 iTableLocation = 2;
             }
-            else if (xoList.PeekToken(1).ExpectedType == SyntaxKind.DotToken)
+            else if (xoContext.List.Peek(1).ExpectedType == SyntaxKind.DotToken)
             {
                 iSchemaLocation = 2;
                 iTableLocation = 4;
@@ -149,20 +151,19 @@ namespace Turing.Factories
 
             // Generate the Schema Node
             oSchema = new Symbol(new SyntaxToken(SyntaxKind.IdentifierSchemaSymbol,
-                    iSchemaLocation != -1 ? xoList.PeekToken(iSchemaLocation).RawSQLText : String.Empty));
+                    iSchemaLocation != -1 ? xoContext.List.Peek(iSchemaLocation).RawSQLText : String.Empty));
 
-            SyntaxToken oTableToken = xoList.PeekToken(iTableLocation);
-            oTable = new Symbol(new SyntaxToken(SyntaxKind.IdentifierTableSymbol, oTableToken.RawSQLText));
+            oTable = new Symbol(new SyntaxToken(SyntaxKind.IdentifierTableSymbol, xoContext.List.Peek(iTableLocation).RawSQLText));
 
             // create the decorator obj
             oSchema.Add(oTable);
             oDatabase.Add(oSchema);
 
             // Pop the tokens
-            xoList.PopTokens(Math.Max(iSchemaLocation, iTableLocation) + 1);
+            xoContext.List.Pop(Math.Max(iSchemaLocation, iTableLocation) + 1);
 
             // Assign the alias
-            ((Symbol)oTable).Alias = SyntaxNodeFactory.ScanAheadForAlias(xoList);
+            ((Symbol)oTable).Alias = SyntaxNodeFactory.ScanAheadForAlias(xoContext.List);
 
             return oDatabase;
         }
@@ -174,20 +175,20 @@ namespace Turing.Factories
         /// <param name="xoCurrentToken"></param>
         /// <param name="xoList"></param>
         /// <returns></returns>
-        private static SyntaxNode FactoryInterpretOpenParenthesisToken(SyntaxNode xoCurrentNode, SyntaxTokenList xoList)
+        private static SyntaxNode FactoryInterpretOpenParenthesisToken(ParsingContext xoContext)
         {
             // Given a (, Try and guess what type of () this is
             SyntaxNode oReturn;
-            SyntaxToken xoCurrentToken = xoList.PopToken();
+            ISyntax xoCurrentToken = xoContext.List.Pop();
 
             // 1. ( SubQuery ) - (SELECT * FROM ..) svc
             // 4. SubQuery in Expression - Where X IN (SELECT Svc_IDNTY FROM svc)
            
             // First Keyword in is SELECT
-            if (xoList.PeekToken().ExpectedType == SyntaxKind.SelectKeyword)
+            if (xoContext.List.Peek().ExpectedType == SyntaxKind.SelectKeyword)
             {
                 // Create SubQuery Symbol
-                oReturn = FactoryCreateTable(xoList);
+                oReturn = FactoryCreateTable(xoContext);
             }
             // 2. ( Symbol List ) - (1, 2, 3) or (svc.MKT_PROD_CD, svc.SVC_STAT_CD) 
             // 3. ( Expressions ) - WHERE (X =Y) or (X <> Y AND X = 0)
@@ -196,9 +197,9 @@ namespace Turing.Factories
                 Boolean bCommaFound = false; // If you find any commas before the closing bracket
                 Boolean bAllIdentifiersOrDots = true;
 
-                for (int iIndex = 0; iIndex < xoList.Count; iIndex++)
+                for (int iIndex = 0; iIndex < xoContext.List.Count; iIndex++)
                 {
-                    SyntaxToken oLoopingNode = xoList.PeekToken(iIndex);
+                    ISyntax oLoopingNode = xoContext.List.Peek(iIndex);
                     // Scan until we find something that helps us determine what this parenthesis is
                     // Or a close parenthesis
                     if (oLoopingNode.ExpectedType == SyntaxKind.CloseParenthesisToken ||
@@ -243,12 +244,12 @@ namespace Turing.Factories
                 else if (bAllIdentifiersOrDots)
                 {
                     // This must have an openning and closing parenthesis
-                    oReturn = FactoryCreateColumn(xoList);
+                    oReturn = FactoryCreateColumn(xoContext);
 
                     // Ignore a trailing Close parenthesis
-                    if (xoList.PeekToken().ExpectedType == SyntaxKind.CloseParenthesisToken)
+                    if (xoContext.List.Peek().ExpectedType == SyntaxKind.CloseParenthesisToken)
                     {
-                        xoList.PopToken();
+                        xoContext.List.Pop();
                     }
                 }
                 // Default to expression
@@ -262,117 +263,119 @@ namespace Turing.Factories
             return oReturn;
         }
 
-        private static SyntaxNode FactoryCreateCompoundJoin (SyntaxTokenList xoList)
+        private static SyntaxNode FactoryCreateCompoundJoin (ParsingContext xoContext)
         {
             // Break early if we got 1 join keyword
-            if (xoList.PeekToken().ExpectedType == SyntaxKind.JoinKeyword)
+            if (xoContext.List.Peek().ExpectedType == SyntaxKind.JoinKeyword)
             {
                 // All Join nodes on their own become Inner joins
                 SyntaxNode oJoinNode = new SyntaxNode(
-                    xoList.PeekToken(),
-                    NodeStrategyFactory.FactoryCreateStrategy(xoList.PopToken().ExpectedType),
+                    xoContext.List.Peek(),
+                    NodeStrategyFactory.FactoryCreateStrategy(xoContext.List.Pop().ExpectedType),
                     2);
                 oJoinNode.ExpectedType = SyntaxKind.InnerJoinKeyword;
                 return oJoinNode;
             }
 
             // Create the Join Node
-            SyntaxNode oTemp = new SyntaxNode(xoList.PeekToken(), NodeStrategyFactory.FactoryCreateStrategy(xoList.PopToken().ExpectedType)); 
+            SyntaxNode oTemp = new SyntaxNode(xoContext.List.Peek(), 
+                NodeStrategyFactory.FactoryCreateStrategy(xoContext.List.Pop().ExpectedType)); 
 
             // If the next node is actually an OUTER keyword
-            if (xoList.PeekToken().ExpectedType == SyntaxKind.OuterKeyword)
+            if (xoContext.List.Peek().ExpectedType == SyntaxKind.OuterKeyword)
             {
                 // Construct a proper Join keyword with the type declared
-                oTemp.RawSQLText += " " + xoList.PopToken().RawSQLText; // add the text (OUTER)
+                oTemp.RawSQLText += " " + xoContext.List.Pop().RawSQLText; // add the text (OUTER)
             }
 
             // If the next node is actually a Join
-            if (xoList.PeekToken().ExpectedType == SyntaxKind.JoinKeyword)
+            if (xoContext.List.Peek().ExpectedType == SyntaxKind.JoinKeyword)
             {
                 // Construct a proper Join keyword with the type declared
-                oTemp.RawSQLText += " " + xoList.PopToken().RawSQLText; // add the text (JOIN)
+                oTemp.RawSQLText += " " + xoContext.List.Pop().RawSQLText; // add the text (JOIN)
             }
             else
             {
                 // Add an error
-                oTemp.Comments.Add(ErrorMessageLibrary.GetErrorMessage(8000, xoList.PopToken().RawSQLText, "JOIN"));
+                oTemp.Comments.Add(ErrorMessageLibrary.GetErrorMessage(8000, xoContext.List.Pop().RawSQLText, "JOIN"));
 
             }
             // Return the Join node
             return oTemp;
         }
 
-        public static SyntaxNode FactoryCreateNot (SyntaxTokenList xoList)
+        public static SyntaxNode FactoryCreateNot (ParsingContext xoContext)
         {
             int iMaxChildCount = 1;
-            SyntaxToken oReturn = xoList.PopToken();
-            if (xoList.PeekToken().ExpectedType == SyntaxKind.InKeyword)
+            ISyntax oReturn = xoContext.List.Pop();
+            if (xoContext.List.Peek().ExpectedType == SyntaxKind.InKeyword)
             {
                 oReturn.ExpectedType = SyntaxKind.NotInKeyword;
-                oReturn.RawSQLText += " " + xoList.PopToken().RawSQLText;
+                oReturn.RawSQLText += " " + xoContext.List.Pop().RawSQLText;
                 iMaxChildCount = 2;
             }
-            else if (xoList.PeekToken().ExpectedType == SyntaxKind.LikeKeyword)
+            else if (xoContext.List.Peek().ExpectedType == SyntaxKind.LikeKeyword)
             {
                 oReturn.ExpectedType = SyntaxKind.NotLikeKeyword;
-                oReturn.RawSQLText += " " + xoList.PopToken().RawSQLText;
+                oReturn.RawSQLText += " " + xoContext.List.Pop().RawSQLText;
                 iMaxChildCount = 2;
             }
 
             return new SyntaxNode(oReturn, NodeStrategyFactory.FactoryCreateStrategy(oReturn.ExpectedType), iMaxChildCount);
         }
 
-        private static SyntaxNode FactoryCreateColumnOrExpression (SyntaxNode xoCurrentNode, SyntaxTokenList xoList)
+        private static SyntaxNode FactoryCreateColumnOrExpression (ParsingContext xoContext)
         {
-            SyntaxKind eNextTokenKind = xoList.PeekToken().ExpectedType;
+            SyntaxKind eNextTokenKind = xoContext.List.Peek().ExpectedType;
             SyntaxNode oReturnNode;
 
             // Is any identifier or Expression (function/literal)
             if (SyntaxKindFacts.IsFunction(eNextTokenKind))
             {
                 // COUNT (*)
-                oReturnNode = FactoryCreateColumnFunction(xoList);
+                oReturnNode = FactoryCreateColumnFunction(xoContext);
             }
             else if (eNextTokenKind == SyntaxKind.OpenParenthesisToken)
             {
-                oReturnNode = FactoryInterpretOpenParenthesisToken(xoCurrentNode, xoList);
+                oReturnNode = FactoryInterpretOpenParenthesisToken(xoContext);
             }
             else if (
                 SyntaxKindFacts.IsIdentifier(eNextTokenKind) ||
                 SyntaxKindFacts.IsLiteral(eNextTokenKind))
             {
                 // Only Column List Nodes can create an Alias
-                Boolean bIsAliasNeeded = xoCurrentNode.ExpectedType == SyntaxKind.ColumnListNode && 
+                Boolean bIsAliasNeeded = xoContext.CurrentNode.ExpectedType == SyntaxKind.ColumnListNode && 
                     eNextTokenKind != SyntaxKind.StarToken; // Stars do not get alias'
-                oReturnNode = FactoryCreateColumn(xoList, bIsAliasNeeded);
+
+                oReturnNode = FactoryCreateColumn(xoContext, bIsAliasNeeded);
             }
             else if (eNextTokenKind == SyntaxKind.CaseKeyword)
             {
-                if (xoCurrentNode.ExpectedType == SyntaxKind.ColumnListNode)
+                if (xoContext.CurrentNode.ExpectedType == SyntaxKind.ColumnListNode)
                 {
                     return new Symbol(
-                               xoList.PeekToken(),
-                               NodeStrategyFactory.FactoryCreateStrategy(xoList.PopToken().ExpectedType), -1);
+                               xoContext.List.Peek(),
+                               NodeStrategyFactory.FactoryCreateStrategy(xoContext.List.Pop().ExpectedType), -1);
                 }
                 else
                 {
                     return new SyntaxNode(
-                               xoList.PeekToken(),
-                               NodeStrategyFactory.FactoryCreateStrategy(xoList.PopToken().ExpectedType));
+                               xoContext.List.Peek(),
+                               NodeStrategyFactory.FactoryCreateStrategy(xoContext.List.Pop().ExpectedType));
                 }
 
             }
             else
             {
-                oReturnNode = new SyntaxLeaf(xoList.PopToken());
+                oReturnNode = new SyntaxLeaf(xoContext.List.Pop());
             }
 
             // If we have a trailing || and we arent already using a bar bar
-            if (xoCurrentNode.ExpectedType != SyntaxKind.BarBarToken &&
-                xoList.PeekToken().ExpectedType == SyntaxKind.BarBarToken)
+            if (xoContext.CurrentNode.ExpectedType != SyntaxKind.BarBarToken &&
+                xoContext.List.Peek().ExpectedType == SyntaxKind.BarBarToken)
             {
                 // Create a new bar bar node (to hold the children)
-                SyntaxNode oBarNode = new SyntaxNode(xoList.PopToken());
+                SyntaxNode oBarNode = new SyntaxNode(xoContext.List.Pop());
 
                 // Add the child 
                 oBarNode.Add(oReturnNode);
@@ -394,9 +397,9 @@ namespace Turing.Factories
         /// <param name="xoCurrentToken"></param>
         /// <param name="xoList"></param>
         /// <returns></returns>
-        private static SyntaxNode FactoryCreateColumn(SyntaxTokenList xoList, Boolean xbIsAliasNeeded = false)
+        private static SyntaxNode FactoryCreateColumn(ParsingContext xoContext, Boolean xbIsAliasNeeded = false)
         {
-            SyntaxToken xoCurrentToken = xoList.PeekToken();
+            ISyntax xoCurrentToken = xoContext.List.Peek();
 
             // A Symbol consists of multiple parts
             Symbol oTable;
@@ -405,24 +408,24 @@ namespace Turing.Factories
             // If this is a literal Column
             if (SyntaxKindFacts.IsLiteral(xoCurrentToken.ExpectedType))
             {
-                oColumn = new Symbol(xoList.PopToken(), NodeStrategyFactory.NULL_STRATEGY);
+                oColumn = new Symbol(xoContext.List.Pop(), NodeStrategyFactory.NULL_STRATEGY);
 
                 // Assign the alias
                 if (xbIsAliasNeeded)
                 {
-                    oColumn.Alias = SyntaxNodeFactory.ScanAheadForAlias(xoList);
+                    oColumn.Alias = SyntaxNodeFactory.ScanAheadForAlias(xoContext.List);
                 }
 
                 return oColumn;
             }
 
             // Trailing item is . (table.column)
-            if (xoList.PeekToken(1).ExpectedType == SyntaxKind.DotToken)
+            if (xoContext.List.Peek(1).ExpectedType == SyntaxKind.DotToken)
             {
                 oTable = new Symbol(xoCurrentToken, NodeStrategyFactory.NULL_STRATEGY);
-                oColumn = new Symbol(xoList.PeekToken(2)); // Grab the Column
+                oColumn = new Symbol(xoContext.List.Peek(2)); // Grab the Column
                 oTable.Add(oColumn);
-                xoList.PopTokens(3); // Skip over the next 2
+                xoContext.List.Pop(3); // Skip over the next 2
             }
             // Standalone Column
             else
@@ -430,13 +433,13 @@ namespace Turing.Factories
                 oTable = new Symbol(new SyntaxToken(SyntaxKind.IdentifierTableSymbol, String.Empty));
                 oColumn = new Symbol(xoCurrentToken, NodeStrategyFactory.NULL_STRATEGY); // Grab the Column
                 oTable.Add(oColumn);
-                xoList.PopToken(); // Skip over the next 1
+                xoContext.List.Pop(); // Skip over the next 1
             }
 
             // Assign the alias
             if (xbIsAliasNeeded)
             {
-                oColumn.Alias = SyntaxNodeFactory.ScanAheadForAlias(xoList);
+                oColumn.Alias = SyntaxNodeFactory.ScanAheadForAlias(xoContext.List);
             }
 
             oColumn.ExpectedType = SyntaxKind.IdentifierColumnSymbol;
@@ -446,16 +449,16 @@ namespace Turing.Factories
             return oTable;
         }
 
-        private static SyntaxNode FactoryCreateColumnFunction(SyntaxTokenList xoList)
+        private static SyntaxNode FactoryCreateColumnFunction(ParsingContext xoContext)
         {
             // generate the item
-            Symbol oColumnExp = new Symbol(xoList.PopToken());
+            Symbol oColumnExp = new Symbol(xoContext.List.Pop());
 
             // Consume Ahead
-            oColumnExp.TryConsumeList(xoList);
+            oColumnExp.TryConsumeList(xoContext);
 
             // Assign the alias
-            oColumnExp.Alias = SyntaxNodeFactory.ScanAheadForAlias(xoList);
+            oColumnExp.Alias = SyntaxNodeFactory.ScanAheadForAlias(xoContext.List);
 
             // Return the column
             return oColumnExp;
@@ -473,22 +476,23 @@ namespace Turing.Factories
         /// <param name="xoToken"></param>
         /// <param name="xoList"></param>
         /// <returns></returns>
-        public static String ScanAheadForAlias(SyntaxTokenList xoList)
+        public static String ScanAheadForAlias(SyntaxList xoList)
         {
             String sAlias = String.Empty;
             // SCAN AHEAD - To grab an alias if there is one
             if (xoList.HasTokensLeftToProcess())
             {
-                SyntaxToken oNextNode = xoList.PeekToken();
+                ISyntax oNextNode = xoList.Peek();
+
                 // Explicit
                 if (oNextNode.ExpectedType == SyntaxKind.AsKeyword)
                 {
                     // And the next node after that is an identifier
-                    if (xoList.PeekToken(1).ExpectedType == SyntaxKind.IdentifierToken)
+                    if (xoList.Peek(1).ExpectedType == SyntaxKind.IdentifierToken)
                     {
                         // Alias found
-                        sAlias = xoList.PeekToken(1).RawSQLText;
-                        xoList.PopTokens(2);
+                        sAlias = xoList.Peek(1).RawSQLText;
+                        xoList.Pop(2);
                     }
                 }
                 // Implicit
@@ -496,7 +500,7 @@ namespace Turing.Factories
                 {
                     // Alias found
                     sAlias = oNextNode.RawSQLText;
-                    xoList.PopToken();
+                    xoList.Pop();
                 }
             }
 

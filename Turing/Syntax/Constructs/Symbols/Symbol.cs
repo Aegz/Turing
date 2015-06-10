@@ -49,15 +49,15 @@ namespace Turing.Syntax.Constructs.Symbols
         /// </summary>
         /// <param name="xoToken"></param>
         /// <param name="xoStrategy"></param>
-        public Symbol(SyntaxToken xoToken, NodeStrategy xoStrategy) : base(xoToken, xoStrategy, 1)
+        public Symbol(ISyntax xoToken, NodeStrategy xoStrategy) : base(xoToken, xoStrategy, 1)
         {
         }
 
-        public Symbol(SyntaxToken xoToken, NodeStrategy xoStrategy, int xiMaxChildren) : base(xoToken, xoStrategy, xiMaxChildren)
+        public Symbol(ISyntax xoToken, NodeStrategy xoStrategy, int xiMaxChildren) : base(xoToken, xoStrategy, xiMaxChildren)
         {
         }
 
-        public Symbol(SyntaxToken xoToken) : this(xoToken, NodeStrategyFactory.FactoryCreateStrategy(xoToken.ExpectedType))
+        public Symbol(ISyntax xoToken) : this(xoToken, NodeStrategyFactory.FactoryCreateStrategy(xoToken.ExpectedType))
         {
         }
 

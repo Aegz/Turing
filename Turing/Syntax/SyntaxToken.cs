@@ -9,7 +9,7 @@ namespace Turing.Syntax
     /// Core Token object. Does not inherit from anything but is a component
     /// of the Syntax Node
     /// </summary>
-    public class SyntaxToken
+    public class SyntaxToken : ISyntax
     {
         public static readonly SyntaxToken NULL_TOKEN = new SyntaxToken(SyntaxKind.NullNode, "");
 
@@ -67,6 +67,10 @@ namespace Turing.Syntax
         {
         }
 
+        public Boolean IsNode()
+        {
+            return false;
+        }
 
     }
 }

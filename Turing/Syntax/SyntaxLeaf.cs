@@ -5,7 +5,7 @@ namespace Turing.Syntax
 {
     class SyntaxLeaf : SyntaxNode
     {
-        public SyntaxLeaf(SyntaxToken xoToken) : base(xoToken, NodeStrategyFactory.NULL_STRATEGY, 0)
+        public SyntaxLeaf(ISyntax xoToken) : base(xoToken, NodeStrategyFactory.NULL_STRATEGY, 0)
         {
         }
 

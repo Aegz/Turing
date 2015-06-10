@@ -2,13 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using Turing.Factories;
 using Turing.Lexer;
 using Turing.Syntax;
 using Turing.Syntax.Collections;
-using Turing.Syntax.Constructs;
 using Turing.Syntax.Constructs.Exceptions;
+using Turing.Syntax.Strategies;
 
 namespace Turing.Parser
 {
@@ -36,10 +34,10 @@ namespace Turing.Parser
                 SyntaxKindFacts.IsConditionalOperator(xoContext.CurrentNode.ExpectedType))
             {
                 // 
-                if (SyntaxKindFacts.IsLiteral(xoContext.List.PeekToken().ExpectedType))
+                if (SyntaxKindFacts.IsLiteral(xoContext.List.Peek().ExpectedType))
                 {
                     // Set the return kind
-                    eNextTokenKind = xoContext.List.PeekToken().ExpectedType;
+                    eNextTokenKind = xoContext.List.Peek().ExpectedType;
                 }
             }
             // Conjunctive or Adjunct will not matter what types we have
@@ -103,30 +101,32 @@ namespace Turing.Parser
                     "Missing (" + SyntaxKindUtilities.GetStringFromKind(eNextTokenKind) + ")"));
         }
 
-        public static Boolean ScanSurroundingTriviaForKeyword(ParsingContext xoContext)
+        /// <summary>
+        /// If a comment contains stuff that we need (ie. Accidentally
+        /// introducing a single line comment that is not terminated)
+        /// </summary>
+        /// <param name="xoContext"></param>
+        /// <returns></returns>
+        public static Boolean ScanSurroundingTriviaForKeyword(
+            ParsingContext xoContext)
         {
             //SyntaxNode oCurrent = xoContext.CurrentNode;
             SyntaxNode oLastChild = xoContext.CurrentNode.GetLastChild();
-            SyntaxToken oNextToken = xoContext.List.PeekToken();
+            SyntaxToken oNextToken = (SyntaxToken)xoContext.List.Peek();
 
             // Scan the trailing trivia of the last node created 
             SyntaxTrivia oTrailingTrivia = oLastChild.Token.TrailingTrivia.Find((oTrivia) => 
                 oTrivia.ExpectedType == SyntaxKind.MultiLineCommentTrivia ||
                 oTrivia.ExpectedType == SyntaxKind.SingleLineCommentTrivia);
 
-            if (oTrailingTrivia != null)
+            List<ISyntax> xaoNewTokens;
+
+            // Use the leading trivia of the next node
+            if (ScanTriviaForKeywords(xoContext, oTrailingTrivia, out xaoNewTokens))
             {
-                // Find first possible keyword
-                // if we found one, Lex everything afterwards and insert into the token list
-                List<SyntaxToken> xaoNewTokens = ScanTriviaForKeywords(oTrailingTrivia);
-                
-                // If we have no tokens to parse
-                if (xaoNewTokens.Count > 0)
-                {
-                    // Add the tokens
-                    xoContext.List.Insert(xaoNewTokens, xoContext.List.Position);
-                    return true;
-                }
+                // Add the tokens
+                xoContext.List.Insert(xaoNewTokens, xoContext.List.Position);
+                return true;
             }
 
             // Try leading trivia
@@ -135,19 +135,11 @@ namespace Turing.Parser
                 oTrivia.ExpectedType == SyntaxKind.SingleLineCommentTrivia);
 
             // Use the leading trivia of the next node
-            if (oLeadingTrivia != null)
+            if (ScanTriviaForKeywords(xoContext, oLeadingTrivia, out xaoNewTokens))
             {
-                // Find first possible keyword
-                // if we found one, Lex everything afterwards and insert into the token list
-                List<SyntaxToken> xaoNewTokens = ScanTriviaForKeywords(oLeadingTrivia);
-
-                // If we have no tokens to parse
-                if (xaoNewTokens.Count > 0)
-                {
-                    // Add the tokens
-                    xoContext.List.Insert(xaoNewTokens, xoContext.List.Position);
-                    return true;
-                }
+                // Add the tokens
+                xoContext.List.Insert(xaoNewTokens, xoContext.List.Position);
+                return true;
             }
 
             // Scan Trailing of last
@@ -160,27 +152,44 @@ namespace Turing.Parser
         /// before the conversion (ie. it matches against any case)
         /// </summary>
         /// <param name="xoTrivia"></param>
-        /// <param name="xeExpectedKind"></param>
         /// <returns></returns>
-        public static List<SyntaxToken> ScanTriviaForKeywords(
-            SyntaxTrivia xoTrivia, 
-            Predicate<SyntaxKind> xoExpectedKind = null)
+        private static Boolean ScanTriviaForKeywords(
+            ParsingContext xoContext,
+            SyntaxTrivia xoTrivia,
+            out List<ISyntax> xaoReturnList)
         {
-            String[] asTriviaTextTokens = xoTrivia.RawSQLText.Split();
-            List<SyntaxToken> xaoReturnList = new List<SyntaxToken>();
+            // Initialise the out var
+            xaoReturnList = new List<ISyntax>();
 
+            // Exit early if invalid argument passed
+            if (xoTrivia == null)
+            {
+                return false;
+            }
+
+            // Break apart the trivia text
+            String[] asTriviaTextTokens = xoTrivia.RawSQLText.Split();
+
+            // Start looping through the trivia text
             for (int iIndex = 0; iIndex < asTriviaTextTokens.Length; iIndex++)
             {
+                // For each string in the Comment/Trivia
                 String sLoopingVar = asTriviaTextTokens[iIndex];
-                SyntaxKind ePossibleKind = SyntaxKindUtilities.GetKindFromString(sLoopingVar);
+                SyntaxKind ePossibleKind = SyntaxKindUtilities.GetKindFromString(sLoopingVar); // Try and get a kind
 
                 // If we have a positive match
                 if (ePossibleKind != SyntaxKind.UnknownNode)
                 {
-                    if (xoExpectedKind == null || // If there is no expected fn
-                        (xoExpectedKind != null && xoExpectedKind(ePossibleKind))) // Or there is one and this matches
+                    // Mayfly
+                    SyntaxToken oToken = new SyntaxToken(ePossibleKind, sLoopingVar);
+
+                    if (xoContext.CurrentNode.Strategy.EligibilityFn(
+                            new ParsingContext(xoContext.CurrentNode, 
+                            new SyntaxList(oToken)), 
+                            false) == CanConsumeResult.Consume) // Or there is one and this matches
                     {
-                        int iCleanIndex = iIndex == 0 ? 0 : iIndex - 1;
+                        // Create tokens from everything beyond this Keyword we can use (because they will most likely be
+                        // a part of the new keyword)
                         String sRemainingText = String.Join(" ", asTriviaTextTokens.Skip(iIndex));
                         xoTrivia.RawSQLText = String.Join(" ", asTriviaTextTokens.Take(iIndex));
 
@@ -196,7 +205,7 @@ namespace Turing.Parser
                 }
             }
 
-            return xaoReturnList;
+            return xaoReturnList.Count > 0;
         }
 
 

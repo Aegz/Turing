@@ -14,7 +14,7 @@ namespace Turing.Syntax.Constructs.Symbols
         {
         }
 
-        public SymbolList(SyntaxToken xoToken) : base (xoToken, NodeStrategyFactory.FactoryCreateStrategy(xoToken.ExpectedType))
+        public SymbolList(ISyntax xoToken) : base (xoToken, NodeStrategyFactory.FactoryCreateStrategy(xoToken.ExpectedType))
         {
 
         }

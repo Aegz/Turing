@@ -139,13 +139,13 @@ namespace Turing.Syntax.Strategies
         /// <returns></returns>
         public static SyntaxNode TableSymbolConvertToken(ParsingContext xoContext, Boolean xbIsPreconsumption = false)
         {
-            SyntaxToken xoCurrentToken = xoContext.List.PeekToken();
+            SyntaxKind eKind = xoContext.List.Peek().ExpectedType;
 
             // If we need to perform a context sensitive conversion
-            if (SyntaxKindFacts.IsIdentifier(xoCurrentToken.ExpectedType) ||
-                xoCurrentToken.ExpectedType == SyntaxKind.OpenParenthesisToken)
+            if (SyntaxKindFacts.IsIdentifier(eKind) ||
+                eKind == SyntaxKind.OpenParenthesisToken)
             {
-                return SyntaxNodeFactory.FactoryCreateTable(xoContext.List);
+                return SyntaxNodeFactory.FactoryCreateTable(xoContext);
             }
             else
             {
@@ -162,7 +162,7 @@ namespace Turing.Syntax.Strategies
         /// <returns></returns>
         public static CanConsumeResult ExpressionCanConsumeNext(ParsingContext xoContext, Boolean xbIsPreconsumption = false)
         {
-            SyntaxKind eKind = xoContext.NextItemKind();
+            SyntaxKind eKind = xoContext.List.Peek().ExpectedType;
 
             if (
                 SyntaxKindFacts.IsIdentifierOrExpression(eKind) || // Identifiers and Expressions are allowed here
@@ -193,7 +193,7 @@ namespace Turing.Syntax.Strategies
 
         public static CanConsumeResult SelectCanConsumeNext(ParsingContext xoContext, Boolean xbIsPreconsumption = false)
         {
-            SyntaxKind oKind = xoContext.NextItemKind();
+            SyntaxKind oKind = xoContext.List.Peek().ExpectedType;
 
             // Only add core statements after the column list
             Boolean bIsCoreStatement = ((int)oKind >= (int)SyntaxKind.FromKeyword &&
@@ -216,7 +216,7 @@ namespace Turing.Syntax.Strategies
             else if (SyntaxKindFacts.IsTerminatingNode(oKind))
             {
                 // We want to remove the terminated node and quit
-                xoContext.List.PopToken();
+                xoContext.List.Pop();
                 return CanConsumeResult.Complete;
             }
             // Clearly we have something we can't consume here
@@ -229,7 +229,7 @@ namespace Turing.Syntax.Strategies
         public static SyntaxNode SelectConsumeNext(ParsingContext xoContext, Boolean xbIsPreconsumption = false)
         {
             // Build a Symbol Composite
-            SyntaxToken oCurrentToken = xoContext.List.PeekToken();
+            ISyntax oCurrentToken = xoContext.List.Peek();
 
             // If we need to perform a context sensitive conversion
             if (SyntaxKindFacts.IsIdentifierOrExpression(oCurrentToken.ExpectedType) ||
@@ -253,7 +253,7 @@ namespace Turing.Syntax.Strategies
 
         public static CanConsumeResult FromCanConsumeNext(ParsingContext xoContext, Boolean xbIsPreconsumption = false)
         {
-            SyntaxKind eKind = xoContext.NextItemKind();
+            SyntaxKind eKind = xoContext.List.Peek().ExpectedType;
 
             if (SyntaxKindFacts.IsIdentifier(eKind) ||
                 eKind == SyntaxKind.OpenParenthesisToken ||
@@ -271,7 +271,7 @@ namespace Turing.Syntax.Strategies
 
         public static CanConsumeResult JoinCanConsumeNext(ParsingContext xoContext, Boolean xbIsPreconsumption = false)
         {
-            SyntaxKind eKind = xoContext.NextItemKind();
+            SyntaxKind eKind = xoContext.List.Peek().ExpectedType;
 
             if (SyntaxKindFacts.IsIdentifier(eKind) ||
                 eKind == SyntaxKind.OpenParenthesisToken ||
@@ -309,13 +309,13 @@ namespace Turing.Syntax.Strategies
 
         public static CanConsumeResult SubQueryCanConsumeNext(ParsingContext xoContext, Boolean xbIsPreconsumption = false)
         {
-            SyntaxKind oKind = xoContext.NextItemKind();
+            SyntaxKind oKind = xoContext.List.Peek().ExpectedType;
 
             // If we get a closing parenthesis
             if (xoContext.CurrentNode.ExpectedType == SyntaxKind.IdentifierSubQuerySymbol &&
                 oKind == SyntaxKind.CloseParenthesisToken)
             {
-                xoContext.List.PopToken();
+                xoContext.List.Pop();
 
                 // Just add an Alias
                 ((Symbol)xoContext.CurrentNode).Alias = SyntaxNodeFactory.ScanAheadForAlias(xoContext.List);
@@ -343,13 +343,13 @@ namespace Turing.Syntax.Strategies
         /// <returns></returns>
         public static CanConsumeResult FunctionCanConsumeNext(ParsingContext xoContext, Boolean xbIsPreconsumption = false)
         {
-            SyntaxKind eKind = xoContext.NextItemKind();
+            SyntaxKind eKind = xoContext.List.Peek().ExpectedType;
 
             // If we get a closing parenthesis in a function
             if (eKind == SyntaxKind.CloseParenthesisToken)
             {
                 // Drop it and complete the Function
-                xoContext.List.PopToken();
+                xoContext.List.Pop();
                 return CanConsumeResult.Complete;
             }
             else if (SyntaxKindFacts.IsIdentifierOrExpression(eKind) ||
@@ -368,7 +368,7 @@ namespace Turing.Syntax.Strategies
         public static CanConsumeResult BinaryExpressionCanConsumeNext(ParsingContext xoContext, Boolean xbIsPreconsumption = false)
         {
             // Intermediate var
-            SyntaxKind eKind = xoContext.NextItemKind();
+            SyntaxKind eKind = xoContext.List.Peek().ExpectedType;
 
             // If we have something we are actually allowed to consume
             if ((xbIsPreconsumption && SyntaxKindFacts.IsAdjunctConditionalOperator(eKind)) || // Allow AND/OR in preconsump
@@ -420,10 +420,10 @@ namespace Turing.Syntax.Strategies
 
         public static SyntaxNode ExpressionConvertToken(ParsingContext xoContext, Boolean xbIsPreconsumption = false)
         {
-            if (xoContext.NextItemKind() == SyntaxKind.OpenParenthesisToken)
+            if (xoContext.List.Peek().ExpectedType == SyntaxKind.OpenParenthesisToken)
             {
                 // Create a unary expression
-                return new SyntaxNode(xoContext.List.PopToken(), NodeStrategyFactory.UNARY_EXPRESSION_STRATEGY); // UnaryExpression;);
+                return new SyntaxNode(xoContext.List.Pop(), NodeStrategyFactory.UNARY_EXPRESSION_STRATEGY); // UnaryExpression;);
             }
             else
             {
@@ -449,7 +449,7 @@ namespace Turing.Syntax.Strategies
         public static CanConsumeResult SymbolListCanConsumeNext(ParsingContext xoContext, Boolean xbIsPreconsumption = false)
         {
             // Intermediate var
-            SyntaxKind oKind = xoContext.NextItemKind();
+            SyntaxKind oKind = xoContext.List.Peek().ExpectedType;
 
             // Manually terminate if we have a keyword here
             if (SyntaxKindFacts.IsKeyword(oKind))
@@ -467,7 +467,7 @@ namespace Turing.Syntax.Strategies
                 if (oKind == SyntaxKind.CommaToken)
                 {
                     // Consume next
-                    xoContext.List.PopToken(); // drop the comma
+                    xoContext.List.Pop(); // drop the comma
                     return CanConsumeResult.Consume; // consume next
                 }
                 // Can consume conjunctive items
@@ -493,7 +493,7 @@ namespace Turing.Syntax.Strategies
         public static CanConsumeResult ConcatCanConsume(ParsingContext xoContext, Boolean xbIsPreconsumption = false)
         {
             // Intermediate var
-            SyntaxKind oKind = xoContext.NextItemKind();
+            SyntaxKind oKind = xoContext.List.Peek().ExpectedType;
             
             // Consume immediately
             if (xoContext.CurrentNode.Count <= 1)
@@ -512,9 +512,9 @@ namespace Turing.Syntax.Strategies
             else if (oKind == SyntaxKind.BarBarToken)
             {
                 // Drop the bar bar and consume the next item
-                xoContext.List.PopToken();
+                xoContext.List.Pop();
 
-                if (SyntaxKindFacts.IsIdentifierOrExpression(xoContext.NextItemKind()))
+                if (SyntaxKindFacts.IsIdentifierOrExpression(xoContext.List.Peek().ExpectedType))
                 {
                     return CanConsumeResult.Consume;
                 }
@@ -553,7 +553,7 @@ namespace Turing.Syntax.Strategies
 
         public static CanConsumeResult CaseCanConsume(ParsingContext xoContext, Boolean xbIsPreconsumption = false)
         {
-            SyntaxKind eNextKind = xoContext.NextItemKind();
+            SyntaxKind eNextKind = xoContext.List.Peek().ExpectedType;
 
             // Can consume When and Else. thats it
             if (eNextKind == SyntaxKind.WhenKeyword ||
@@ -563,7 +563,7 @@ namespace Turing.Syntax.Strategies
             }
             else if (eNextKind == SyntaxKind.EndKeyword)
             {
-                xoContext.CurrentNode.Add(new SyntaxNode(xoContext.List.PopToken()));
+                xoContext.CurrentNode.Add(new SyntaxNode(xoContext.List.Pop()));
 
                 // Only assign an alias if it is a symbol
                 if (xoContext.CurrentNode.GetType() == typeof(Symbol))
@@ -592,7 +592,7 @@ namespace Turing.Syntax.Strategies
 
         public static CanConsumeResult WhenCanConsume(ParsingContext xoContext, Boolean xbIsPreconsumption = false)
         {
-            SyntaxKind eNextKind = xoContext.NextItemKind();
+            SyntaxKind eNextKind = xoContext.List.Peek().ExpectedType;
 
             // Any Expression/Identifier
             if (SyntaxKindFacts.IsIdentifierOrExpression(eNextKind) || // Identifiers and Expressions are allowed here
@@ -613,7 +613,7 @@ namespace Turing.Syntax.Strategies
 
         public static CanConsumeResult ElseCanConsume(ParsingContext xoContext, Boolean xbIsPreconsumption = false)
         {
-            SyntaxKind eNextKind = xoContext.NextItemKind();
+            SyntaxKind eNextKind = xoContext.List.Peek().ExpectedType;
 
             // Any Expression/Identifier
             if (SyntaxKindFacts.IsIdentifierOrExpression(eNextKind) || // Identifiers and Expressions are allowed here
@@ -650,7 +650,7 @@ namespace Turing.Syntax.Strategies
         /// <returns></returns>
         public static CanConsumeResult DefaultCanConsumeNext(ParsingContext xoContext, Boolean xbIsPreconsumption = false)
         {
-            SyntaxKind eKind = xoContext.NextItemKind();
+            SyntaxKind eKind = xoContext.List.Peek().ExpectedType;
 
             // If we have a Open parenthesis starting node
             // And we just found a closing Token
@@ -659,7 +659,7 @@ namespace Turing.Syntax.Strategies
                 // We have an open paren node, remove the token and close
                 if (NodeIsOpenParenthesis(xoContext.CurrentNode))
                 {
-                    xoContext.List.PopToken();
+                    xoContext.List.Pop();
                     // Helps us get back to the appropriate Node
                     return CanConsumeResult.Complete;
                 }
@@ -677,7 +677,7 @@ namespace Turing.Syntax.Strategies
                     else
                     {
                         // Invalid Closing parenthesis here
-                        xoContext.CurrentNode.Add(new SkippedNode(xoContext.List.PopToken())); // Add as excluded node
+                        xoContext.CurrentNode.Add(new SkippedNode(xoContext.List.Pop())); // Add as excluded node
                         // keep processing
                         return CanConsumeResult.Skip;
                     }
@@ -707,13 +707,13 @@ namespace Turing.Syntax.Strategies
         public static CanConsumeResult CheckIfConsumptionIsAllowed(ParsingContext xoContext, Boolean xbIsPreconsumption = false)
         {
             Boolean bIsCompoundNotItem = xoContext.List != null ?
-                xoContext.List.PeekToken().ExpectedType == SyntaxKind.NotKeyword &&
-                (xoContext.List.PeekToken(1).ExpectedType == SyntaxKind.InKeyword ||
-                xoContext.List.PeekToken(1).ExpectedType == SyntaxKind.LikeKeyword) : false;
+                xoContext.List.Peek().ExpectedType == SyntaxKind.NotKeyword &&
+                (xoContext.List.Peek(1).ExpectedType == SyntaxKind.InKeyword ||
+                xoContext.List.Peek(1).ExpectedType == SyntaxKind.LikeKeyword) : false;
 
             Boolean bIsBinaryOperator =
                 bIsCompoundNotItem ||
-                SyntaxKindFacts.IsBinaryConstruct(xoContext.NextItemKind());
+                SyntaxKindFacts.IsBinaryConstruct(xoContext.List.Peek().ExpectedType);
 
             // Only forcibly add a construct after we are full IF it is a binary construct
             if (xoContext.CurrentNode.IsFull() && 
@@ -736,7 +736,7 @@ namespace Turing.Syntax.Strategies
         /// <returns></returns>
         public static SyntaxNode DefaultTryConsumeNext(ParsingContext xoContext, Boolean xbIsPreconsumption = false)
         {
-            return SyntaxNodeFactory.ContextSensitiveConvertTokenToNode(xoContext.CurrentNode, xoContext.List);
+            return SyntaxNodeFactory.ContextSensitiveConvertTokenToNode(xoContext);
         }
 
         /// <summary>
@@ -748,12 +748,13 @@ namespace Turing.Syntax.Strategies
         /// <returns></returns>
         public static Boolean DefaultAddChild(ParsingContext xoContext, Boolean xbIsPreconsumption = false)
         {
-            if (xoContext.NewNode == null)
+            // Is not a node, cannot be added
+            if (!xoContext.List.Peek().IsNode())
             {
                 return false;
             }
 
-            SyntaxNode oNewNode = xoContext.NewNode;
+            SyntaxNode oNewNode = (SyntaxNode)xoContext.List.Pop();
             
             // Do preconsumption here
             if (SyntaxKindFacts.IsBinaryConstruct(oNewNode.ExpectedType))
@@ -762,17 +763,20 @@ namespace Turing.Syntax.Strategies
                 if (xoContext.CurrentNode.Count == 0)
                 {
                     // Else we have an error to fix
-                    ResolutionGenerator.HandlePreconsumptionError(new ParsingContext(oNewNode, null, xoContext.List));
+                    ResolutionGenerator.HandlePreconsumptionError(new ParsingContext(oNewNode, xoContext.List));
                 }
                 // If there is something to preconsume
                 else
                 {
                     int iSiblingPosition = xoContext.CurrentNode.Count - 1;
                     SyntaxNode oPrevSibling = xoContext.CurrentNode[iSiblingPosition];
-                    
+
+                    // Put the previous sibling back on the List to be consumed
+                    xoContext.List.Insert(oPrevSibling);
+
                     // Check the eligibility of the previous node
                     CanConsumeResult eEligibility = oNewNode.CanConsumeNode(
-                        new ParsingContext(oNewNode, oPrevSibling, null), true);
+                        new ParsingContext(oNewNode, xoContext.List), true);
 
                     if (eEligibility == CanConsumeResult.Consume)
                     {
@@ -780,7 +784,7 @@ namespace Turing.Syntax.Strategies
                         oNewNode.Parent = xoContext.CurrentNode;
 
                         // Pull off the last node from the parent
-                        oNewNode.Add(oPrevSibling);
+                        oNewNode.Add((SyntaxNode)xoContext.List.Pop());
 
                         // Remove it too
                         xoContext.CurrentNode.RemoveAt(iSiblingPosition);
@@ -788,7 +792,7 @@ namespace Turing.Syntax.Strategies
                     else
                     {
                         // Else we have an error to fix
-                        ResolutionGenerator.HandlePreconsumptionError(new ParsingContext(oNewNode, null, xoContext.List));
+                        ResolutionGenerator.HandlePreconsumptionError(new ParsingContext(oNewNode, xoContext.List));
                     }
                 }
             }
@@ -803,7 +807,7 @@ namespace Turing.Syntax.Strategies
                 // Add the child
                 xoContext.CurrentNode.Add(oNewNode);
                 // 2. Depth first traversal from the child
-                if (oNewNode.TryConsumeList(xoContext.List))
+                if (oNewNode.TryConsumeList(xoContext))
                 {
                     // If it successfully consumed something
                 }

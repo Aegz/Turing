@@ -11,14 +11,14 @@ namespace Turing.Parser
         #region Object Attributes
 
         protected SyntaxLexer oLexer;       
-        public SyntaxTokenList TokenList;
+        public SyntaxList TokenList;
 
         #endregion
 
 
         public SyntaxParser (SlidingTextWindow TextWindow)
         {
-            TokenList = new SyntaxTokenList();
+            TokenList = new SyntaxList();
             oLexer = new SyntaxLexer(TextWindow);
 
             // Must initialise after object variables initialised
@@ -62,10 +62,10 @@ namespace Turing.Parser
                 StatementSyntaxNode oStatement = new StatementSyntaxNode();
 
                 // Pull off the first node
-                SyntaxNode CurrentNode = SyntaxNodeFactory.ContextSensitiveConvertTokenToNode(oStatement, TokenList);
+                SyntaxNode CurrentNode = SyntaxNodeFactory.ContextSensitiveConvertTokenToNode(new ParsingContext(oQuery, TokenList));
 
                 // If we consumed anything
-                if (CurrentNode.TryConsumeList(TokenList))
+                if (CurrentNode.TryConsumeList(new ParsingContext(CurrentNode, TokenList)))
                 {
 
                 }

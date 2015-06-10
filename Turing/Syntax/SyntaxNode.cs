@@ -11,7 +11,7 @@ using Turing.Syntax.Constructs.Exceptions;
 
 namespace Turing.Syntax
 {
-    public class SyntaxNode : IEnumerable<SyntaxNode>, IList<SyntaxNode>
+    public class SyntaxNode : IEnumerable<SyntaxNode>, IList<SyntaxNode>, ISyntax
     {
         #region Object Attributes
 
@@ -31,8 +31,32 @@ namespace Turing.Syntax
         public List<StatusItem> Comments;       // Comments/Errors specific to this node
 
         public SyntaxToken Token { get; set; }
+  
+        // return the token's trivia
+        public List<SyntaxTrivia> LeadingTrivia
+        {
+            get
+            {
+                return Token.LeadingTrivia;
+            }
+            set
+            {
 
-        protected NodeStrategy oStrategy; 
+            }
+        }
+        public List<SyntaxTrivia> TrailingTrivia
+        {
+            get
+            {
+                return Token.TrailingTrivia;
+            }
+            set
+            {
+
+            }
+        }
+
+        public NodeStrategy Strategy { get; set; }
 
         //
         protected Boolean bHasConsumedNodes = false; // Tells you when it has actually built anything
@@ -132,16 +156,32 @@ namespace Turing.Syntax
 
         #region Construction
 
-        public SyntaxNode (SyntaxToken xoToken, int xiMaxChildCount = -1) : this (xoToken, NodeStrategyFactory.FactoryCreateStrategy(xoToken.ExpectedType), xiMaxChildCount)
+        public SyntaxNode (ISyntax xoToken, int xiMaxChildCount = -1) : this (xoToken, NodeStrategyFactory.FactoryCreateStrategy(xoToken.ExpectedType), xiMaxChildCount)
         {
         }
 
-        public SyntaxNode(SyntaxToken xoToken, NodeStrategy xoStrategy, int xiMaxChildCount = -1)
+        public SyntaxNode(ISyntax xoToken, NodeStrategy xoStrategy, int xiMaxChildCount = -1)
         {
             iMaxChildCount = xiMaxChildCount;
-            Token = xoToken;
+            Type oType = xoToken.GetType();
+            if (oType == typeof(SyntaxToken))
+            {
+                Token = (SyntaxToken)xoToken;
+            }
+            else if (xoToken.IsNode())
+            {
+                Token = ((SyntaxNode)xoToken).Token;
+            }
+            else if (oType == typeof(SyntaxTrivia))
+            {
+                Token = new SyntaxToken(SyntaxKind.AddKeyword, "");
+                // Trivia?
+            }
+
+            
+            
             Comments = new List<StatusItem>();
-            oStrategy = xoStrategy;
+            Strategy = xoStrategy;
         }
 
 
@@ -151,7 +191,7 @@ namespace Turing.Syntax
 
         public virtual CanConsumeResult CanConsumeNode(ParsingContext xoContext, Boolean xbIsPreconsumption = false)
         {
-            return oStrategy.EligibilityFn(xoContext, xbIsPreconsumption);
+            return Strategy.EligibilityFn(xoContext, xbIsPreconsumption);
         }
 
         /// <summary>
@@ -159,23 +199,29 @@ namespace Turing.Syntax
         /// </summary>
         /// <param name="xoList"></param>
         /// <returns></returns>
-        public virtual Boolean TryConsumeList(SyntaxTokenList xoList)
+        public virtual Boolean TryConsumeList(ParsingContext xoContext)
         {
             // Until we break
             while (true)
             {
                 // Generate a new context every time
-                ParsingContext oContext = new ParsingContext(this, null, xoList);
+                ParsingContext oContext = new ParsingContext(this, xoContext.List);
 
                 // Call the Consumption fn
-                CanConsumeResult eResult = oStrategy.EligibilityFn(oContext, false);
+                CanConsumeResult eResult = Strategy.EligibilityFn(oContext, false);
 
                 // Switch based on the result of the attempt
                 switch (eResult)
                 {
                     case CanConsumeResult.Consume:
-                        oContext.NewNode = oStrategy.TryConsumeNextFn(oContext, false);
-                        if (oStrategy.PostProcessFn(oContext, false))
+                        // Create a new node
+                        ISyntax oNew = Strategy.TryConsumeNextFn(oContext, false);
+
+                        // Append the new node to the list
+                        oContext.List.Insert(oNew);
+
+                        // Consume it
+                        if (Strategy.PostProcessFn(oContext, false))
                         {
                             // Set the variable once
                             if (!bHasConsumedNodes)
@@ -186,8 +232,9 @@ namespace Turing.Syntax
                         else
                         {
                             // When we fail, we need to be able to fix this
-                            this.Comments.Add(new StatusItem("Could not generate:" + oContext.NewNode.RawSQLText));
+                            this.Comments.Add(new StatusItem("Could not generate:" + oNew.RawSQLText));
                         }
+
                         break;
                     case CanConsumeResult.Skip:
                         //xoList.PopToken(); // Skip the next node
@@ -251,6 +298,11 @@ namespace Turing.Syntax
         #endregion
 
         #region Common Utility
+
+        public Boolean IsNode()
+        {
+            return true;
+        }
 
         public SyntaxNode GetLastChild()
         {
