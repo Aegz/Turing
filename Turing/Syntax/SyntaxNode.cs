@@ -221,7 +221,7 @@ namespace Turing.Syntax
                         oContext.List.Insert(oNew);
 
                         // Consume it
-                        if (Strategy.PostProcessFn(oContext, false))
+                        if (AddChildAndPostProcess(oContext, false))
                         {
                             // Set the variable once
                             if (!bHasConsumedNodes)
@@ -231,19 +231,26 @@ namespace Turing.Syntax
                         }
                         else
                         {
-                            // When we fail, we need to be able to fix this
-                            this.Comments.Add(new StatusItem("Could not generate:" + oNew.RawSQLText));
+                            // Couldn't add the node for some reason
+                            this.Comments.Add(new StatusItem("Could not add:" + oNew.RawSQLText));
                         }
                         break;
                     case CanConsumeResult.Skip:
                         //xoList.PopToken(); // Skip the next node
                         break;
                     case CanConsumeResult.Complete:
+                        // If post validation fails and we fixed the issue
+                        if (!Strategy.ValidationFn(oContext) && TryAndResolveIssues(oContext))
+                        {
+                            // keep processing
+                            break;
+                        }
+
+                        // Else Terminating case
                         return bHasConsumedNodes;
                     case CanConsumeResult.Unknown:
-                        // We can scan the next tokens Leading Trivia
-                        // And the last token's trailing trivia for a keyword
-                        if (ResolutionGenerator.ScanSurroundingTriviaForKeyword(oContext))
+                        // Try and fix any issues
+                        if (TryAndResolveIssues(oContext))
                         {
                             // Found a solution, keep processing
                             break;
@@ -252,6 +259,96 @@ namespace Turing.Syntax
                         // Else, fail and leave here
                         return bHasConsumedNodes;
                 }                           
+            }
+        }
+
+        private Boolean TryAndResolveIssues(ParsingContext xoContext)
+        {
+            // We can scan the next tokens Leading Trivia
+            // And the last token's trailing trivia for a keyword
+            if (ResolutionGenerator.ScanSurroundingTriviaForKeyword(xoContext))
+            {
+                // Found a solution, keep processing
+                return true;
+            }
+
+            return false;
+
+        }
+
+        /// <summary>
+        /// Postprocessing method that can be overriden if some activity needs to be
+        /// done immediately after a node is constructed
+        /// </summary>
+        /// <param name="xoNode"></param>
+        /// <param name="xoContext.List"></param>
+        /// <returns></returns>
+        private Boolean AddChildAndPostProcess(ParsingContext xoContext, Boolean xbIsPreconsumption = false)
+        {
+            // Is not a node, cannot be added
+            if (!xoContext.List.Peek().IsNode())
+            {
+                return false;
+            }
+
+            SyntaxNode oNewNode = (SyntaxNode)xoContext.List.Pop();
+
+            // Do preconsumption here
+            if (SyntaxKindFacts.IsBinaryConstruct(oNewNode.ExpectedType))
+            {
+                // If there is nothing to preconsume
+                if (xoContext.CurrentNode.Count == 0)
+                {
+                    // Else we have an error to fix
+                    ResolutionGenerator.HandlePreconsumptionError(new ParsingContext(oNewNode, xoContext.List));
+                }
+                // If there is something to preconsume
+                else
+                {
+                    int iSiblingPosition = xoContext.CurrentNode.Count - 1;
+                    SyntaxNode oPrevSibling = xoContext.CurrentNode[iSiblingPosition];
+
+                    // Put the previous sibling back on the List to be consumed
+                    xoContext.List.Insert(oPrevSibling);
+
+                    // Check the eligibility of the previous node
+                    CanConsumeResult eEligibility = oNewNode.CanConsumeNode(
+                        new ParsingContext(oNewNode, xoContext.List), true);
+
+                    if (eEligibility == CanConsumeResult.Consume)
+                    {
+                        // Assign the parent 
+                        oNewNode.Parent = xoContext.CurrentNode;
+
+                        // Pull off the last node from the parent
+                        oNewNode.Add((SyntaxNode)xoContext.List.Pop());
+
+                        // Remove it too
+                        xoContext.CurrentNode.RemoveAt(iSiblingPosition);
+                    }
+                    else
+                    {
+                        // Else we have an error to fix
+                        ResolutionGenerator.HandlePreconsumptionError(new ParsingContext(oNewNode, xoContext.List));
+                    }
+                }
+            }
+
+            // If it is full
+            if (xoContext.CurrentNode.IsFull())
+            {
+                return false;
+            }
+            else
+            {
+                // Add the child
+                xoContext.CurrentNode.Add(oNewNode);
+                // 2. Depth first traversal from the child
+                if (oNewNode.TryConsumeFromContext(xoContext))
+                {
+                    // If it successfully consumed something
+                }
+                return true;
             }
         }
 

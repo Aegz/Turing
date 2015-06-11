@@ -124,8 +124,17 @@ namespace Turing.Syntax
 
         public static Boolean IsFunction(SyntaxKind xeKind)
         {
-            return ((int)xeKind >= (int)SyntaxKind.AverageKeyword &&
+            return
+                ((int)xeKind >= (int)SyntaxKind.CastKeyword &&
                 (int)xeKind <= (int)SyntaxKind.UpperKeyword);
+        }
+
+
+        public static Boolean IsAggregateFunction(SyntaxKind xeKind)
+        {
+            return
+                ((int)xeKind >= (int)SyntaxKind.AverageKeyword &&
+                (int)xeKind <= (int)SyntaxKind.SumKeyword);
         }
 
         public static Boolean IsIdentifierOrExpression(SyntaxKind xeKind)

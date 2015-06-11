@@ -15,12 +15,12 @@ namespace Turing.Syntax.Strategies
         public static readonly NodeStrategy NULL_STRATEGY = new NodeStrategy(
             NodeStrategyFactory.NullTwoArgument,
             NodeStrategyFactory.DefaultTryConsumeNext,
-            NodeStrategyFactory.DefaultAddChild);
+            NodeStrategyFactory.DefaultValidation);
 
         public static readonly NodeStrategy UNARY_EXPRESSION_STRATEGY = new NodeStrategy(
             NodeStrategyFactory.ExpressionCanConsumeNext,
             NodeStrategyFactory.DefaultTryConsumeNext,
-            NodeStrategyFactory.DefaultAddChild);
+            NodeStrategyFactory.DefaultValidation);
 
         #endregion
 
@@ -42,7 +42,7 @@ namespace Turing.Syntax.Strategies
                 NodeStrategy oReturnNode = new NodeStrategy(
                     DefaultCanConsumeNext,
                     DefaultTryConsumeNext,
-                    DefaultAddChild); // Default
+                    DefaultValidation); // Default
 
                 // Explicit Strategies
                 switch (xeKind)
@@ -50,6 +50,8 @@ namespace Turing.Syntax.Strategies
                     case SyntaxKind.SelectKeyword:
                         oReturnNode.EligibilityFn = SelectCanConsumeNext;
                         oReturnNode.TryConsumeNextFn = SelectConsumeNext;
+                        oReturnNode.ValidationFn = SelectIsValid;
+
                         break;
                     case SyntaxKind.FromKeyword:
                         oReturnNode.EligibilityFn = FromCanConsumeNext;
@@ -259,23 +261,41 @@ namespace Turing.Syntax.Strategies
             // Check Children are valid
             SyntaxNode oColumnList = xoContext.CurrentNode.FindFirst(SyntaxKind.ColumnListNode);
 
-            // Cant have an empty column list
-            if (oColumnList != null && oColumnList.Count > 0)
+            // 0. Cant have an empty column list
+            if (oColumnList == null || oColumnList.Count == 0)
             {
-                // If we found an identifier
-                if (oColumnList.Exists((oNode) => 
-                    SyntaxKindFacts.IsIdentifier(oNode.ExpectedType)
-                    ))
-                {
-                    // Does the select node have a from?
-                    return xoContext.CurrentNode.FindFirst(SyntaxKind.FromKeyword) != null;
-                }
-
-                // if we find an aggregate function
-                    // Do we have a Group By and is it correct?
+                // FAIL
+                return false;
             }
 
+            // 1. If we found an identifier
+            if (oColumnList.Exists(
+                (oNode) =>
+                    SyntaxKindFacts.IsIdentifier(oNode.ExpectedType)
+                ))
+            {
+                // Does the select node have a from?
+                if (xoContext.CurrentNode.FindFirst(SyntaxKind.FromKeyword) == null)
+                {
+                    // FAIL
+                    return false;
+                }
+            }
 
+            // 2. if we find an aggregate function
+            if (oColumnList.Exists((oNode) =>
+                SyntaxKindFacts.IsAggregateFunction(oNode.ExpectedType)
+                ))
+            {
+                // Do we have a Group By and is it correct?
+                if (xoContext.CurrentNode.FindFirst(SyntaxKind.GroupByKeyword) == null)
+                {
+                    // fail
+                    return false;
+                }
+            }
+
+            // default to true
             return true;
         }
 
@@ -766,80 +786,9 @@ namespace Turing.Syntax.Strategies
             return SyntaxNodeFactory.ContextSensitiveConvertTokenToNode(xoContext);
         }
 
-        /// <summary>
-        /// Postprocessing method that can be overriden if some activity needs to be
-        /// done immediately after a node is constructed
-        /// </summary>
-        /// <param name="xoNode"></param>
-        /// <param name="xoContext.List"></param>
-        /// <returns></returns>
-        private static Boolean DefaultAddChild(ParsingContext xoContext, Boolean xbIsPreconsumption = false)
+        public static Boolean DefaultValidation(ParsingContext xoContext)
         {
-            // Is not a node, cannot be added
-            if (!xoContext.List.Peek().IsNode())
-            {
-                return false;
-            }
-
-            SyntaxNode oNewNode = (SyntaxNode)xoContext.List.Pop();
-            
-            // Do preconsumption here
-            if (SyntaxKindFacts.IsBinaryConstruct(oNewNode.ExpectedType))
-            {
-                // If there is nothing to preconsume
-                if (xoContext.CurrentNode.Count == 0)
-                {
-                    // Else we have an error to fix
-                    ResolutionGenerator.HandlePreconsumptionError(new ParsingContext(oNewNode, xoContext.List));
-                }
-                // If there is something to preconsume
-                else
-                {
-                    int iSiblingPosition = xoContext.CurrentNode.Count - 1;
-                    SyntaxNode oPrevSibling = xoContext.CurrentNode[iSiblingPosition];
-
-                    // Put the previous sibling back on the List to be consumed
-                    xoContext.List.Insert(oPrevSibling);
-
-                    // Check the eligibility of the previous node
-                    CanConsumeResult eEligibility = oNewNode.CanConsumeNode(
-                        new ParsingContext(oNewNode, xoContext.List), true);
-
-                    if (eEligibility == CanConsumeResult.Consume)
-                    {
-                        // Assign the parent 
-                        oNewNode.Parent = xoContext.CurrentNode;
-
-                        // Pull off the last node from the parent
-                        oNewNode.Add((SyntaxNode)xoContext.List.Pop());
-
-                        // Remove it too
-                        xoContext.CurrentNode.RemoveAt(iSiblingPosition);
-                    }
-                    else
-                    {
-                        // Else we have an error to fix
-                        ResolutionGenerator.HandlePreconsumptionError(new ParsingContext(oNewNode, xoContext.List));
-                    }
-                }
-            }
-
-            // If it is full
-            if (xoContext.CurrentNode.IsFull())
-            {
-                return false;
-            }
-            else
-            {
-                // Add the child
-                xoContext.CurrentNode.Add(oNewNode);
-                // 2. Depth first traversal from the child
-                if (oNewNode.TryConsumeFromContext(xoContext))
-                {
-                    // If it successfully consumed something
-                }
-                return true;
-            }
+            return true;
         }
 
         #endregion

@@ -29,7 +29,7 @@ namespace Turing.Syntax.Strategies
 
         public Func<ParsingContext, Boolean, CanConsumeResult> EligibilityFn;
         public Func<ParsingContext, Boolean, SyntaxNode> TryConsumeNextFn;     // Consume Next Sibling
-        public Func<ParsingContext, Boolean, Boolean> PostProcessFn;    // Add Etc
+        public Func<ParsingContext, Boolean> ValidationFn;    
 
         public NodeStrategy()
         {
@@ -37,13 +37,13 @@ namespace Turing.Syntax.Strategies
 
         public NodeStrategy(
                 Func<ParsingContext, Boolean, CanConsumeResult> xoEligibilityFn,
-                Func<ParsingContext, Boolean, SyntaxNode> xoConsumeNext,
-                Func<ParsingContext, Boolean, Boolean> xoPostProcessFn
+                Func<ParsingContext, Boolean, SyntaxNode> xoConsumeNextFn,
+                Func<ParsingContext, Boolean> xoValidationFn
             )
         {
-            TryConsumeNextFn = xoConsumeNext;
+            TryConsumeNextFn = xoConsumeNextFn;
             EligibilityFn = xoEligibilityFn;
-            PostProcessFn = xoPostProcessFn;
+            ValidationFn = xoValidationFn;
         }
 
     }
