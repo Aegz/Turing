@@ -14,7 +14,7 @@ namespace Turing.Syntax
 
         public List<StatusItem> Comments;
 
-
+        // Leading/Trailing Trivia on this returns a list with this object
         public List<SyntaxTrivia> LeadingTrivia
         {
             get
@@ -45,6 +45,7 @@ namespace Turing.Syntax
             Comments = new List<StatusItem>();
         }
 
+        // This is not a node
         public Boolean IsNode()
         {
             return false;

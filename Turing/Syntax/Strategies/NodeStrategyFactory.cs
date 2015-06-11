@@ -248,6 +248,37 @@ namespace Turing.Syntax.Strategies
             return DefaultTryConsumeNext(xoContext);
         }
 
+        private static Boolean SelectIsValid(ParsingContext xoContext)
+        {
+            // Break early
+            if (xoContext.CurrentNode == null || xoContext.CurrentNode.Count == 0)
+            {
+                return false;
+            }
+
+            // Check Children are valid
+            SyntaxNode oColumnList = xoContext.CurrentNode.FindFirst(SyntaxKind.ColumnListNode);
+
+            // Cant have an empty column list
+            if (oColumnList != null && oColumnList.Count > 0)
+            {
+                // If we found an identifier
+                if (oColumnList.Exists((oNode) => 
+                    SyntaxKindFacts.IsIdentifier(oNode.ExpectedType)
+                    ))
+                {
+                    // Does the select node have a from?
+                    return xoContext.CurrentNode.FindFirst(SyntaxKind.FromKeyword) != null;
+                }
+
+                // if we find an aggregate function
+                    // Do we have a Group By and is it correct?
+            }
+
+
+            return true;
+        }
+
         #endregion
 
         #region FROM

@@ -84,12 +84,18 @@ namespace Turing.Syntax
 
         #region Expressions
 
+        // Unknown Type Expression
+        CastKeyword         = 20000, // CAST(X AS Y)
+
         // Integer Expressions
-        AverageKeyword      = 20000, // AVG ()
-        CastKeyword         = 20010, // CAST(X AS Y)
+        AverageKeyword      = 20010, // AVG ()
         CountKeyword        = 20020,
-        MaxKeyword          = 20030, // MAX (SOMETHING)
-        SumKeyword          = 20040, // SUM (X)
+        SumKeyword          = 20030, // SUM (X)
+
+        
+        MaxKeyword          = 20040, // MAX (SOMETHING)
+        MinKeyword          = 20041,
+        
         PositionKeyword     = 20050,
         RankKeyword         = 20060,
         RowNumberKeyword    = 20070,

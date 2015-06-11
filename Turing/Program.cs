@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using Turing.Lexer;
 using Turing.Syntax;
 

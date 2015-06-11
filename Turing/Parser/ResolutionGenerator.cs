@@ -11,7 +11,7 @@ using Turing.Syntax.Strategies;
 namespace Turing.Parser
 {
     /// <summary>
-    /// This class attempts to encapsulate all of the posssible resolutions to simple
+    /// This class attempts to encapsulate all of the posssible resolutions to simplify
     /// issues we come across during parsing. The reason why this is done during parsing
     /// is to try and facilitate continuous parsing (even when there are obvious errors).
     /// 
