@@ -6,14 +6,10 @@ namespace Turing
 {
     class Program
     {
-        // SELECT * --bad comment FROM APSHARE_FPVIEWS..FPC_SERVICE svc   
+        // 
         static SlidingTextWindow oText = new SlidingTextWindow(
                 @"                           
-                        /* TEST */      
-                        SELECT  
-                        (*)
-                        FROM
-                        APSHARE_FPVIEWS..FPC_SERVICE svc    
+                       SELECT * --bad comment FROM APSHARE_FPVIEWS..FPC_SERVICE svc   
                        
                 ");
 

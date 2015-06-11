@@ -63,7 +63,7 @@ namespace Turing.Syntax.Collections
             }
             else
             {
-                return null;
+                return new SyntaxToken(SyntaxKind.EOFNode, String.Empty);
             }
         }
 
@@ -75,7 +75,7 @@ namespace Turing.Syntax.Collections
             }
             else
             {
-                return null;
+                return new SyntaxToken(SyntaxKind.EOFNode, String.Empty); ;
             }
         }
 
